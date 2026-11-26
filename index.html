@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chez Jules — Prévisions, Pétries &amp; Traiteur</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='24' fill='%23ffffff'/%3E%3Ctext x='78' y='36' font-family='Georgia, serif' font-size='24' font-weight='bold' fill='%23231f20' text-anchor='middle'%3Echez%3C/text%3E%3Ctext x='60' y='82' font-family='Georgia, serif' font-size='46' font-weight='bold' fill='%23231f20' text-anchor='middle'%3EJules%3C/text%3E%3Ctext x='60' y='104' font-family='Arial, sans-serif' font-size='10.5' fill='%23475569' text-anchor='middle'%3Eboulanger et p%C3%A2tissier%3C/text%3E%3C/svg%3E" />
+  <title>chez Jules — Prévisions, Pétries, Traiteur &amp; Pâtisserie</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='22' fill='%23ffffff'/%3E%3Ctext x='92' y='44' font-family='Georgia, serif' font-weight='bold' font-size='24' fill='%231c1917' text-anchor='middle'%3Echez%3C/text%3E%3Ctext x='64' y='92' font-family='Georgia, serif' font-weight='bold' font-size='50' fill='%231c1917' text-anchor='middle'%3EJules%3C/text%3E%3Ctext x='64' y='114' font-family='Arial, sans-serif' font-size='11' fill='%2344403c' text-anchor='middle'%3Eboulanger et p%C3%A2tissier%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -84,7 +84,7 @@
       box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
     }
 
-    /* Écrans de connexion */
+    /* Écran de connexion */
     .auth-wrapper {
       min-height: 100vh;
       display: flex;
@@ -95,7 +95,7 @@
     }
     .auth-card {
       width: 100%;
-      max-width: 430px;
+      max-width: 440px;
       background: #fff;
       border-radius: 18px;
       padding: 2rem;
@@ -325,7 +325,6 @@
       color: #0f172a;
       background: #fff;
     }
-    .qty-input.is-text { width: 110px; font-weight: 600; font-size: 0.76rem; }
     .qty-input.is-zero { color: #94a3b8; font-weight: 600; }
     .qty-input:focus { outline: none; border-color: var(--amber); background: #fffbeb; }
     .calc-pill {
@@ -357,7 +356,6 @@
 
     /* Grilles Pétries / Fiches / Admin */
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.9rem; }
     .ft-layout { display: grid; grid-template-columns: minmax(290px, 370px) 1fr; gap: 1rem; align-items: start; }
     @media (max-width: 860px) { .ft-layout { grid-template-columns: 1fr; } }
     .ft-card-item {
@@ -410,7 +408,7 @@
       background: #fff;
       border-radius: 16px;
       width: 100%;
-      max-width: 720px;
+      max-width: 740px;
       max-height: 90vh;
       overflow-y: auto;
       padding: 1.35rem;
@@ -471,19 +469,19 @@
 </head>
 <body>
 
-  <!-- ÉCRAN DE CONNEXION OBLIGATOIRE -->
+  <!-- ÉCRAN DE CONNEXION -->
   <div id="login-screen" class="auth-wrapper">
     <div class="auth-card">
       <div style="text-align:center; margin-bottom:1.35rem;">
-        <div style="display:inline-flex; align-items:center; justify-content:center; padding:0.45rem 1rem; border-radius:14px; background:#fff; border:1px solid #fde68a; margin-bottom:0.5rem;">
-          <svg width="130" height="58" viewBox="0 0 220 96" xmlns="http://www.w3.org/2000/svg">
-            <text x="158" y="25" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#231f20" text-anchor="middle">chez</text>
-            <text x="110" y="68" font-family="Georgia, serif" font-size="58" font-weight="bold" fill="#231f20" text-anchor="middle">Jules</text>
-            <text x="110" y="88" font-family="Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">boulanger et pâtissier</text>
+        <div style="display:inline-flex; align-items:center; justify-content:center; padding:0.55rem 1.2rem; border-radius:14px; background:#fff; border:1px solid #fde68a; margin-bottom:0.65rem; box-shadow:0 2px 6px rgba(0,0,0,0.05);">
+          <svg width="160" height="62" viewBox="0 0 240 94" xmlns="http://www.w3.org/2000/svg" aria-label="chez Jules boulanger et pâtissier">
+            <text x="168" y="25" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="25" fill="#1c1917" text-anchor="middle">chez</text>
+            <text x="120" y="68" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="56" fill="#1c1917" text-anchor="middle">Jules</text>
+            <text x="120" y="88" font-family="Arial, Helvetica, sans-serif" font-size="13.5" fill="#44403c" text-anchor="middle">boulanger et pâtissier</text>
           </svg>
         </div>
-        <h1 style="font-size:1.25rem; font-weight:900; color:#111827;">Boulangeries Chez Jules</h1>
-        <p style="font-size:0.8rem; color:#6b7280; margin-top:0.2rem;">Portail Prévisions, Pétries, Traiteur &amp; Fiches Techniques</p>
+        <h1 style="font-size:1.18rem; font-weight:900; color:#111827;">Portail Fournil &amp; Boutiques</h1>
+        <p style="font-size:0.78rem; color:#6b7280; margin-top:0.2rem;">Prévisions, Pétries, Traiteur, Pâtisserie &amp; Fiches Techniques</p>
       </div>
       <form onsubmit="handleLoginSubmit(event)" style="display:flex; flex-direction:column; gap:0.85rem;">
         <div>
@@ -497,67 +495,42 @@
         <div id="login-error" class="hidden" style="background:#fee2e2; color:#b91c1c; font-size:0.76rem; font-weight:700; padding:0.55rem 0.75rem; border-radius:8px;"></div>
         <button type="submit" class="btn btn-amber" style="width:100%; padding:0.65rem; font-size:0.88rem;">🔐 Se connecter au portail</button>
       </form>
-      <p style="font-size:0.72rem; color:#6b7280; text-align:center; margin-top:1rem;">
-        Connexion nominative multi-PC • Suivi en temps réel &amp; sauvegarde 10 ans
+      <p style="font-size:0.71rem; color:#6b7280; text-align:center; margin-top:1rem;">
+        Multi-PC temps réel actif • Mots de passe gérés par l'administrateur
       </p>
-    </div>
-  </div>
-
-  <!-- ÉCRAN DE CHANGEMENT DE MOT DE PASSE À LA 1ÈRE CONNEXION -->
-  <div id="force-pwd-screen" class="auth-wrapper hidden">
-    <div class="auth-card">
-      <div style="text-align:center; margin-bottom:1.1rem;">
-        <div style="font-size:2rem; margin-bottom:0.35rem;">🔑</div>
-        <h2 style="font-size:1.15rem; font-weight:900; color:#111827;">Changement de mot de passe obligatoire</h2>
-        <p id="force-pwd-subtitle" style="font-size:0.78rem; color:#4b5563; margin-top:0.25rem;"></p>
-      </div>
-      <form onsubmit="handleForcePasswordSubmit(event)" style="display:flex; flex-direction:column; gap:0.8rem;">
-        <div>
-          <label style="display:block; font-size:0.76rem; font-weight:700; margin-bottom:0.2rem;">Nouveau mot de passe (8 caractères minimum)</label>
-          <input id="new-pwd-1" type="password" class="input" minlength="8" required />
-        </div>
-        <div>
-          <label style="display:block; font-size:0.76rem; font-weight:700; margin-bottom:0.2rem;">Confirmer le nouveau mot de passe</label>
-          <input id="new-pwd-2" type="password" class="input" minlength="8" required />
-        </div>
-        <div id="force-pwd-error" class="hidden" style="background:#fee2e2; color:#b91c1c; font-size:0.75rem; font-weight:700; padding:0.5rem 0.7rem; border-radius:8px;"></div>
-        <button type="submit" class="btn btn-emerald" style="width:100%; padding:0.65rem;">✅ Enregistrer mon nouveau mot de passe</button>
-        <button type="button" class="btn btn-white btn-sm" onclick="logoutUser()">Annuler / Retour</button>
-      </form>
     </div>
   </div>
 
   <!-- APPLICATION PRINCIPALE -->
   <div id="app-shell" class="hidden">
-    <!-- Bandeau mode Vue Magasin -->
     <div id="store-view-banner" class="store-view-banner hidden">
-      <span id="store-view-banner-text">👁️ Mode Vue Magasin actif</span>
+      <span id="store-view-banner-text">👁️ Mode Aperçu Utilisateur actif</span>
       <button type="button" class="btn btn-dark btn-sm" onclick="exitImpersonation()">↩️ Revenir à ma Vue Administrateur</button>
     </div>
 
-    <!-- Barre supérieure -->
     <header class="topbar">
       <div class="topbar-inner">
         <div style="display:flex; align-items:center; gap:0.65rem;">
-          <div style="background:#fff; border-radius:8px; padding:2px 7px; display:inline-flex; align-items:center;">
-            <svg width="68" height="30" viewBox="0 0 220 96" xmlns="http://www.w3.org/2000/svg">
-              <text x="158" y="25" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#231f20" text-anchor="middle">chez</text>
-              <text x="110" y="68" font-family="Georgia, serif" font-size="58" font-weight="bold" fill="#231f20" text-anchor="middle">Jules</text>
-              <text x="110" y="88" font-family="Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">boulanger et pâtissier</text>
+          <div style="background:#fff; border-radius:9px; padding:2px 8px; display:inline-flex; align-items:center;">
+            <svg width="86" height="34" viewBox="0 0 240 94" xmlns="http://www.w3.org/2000/svg" aria-label="chez Jules">
+              <text x="168" y="25" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="25" fill="#1c1917" text-anchor="middle">chez</text>
+              <text x="120" y="68" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="56" fill="#1c1917" text-anchor="middle">Jules</text>
+              <text x="120" y="88" font-family="Arial, Helvetica, sans-serif" font-size="13.5" fill="#44403c" text-anchor="middle">boulanger et pâtissier</text>
             </svg>
           </div>
           <div>
-            <div style="font-weight:900; font-size:0.98rem; letter-spacing:-0.01em;">CHEZ JULES <span style="color:#fbbf24;">• Gestion Fournil &amp; Boutiques</span></div>
+            <div style="font-weight:900; font-size:0.96rem; letter-spacing:-0.01em;">CHEZ JULES <span style="color:#fbbf24;">• Gestion Fournil &amp; Boutiques</span></div>
             <div id="user-role-subtitle" style="font-size:0.72rem; color:#cbd5e1;"></div>
           </div>
         </div>
 
-        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem;">
-          <span id="realtime-sync-badge" style="font-size:0.7rem; font-weight:700; background:#1e3a8a; color:#bfdbfe; border:1px solid #3b82f6; padding:0.28rem 0.6rem; border-radius:999px; cursor:pointer;" onclick="forceImmediateNetworkSync()" title="Cliquer pour forcer la synchronisation immédiate entre tous les PC">
-            🔄 Connexion Multi-PC...
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.45rem;">
+          <span id="realtime-sync-badge" style="font-size:0.7rem; font-weight:700; background:#064e3b; color:#a7f3d0; border:1px solid #10b981; padding:0.28rem 0.6rem; border-radius:999px;">
+            🟢 Temps réel multi-PC actif
           </span>
-          <span id="auto-backup-badge" style="font-size:0.7rem; font-weight:700; background:#064e3b; color:#a7f3d0; border:1px solid #047857; padding:0.28rem 0.6rem; border-radius:999px;">
-            💾 Sauvegarde auto active (10 ans)
+          <button type="button" class="btn btn-white btn-sm" onclick="forceManualSyncNow()" title="Forcer la synchronisation immédiate entre tous les PC">🔄 Sync PC</button>
+          <span id="auto-backup-badge" style="font-size:0.7rem; font-weight:700; background:#1e293b; color:#e2e8f0; border:1px solid #475569; padding:0.28rem 0.6rem; border-radius:999px;">
+            💾 Sauvegarde 10 ans
           </span>
 
           <div id="boutique-selector-wrap" style="display:flex; align-items:center; gap:0.35rem;">
@@ -572,7 +545,6 @@
       </div>
     </header>
 
-    <!-- Onglets -->
     <nav class="nav-bar">
       <div class="nav-inner" id="main-nav-tabs">
         <button type="button" class="nav-tab active" data-tab="prevision" onclick="switchTab('prevision')">1. Feuille de Prévision &amp; CA</button>
@@ -585,7 +557,6 @@
     </nav>
 
     <main class="main-container">
-      <!-- Barre semaine commune -->
       <div id="shared-week-bar" class="week-toolbar no-print">
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.45rem;">
           <button type="button" class="btn btn-white btn-sm" onclick="shiftWeek(-1)">◀ Semaine préc.</button>
@@ -599,7 +570,6 @@
         </div>
       </div>
 
-      <!-- Sélecteur jours ouvrés -->
       <div id="open-days-bar" class="day-pills no-print"></div>
 
       <!-- ONGLET 1 : PRÉVISIONS & CA -->
@@ -624,8 +594,8 @@
             </div>
           </div>
           <p style="font-size:0.74rem; color:#4b5563; margin-top:0.5rem;">
-            ℹ️ À gauche en gris : <strong>Prévision N-1</strong> (même semaine l'an dernier) • Au centre : <strong>Votre prévision</strong> • À droite en gris : <strong>Prévision S-1</strong> (semaine précédente).
-            Pour la <strong>Tradition</strong>, saisissez vos traditions supplémentaires : <strong>2 Jambons Beurre Traiteur = +1 Tradition</strong> ajoutée automatiquement.
+            ℹ️ À gauche en gris : <strong>Prévision N-1</strong> • Au centre : <strong>Votre prévision</strong> • À droite en gris : <strong>Prévision S-1</strong>.
+            <strong>2 Jambons Beurre Traiteur = +1 Tradition</strong> • <strong>2 Sandwichs Gaspard = +1 Gaspard Sandwich</strong> ajoutés automatiquement.
           </p>
         </div>
 
@@ -649,7 +619,7 @@
             <div>
               <h2 style="font-size:1rem; font-weight:900; color:#065f46;">🥪 Gamme Traiteur — Automne-Hiver 2026</h2>
               <p style="font-size:0.76rem; color:#047857; margin-top:0.15rem;">
-                🔗 <strong>Synchronisation Gamme Pain ↔ Traiteur obligatoire et automatique</strong> (2 Jambons Beurre = 1 Tradition + pain sandwichs/burgers/paninis synchronisés).
+                🔗 <strong>Synchronisation Gamme Pain &amp; Pétries ↔ Traiteur automatique</strong> (2 Jambons Beurre = 1 Tradition • 2 Sandwichs Gaspard = 1 Gaspard coupé en deux).
                 <br />🥗 <strong>Règle Salades :</strong> production possible la veille pour le lendemain • <strong>datation obligatoire à J+2</strong>.
               </p>
             </div>
@@ -702,232 +672,109 @@
     <div id="global-modal-box" class="modal-box"></div>
   </div>
 
-  <!-- ZONE D'IMPRESSION DÉDIÉE (FALLBACK SANDBOX / PDF) -->
+  <!-- FEUILLE D'IMPRESSION DÉDIÉE -->
   <div id="dedicated-print-sheet"></div>
 
   <!-- NOTIFICATION TOAST -->
   <div id="toast-box" class="toast hidden"></div>
 
-  <script>
-    /* ==========================================================================
-       0. MOTEUR TEMPS RÉEL MULTI-PC UNIVERSEL (FONCTIONNE SUR TOUS LES PC & HÉBERGEURS)
-       ========================================================================== */
-    const DEFAULT_NETWORK_ROOM = "chez-jules-lyon-reseau-9boutiques-v1";
-    const RELAY_BASE_URL = "https://ntfy.sh";
-
-    function getActiveNetworkRoom() {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const roomParam = urlParams.get("reseau");
-        if (roomParam && roomParam.trim()) {
-          const clean = roomParam.trim().replace(/[^a-zA-Z0-9_-]/g, "");
-          if (clean) {
-            window.localStorage.setItem("jules_network_room_id", clean);
-            return clean;
-          }
-        }
-        return window.localStorage.getItem("jules_network_room_id") || DEFAULT_NETWORK_ROOM;
-      } catch (e) {
-        return DEFAULT_NETWORK_ROOM;
-      }
-    }
-
-    function utf8ToBase64(str) {
-      const bytes = new TextEncoder().encode(str);
-      let bin = "";
-      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-      return btoa(bin);
-    }
-
-    function base64ToUtf8(b64) {
-      const bin = atob(b64);
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      return new TextDecoder().decode(bytes);
-    }
+  <!-- PONT CLOUD TEMPS RÉEL FIREBASE (SI DISPONIBLE) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     window.__julesCloud = {
       ready: false,
-      room: getActiveNetworkRoom(),
-      seenMsgIds: new Set(),
-      eventSource: null,
-      pollTimer: null,
+      db: null,
+      auth: null,
+      appId: typeof __app_id !== "undefined" ? __app_id : "chez-jules-reseau-2026",
       pushGlobal: null,
       pushBoutique: null,
-      pushActivity: null,
-      pushDelta: null,
-      pendingDeltas: []
+      pushActivity: null
     };
 
-    function updateSyncBadge(status, text) {
-      const badge = document.getElementById("realtime-sync-badge");
-      if (!badge) return;
-      if (status === "ok") {
-        badge.style.background = "#064e3b";
-        badge.style.color = "#a7f3d0";
-        badge.style.borderColor = "#10b981";
-      } else if (status === "syncing") {
-        badge.style.background = "#92400e";
-        badge.style.color = "#fef3c7";
-        badge.style.borderColor = "#f59e0b";
-      } else {
-        badge.style.background = "#1e3a8a";
-        badge.style.color = "#bfdbfe";
-        badge.style.borderColor = "#3b82f6";
-      }
-      badge.textContent = text;
-    }
-
-    async function sendRelayPacket(packetObj) {
-      const room = window.__julesCloud.room;
-      const packet = {
-        ...packetObj,
-        msgId: packetObj.msgId || ("m-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8)),
-        senderPc: typeof PC_DEVICE_ID !== "undefined" ? PC_DEVICE_ID : "PC",
-        sentAt: new Date().toISOString()
-      };
-      window.__julesCloud.seenMsgIds.add(packet.msgId);
-
-      // Diffusion immédiate entre onglets du même navigateur via BroadcastChannel
+    async function initRealtimeCloud() {
       try {
-        if (window.__julesBC) window.__julesBC.postMessage(packet);
-      } catch (e) {}
+        if (typeof __firebase_config === "undefined" || !__firebase_config) return;
+        const firebaseConfig = typeof __firebase_config === "string" ? JSON.parse(__firebase_config) : __firebase_config;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = window.__julesCloud.appId;
 
-      // Diffusion Internet temps réel multi-PC
-      try {
-        const encoded = utf8ToBase64(JSON.stringify(packet));
-        updateSyncBadge("syncing", "📡 Envoi en direct...");
-        const res = await fetch(`${RELAY_BASE_URL}/${encodeURIComponent(room)}`, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: encoded
-        });
-        if (res.ok) {
-          updateSyncBadge("ok", "🟢 EN DIRECT • Multi-PC Connecté");
+        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
         }
-      } catch (err) {
-        updateSyncBadge("warn", "🟠 Sync locale (vérifiez Internet)");
-      }
-    }
 
-    function handleIncomingRelayRaw(rawText) {
-      if (!rawText) return;
-      let packet = null;
-      try {
-        const lineObj = JSON.parse(rawText);
-        if (lineObj && lineObj.event === "message" && lineObj.message) {
-          packet = JSON.parse(base64ToUtf8(lineObj.message));
-        } else if (lineObj && lineObj.kind) {
-          packet = lineObj;
-        }
-      } catch (e) {
-        try {
-          packet = JSON.parse(base64ToUtf8(rawText.trim()));
-        } catch (e2) {}
-      }
+        if (!auth.currentUser) return;
+        window.__julesCloud.db = db;
+        window.__julesCloud.auth = auth;
+        window.__julesCloud.ready = true;
 
-      if (!packet || !packet.msgId || !packet.kind) return;
-      if (window.__julesCloud.seenMsgIds.has(packet.msgId)) return;
-      window.__julesCloud.seenMsgIds.add(packet.msgId);
-      if (packet.senderPc === PC_DEVICE_ID) return;
+        const globalDocRef = doc(db, "artifacts", appId, "public", "data", "jules_network_state", "global_config");
+        const boutiquesColRef = collection(db, "artifacts", appId, "public", "data", "jules_boutiques_live");
+        const activityColRef = collection(db, "artifacts", appId, "public", "data", "jules_activity_log");
 
-      if (window.__processIncomingNetworkPacket) {
-        window.__processIncomingNetworkPacket(packet);
-      }
-    }
-
-    async function fetchRecentRelayHistory(sinceParam = "24h") {
-      const room = window.__julesCloud.room;
-      try {
-        const res = await fetch(`${RELAY_BASE_URL}/${encodeURIComponent(room)}/json?poll=1&since=${sinceParam}`, {
-          cache: "no-store"
-        });
-        if (!res.ok) return;
-        const text = await res.text();
-        const lines = text.split(/\r?\n/).filter(Boolean);
-        lines.forEach(line => handleIncomingRelayRaw(line));
-        updateSyncBadge("ok", "🟢 EN DIRECT • Multi-PC Connecté");
-      } catch (e) {}
-    }
-
-    function startUniversalRealtimeSync() {
-      const room = window.__julesCloud.room;
-
-      try {
-        window.__julesBC = new BroadcastChannel("jules_bc_" + room);
-        window.__julesBC.onmessage = (ev) => {
-          if (ev.data) handleIncomingRelayRaw(JSON.stringify(ev.data));
-        };
-      } catch (e) {}
-
-      window.__julesCloud.pushDelta = (deltaPayload) => {
-        sendRelayPacket({ kind: "delta", ...deltaPayload });
-      };
-      window.__julesCloud.pushGlobal = (payload) => {
-        sendRelayPacket({ kind: "global_config", payload });
-      };
-      window.__julesCloud.pushBoutique = (boutiqueName, storeObj) => {
-        sendRelayPacket({
-          kind: "boutique_full",
-          boutique: boutiqueName,
-          weeks: storeObj.weeks || {}
-        });
-      };
-      window.__julesCloud.pushActivity = (entry) => {
-        sendRelayPacket({ kind: "activity", entry });
-      };
-      window.__julesCloud.ready = true;
-
-      // 1. Récupérer immédiatement les 24 dernières heures de saisies multi-PC
-      fetchRecentRelayHistory("24h");
-
-      // 2. Flux temps réel instantané (Server-Sent Events)
-      try {
-        if (window.__julesCloud.eventSource) {
-          window.__julesCloud.eventSource.close();
-        }
-        const es = new EventSource(`${RELAY_BASE_URL}/${encodeURIComponent(room)}/sse`);
-        es.onopen = () => {
-          updateSyncBadge("ok", "🟢 EN DIRECT • Multi-PC Connecté");
-        };
-        es.onmessage = (ev) => {
-          if (ev && ev.data) handleIncomingRelayRaw(ev.data);
-        };
-        es.onerror = () => {
-          updateSyncBadge("warn", "🔄 Reconnexion Multi-PC...");
-        };
-        window.__julesCloud.eventSource = es;
-      } catch (e) {}
-
-      // 3. Filet de sécurité HTTP toutes les 4 secondes si un pare-feu bloque SSE
-      clearInterval(window.__julesCloud.pollTimer);
-      window.__julesCloud.pollTimer = setInterval(() => {
-        fetchRecentRelayHistory("30s");
-      }, 4000);
-    }
-
-    function forceImmediateNetworkSync() {
-      updateSyncBadge("syncing", "🔄 Synchronisation...");
-      fetchRecentRelayHistory("24h").then(() => {
-        if (typeof state !== "undefined" && state.currentUser && state.selectedBoutique) {
-          if (window.__julesCloud.pushBoutique) {
-            window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
-          }
-          if (isEffectiveAdmin() && window.__julesCloud.pushGlobal) {
-            window.__julesCloud.pushGlobal({
-              usersJson: JSON.stringify(state.users),
-              catalogJson: JSON.stringify(state.catalog),
-              patisserieCatalogJson: JSON.stringify(state.patisserieCatalog),
-              schedulesJson: JSON.stringify(state.schedules),
-              techSheetsJson: JSON.stringify(state.techSheets)
+        window.__julesCloud.pushGlobal = async (payload) => {
+          if (!auth.currentUser) return;
+          try {
+            await setDoc(globalDocRef, {
+              ...payload,
+              updatedAt: new Date().toISOString(),
+              updatedBy: window.__getCurrentActorName ? window.__getCurrentActorName() : "Réseau"
             });
-          }
-        }
-        showToast("Synchronisation Multi-PC effectuée !");
-      });
+          } catch (err) {}
+        };
+
+        window.__julesCloud.pushBoutique = async (boutiqueName, storeObj) => {
+          if (!auth.currentUser || !boutiqueName) return;
+          try {
+            const bDocRef = doc(db, "artifacts", appId, "public", "data", "jules_boutiques_live", boutiqueName);
+            await setDoc(bDocRef, {
+              boutique: boutiqueName,
+              weeksJson: JSON.stringify(storeObj.weeks || {}),
+              updatedAt: new Date().toISOString(),
+              updatedBy: window.__getCurrentActorName ? window.__getCurrentActorName() : boutiqueName
+            });
+          } catch (err) {}
+        };
+
+        window.__julesCloud.pushActivity = async (entry) => {
+          if (!auth.currentUser) return;
+          try {
+            const actDocRef = doc(db, "artifacts", appId, "public", "data", "jules_activity_log", entry.id);
+            await setDoc(actDocRef, entry);
+          } catch (err) {}
+        };
+
+        onSnapshot(globalDocRef, (snap) => {
+          if (!snap.exists()) return;
+          if (window.__applyRemoteGlobalConfig) window.__applyRemoteGlobalConfig(snap.data());
+        }, () => {});
+
+        onSnapshot(boutiquesColRef, (snap) => {
+          snap.docChanges().forEach(change => {
+            if (change.type === "added" || change.type === "modified") {
+              const d = change.doc.data();
+              if (window.__applyRemoteBoutiqueData && d && d.boutique) {
+                window.__applyRemoteBoutiqueData(d);
+              }
+            }
+          });
+        }, () => {});
+
+        onSnapshot(activityColRef, (snap) => {
+          const allLogs = [];
+          snap.forEach(docSnap => { if (docSnap.exists()) allLogs.push(docSnap.data()); });
+          if (window.__applyRemoteActivityLogs) window.__applyRemoteActivityLogs(allLogs);
+        }, () => {});
+      } catch (e) {}
     }
 
-    startUniversalRealtimeSync();
+    initRealtimeCloud();
   </script>
 
   <script>
@@ -936,31 +783,20 @@
        ========================================================================== */
     const APP_DATA_VERSION = 9;
     const RETENTION_YEARS = 10;
-
-    const PC_DEVICE_ID = (() => {
-      try {
-        let id = window.sessionStorage.getItem("jules_pc_device_id");
-        if (!id) {
-          id = "PC-" + Math.random().toString(36).substring(2, 6).toUpperCase();
-          window.sessionStorage.setItem("jules_pc_device_id", id);
-        }
-        return id;
-      } catch (e) {
-        return "PC-WEB";
-      }
-    })();
+    const DEVICE_ID = "PC-" + Math.random().toString(36).substring(2, 6).toUpperCase();
 
     const STORAGE_KEYS = {
-      schemaMeta: "jules_v8_schema_meta",
-      session: "jules_v8_session",
-      users: "jules_v8_users",
-      catalog: "jules_v8_catalog",
-      customCatalogOrder: "jules_v8_custom_catalog_order",
-      patisserieCatalog: "jules_v8_patisserie_catalog",
-      schedules: "jules_v8_schedules",
-      techSheets: "jules_v8_tech_sheets",
-      activityLog: "jules_v8_activity_log",
-      safetySnapshot: "jules_v8_safety_snapshot_10y"
+      schemaMeta: "jules_v9_schema_meta",
+      session: "jules_v9_session",
+      users: "jules_v9_users",
+      catalog: "jules_v9_catalog",
+      customCatalogOrder: "jules_v9_custom_catalog_order",
+      patisserieCatalog: "jules_v9_patisserie_catalog",
+      schedules: "jules_v9_schedules",
+      techSheets: "jules_v9_tech_sheets",
+      activityLog: "jules_v9_activity_log",
+      networkChannel: "jules_v9_network_channel",
+      safetySnapshot: "jules_v9_safety_snapshot_10y"
     };
 
     const _memoryStorage = {};
@@ -989,7 +825,7 @@
     }
 
     function boutiqueStorageKey(boutiqueName) {
-      return `jules_v8_boutique_${slugify(boutiqueName)}`;
+      return `jules_v9_boutique_${slugify(boutiqueName)}`;
     }
 
     function escapeHtml(str) {
@@ -1016,7 +852,7 @@
       box.textContent = msg;
       box.classList.remove("hidden");
       clearTimeout(_toastTimer);
-      _toastTimer = setTimeout(() => box.classList.add("hidden"), 3200);
+      _toastTimer = setTimeout(() => box.classList.add("hidden"), 3400);
     }
 
     const DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
@@ -1035,27 +871,22 @@
     ];
 
     const PETRIN_DEFINITIONS = [
-      { id: "petrin-tradition", label: "1. Pétrin Base Tradition" },
-      { id: "petrin-biobise", label: "2. Pétrin Base BioBise (Levain, Spéciaux & Sportif)" },
-      { id: "petrin-complet", label: "3. Pétrin Base Complet & Célestine" },
-      { id: "petrin-leonie", label: "4. Pétrin Léonie (Petit Épeautre & Graines)" },
-      { id: "petrin-gaspard", label: "5. Pétrin Gaspard" },
-      { id: "petrin-campagne", label: "6. Pétrin Campagne" },
-      { id: "petrin-5-graines", label: "7. Pétrin 5 Graines" },
-      { id: "petrin-saxon", label: "8. Pétrin Saxon" },
-      { id: "petrin-tourte-seigle", label: "9. Pétrin Tourte de Seigle (100% Seigle T170)" },
-      { id: "petrin-seigle", label: "10. Pétrin Seigle & Seigle Raisin" },
-      { id: "petrin-sarrasin", label: "11. Pétrin Sarrasin" },
-      { id: "petrin-mais", label: "12. Pétrin Base Maïs & Maïs Épinards" },
-      { id: "petrin-ciabatta-panini", label: "13. Pétrin Ciabatta, Focaccia, Burgers, Panini & Tart'à Pain" },
-      { id: "petrin-viennois", label: "14. Pétrin Base Viennois, Muesli, Hot Dog & Pain de Mie" },
-      { id: "petrin-brioche", label: "15. Pétrin Base Brioche (Nanterres, Briochettes & Bressanes)" }
+      { id: "petrin-tradition", title: "1. Pétrin Base Tradition" },
+      { id: "petrin-biobise", title: "2. Pétrin Base BioBise (Levain, Spéciaux & Sportif)" },
+      { id: "petrin-complet", title: "3. Pétrin Base Complet & Célestine" },
+      { id: "petrin-leonie", title: "4. Pétrin Léonie (Petit Épeautre & Graines)" },
+      { id: "petrin-gaspard", title: "5. Pétrin Gaspard" },
+      { id: "petrin-campagne", title: "6. Pétrin Campagne" },
+      { id: "petrin-5-graines", title: "7. Pétrin 5 Graines" },
+      { id: "petrin-saxon", title: "8. Pétrin Saxon" },
+      { id: "petrin-tourte-seigle", title: "9. Pétrin Tourte de Seigle (100% Seigle T170)" },
+      { id: "petrin-seigle", title: "10. Pétrin Seigle & Seigle Raisin" },
+      { id: "petrin-sarrasin", title: "11. Pétrin Sarrasin" },
+      { id: "petrin-mais", title: "12. Pétrin Base Maïs & Maïs Épinards" },
+      { id: "petrin-ciabatta-panini", title: "13. Pétrin Ciabatta, Focaccia, Burgers, Panini & Tart'à Pain" },
+      { id: "petrin-viennois", title: "14. Pétrin Base Viennois, Muesli, Hot Dog & Pain de Mie" },
+      { id: "petrin-brioche", title: "15. Pétrin Base Brioche (Nanterres, Briochettes & Bressanes)" }
     ];
-
-    function getPetrinOptionsHtml(selectedId = "") {
-      return `<option value="">-- Aucune pétrie (ou Plaquage Viennoiserie) --</option>` +
-        PETRIN_DEFINITIONS.map(pt => `<option value="${pt.id}" ${pt.id === selectedId ? "selected" : ""}>${escapeHtml(pt.label)}</option>`).join("");
-    }
 
     function buildDefaultSchedules() {
       const res = {};
@@ -1082,7 +913,7 @@
       { key: "adminManageCatalog", label: "Admin : Ajouter / supprimer / mettre en dormance des produits (Gammes)", group: "Administration Réseau" },
       { key: "adminManagePricesCa", label: "Admin : Modifier les Tarifs (€) & CA Objectif réseau", group: "Administration Réseau" },
       { key: "adminManageSchedules", label: "Admin : Modifier les jours d'ouverture des boutiques", group: "Administration Réseau" },
-      { key: "adminManageUsers", label: "Admin : Créer / modifier les comptes & autorisations", group: "Administration Réseau" },
+      { key: "adminManageUsers", label: "Admin : Créer / modifier les comptes, mots de passe & autorisations", group: "Administration Réseau" },
       { key: "adminExportHtml", label: "Admin : Générer index.html & Sauvegardes JSON 10 ans", group: "Administration Réseau" }
     ];
 
@@ -1143,7 +974,7 @@
           role: "boutique",
           boutique: b.name,
           label: `Boutique ${b.name}`,
-          mustChangePassword: true,
+          mustChangePassword: false,
           passwordChangedAt: null,
           permissions: { ...DEFAULT_BOUTIQUE_PERMISSIONS }
         };
@@ -1722,16 +1553,16 @@
         "2026-11-30": { caObjectif: [6831, 6909, 6446, 7471, 7494, 5781, 5423], caRealise: [0, 0, 0, 0, 0, 0, 0] }
       },
       "Villefranche": { "2026-11-23": { caObjectif: [1549, 1419, 1502, 1412, 1340, 0, 0], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
-      "Caluire": { "2026-11-23": { caObjectif: [3184, 3092, 3148, 2967, 3304, 3343, 3653], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
-      "Vitton": { "2026-11-23": { caObjectif: [4844, 4709, 4893, 5271, 4491, 4857, 4908], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
-      "Brotteaux": { "2026-11-23": { caObjectif: [3848, 3424, 3813, 3592, 3858, 3406, 3342], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
-      "Beynost": { "2026-11-23": { caObjectif: [3340, 3125, 3294, 3619, 3875, 2943, 2655], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
-      "Berthelot": { "2026-11-23": { caObjectif: [2065, 1503, 1988, 1850, 2100, 1481, 1886], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
-      "Saint Paul": { "2026-11-23": { caObjectif: [4200, 4050, 4150, 4300, 4450, 3900, 3650], caRealise: [0, 0, 0, 0, 0, 0, 0] } }
+      "Caluire":      { "2026-11-23": { caObjectif: [3184, 3092, 3148, 2967, 3304, 3343, 3653], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Vitton":       { "2026-11-23": { caObjectif: [4844, 4709, 4893, 5271, 4491, 4857, 4908], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Brotteaux":    { "2026-11-23": { caObjectif: [3848, 3424, 3813, 3592, 3858, 3406, 3342], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Beynost":      { "2026-11-23": { caObjectif: [3340, 3125, 3294, 3619, 3875, 2943, 2655], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Berthelot":    { "2026-11-23": { caObjectif: [2065, 1503, 1988, 1850, 2100, 1481, 1886], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Saint Paul":   { "2026-11-23": { caObjectif: [4200, 4050, 4150, 4300, 4450, 3900, 3650], caRealise: [0, 0, 0, 0, 0, 0, 0] } }
     };
 
     /* ==========================================================================
-       3. ÉTAT GLOBAL DE L'APPLICATION & UTILITAIRES DE DATES
+       3. ÉTAT GLOBAL & UTILITAIRES DE DATES
        ========================================================================== */
     const weatherCache = {};
 
@@ -1748,6 +1579,7 @@
       schedules: {},
       techSheets: [],
       activityLog: [],
+      networkChannel: "chez-jules-lyon-reseau-9boutiques-v1",
       storeData: { boutique: "Saint Paul", weeks: {} },
       hideZeroPetries: true,
       selectedTechSheetFolder: "ALL",
@@ -1758,14 +1590,12 @@
       const [y, m, d] = String(iso || "2026-11-23").split("-").map(Number);
       return new Date(y, (m || 1) - 1, d || 1);
     }
-
     function toIsoDate(dateObj) {
       const y = dateObj.getFullYear();
       const m = String(dateObj.getMonth() + 1).padStart(2, "0");
       const d = String(dateObj.getDate()).padStart(2, "0");
       return `${y}-${m}-${d}`;
     }
-
     function getMondayOfDate(dateObj) {
       const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
       const day = d.getDay();
@@ -1773,18 +1603,15 @@
       d.setDate(d.getDate() + diff);
       return d;
     }
-
     function addDaysIso(iso, days) {
       const d = parseIsoDate(iso);
       d.setDate(d.getDate() + days);
       return toIsoDate(d);
     }
-
     function formatShortFrDate(iso) {
       const d = parseIsoDate(iso);
       return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
     }
-
     function getIsoWeekNumber(iso) {
       const d = parseIsoDate(iso);
       const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -1795,7 +1622,265 @@
     }
 
     /* ==========================================================================
-       4. MIGRATION & PERSISTANCE DES DONNÉES (10 ANS) & SUIVI TEMPS RÉEL MULTI-PC
+       4. MOTEUR TEMPS RÉEL MULTI-POSTES (TRIPLE CANAL : FIRESTORE + RELAI HTTP/SSE + BROADCAST)
+       ========================================================================== */
+    let _isApplyingRemote = false;
+    let _localBroadcastChannel = null;
+    let _sseEventSource = null;
+    const _processedPacketIds = new Set();
+
+    function getActiveNetworkChannel() {
+      const urlParam = new URLSearchParams(window.location.search).get("reseau");
+      if (urlParam && urlParam.trim()) {
+        const clean = slugify(urlParam.trim());
+        safeSetItem(STORAGE_KEYS.networkChannel, clean);
+        state.networkChannel = clean;
+        return clean;
+      }
+      const saved = safeGetItem(STORAGE_KEYS.networkChannel);
+      if (saved && saved.trim()) {
+        state.networkChannel = saved.trim();
+      }
+      return state.networkChannel;
+    }
+
+    function broadcastNetworkPacket(packet) {
+      if (_isApplyingRemote) return;
+      const ch = getActiveNetworkChannel();
+      const fullPacket = {
+        ...packet,
+        pktId: `${DEVICE_ID}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        senderDevice: DEVICE_ID,
+        sentAt: new Date().toISOString()
+      };
+      _processedPacketIds.add(fullPacket.pktId);
+
+      // 1. Diffusion instantanée entre onglets / fenêtres du même navigateur
+      try {
+        if (!_localBroadcastChannel && typeof BroadcastChannel !== "undefined") {
+          _localBroadcastChannel = new BroadcastChannel("jules_live_" + ch);
+        }
+        if (_localBroadcastChannel) _localBroadcastChannel.postMessage(fullPacket);
+      } catch (e) {}
+
+      // 2. Relai réseau HTTP temps réel multi-PC (ntfy.sh JSON pub/sub)
+      try {
+        fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}`, {
+          method: "POST",
+          body: JSON.stringify(fullPacket)
+        }).catch(() => {});
+      } catch (e) {}
+    }
+
+    function initUniversalMultiPcSync() {
+      const ch = getActiveNetworkChannel();
+      const badge = document.getElementById("realtime-sync-badge");
+
+      // Canal local inter-onglets
+      try {
+        if (typeof BroadcastChannel !== "undefined") {
+          _localBroadcastChannel = new BroadcastChannel("jules_live_" + ch);
+          _localBroadcastChannel.onmessage = ev => {
+            if (ev && ev.data) window.__processIncomingNetworkPacket(ev.data);
+          };
+        }
+      } catch (e) {}
+
+      // Flux SSE temps réel multi-PC + récupération des derniers messages
+      const connectStream = () => {
+        try {
+          if (_sseEventSource) _sseEventSource.close();
+          _sseEventSource = new EventSource(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/sse?since=30m`);
+          _sseEventSource.onopen = () => {
+            if (badge) {
+              badge.style.background = "#064e3b";
+              badge.style.color = "#a7f3d0";
+              badge.style.borderColor = "#10b981";
+              badge.textContent = `🟢 Multi-PC En Direct (${DEVICE_ID})`;
+            }
+          };
+          _sseEventSource.onmessage = ev => {
+            try {
+              const envelope = JSON.parse(ev.data);
+              if (envelope && envelope.message) {
+                const pkt = JSON.parse(envelope.message);
+                window.__processIncomingNetworkPacket(pkt);
+              }
+            } catch (err) {}
+          };
+          _sseEventSource.onerror = () => {
+            if (badge) {
+              badge.style.background = "#1e3a8a";
+              badge.style.color = "#bfdbfe";
+              badge.style.borderColor = "#3b82f6";
+              badge.textContent = `🔄 Reconnexion Multi-PC (${DEVICE_ID})...`;
+            }
+          };
+        } catch (e) {}
+      };
+
+      connectStream();
+
+      // Demander l'état le plus récent aux autres PC connectés
+      setTimeout(() => {
+        broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
+      }, 900);
+    }
+
+    function forceManualSyncNow() {
+      const ch = getActiveNetworkChannel();
+      showToast("Synchronisation multi-PC en cours...");
+      // Récupérer les derniers messages via HTTP JSON
+      fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/json?poll=1&since=2h`)
+        .then(r => r.text())
+        .then(txt => {
+          txt.split(/\r?\n/).filter(Boolean).forEach(line => {
+            try {
+              const env = JSON.parse(line);
+              if (env && env.message) {
+                window.__processIncomingNetworkPacket(JSON.parse(env.message));
+              }
+            } catch (e) {}
+          });
+        })
+        .catch(() => {});
+
+      broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
+      if (state.currentUser) {
+        if (isEffectiveAdmin()) {
+          saveGlobalConfig(false);
+        }
+        saveCurrentBoutiqueData(false);
+      }
+      renderAllViews();
+      showToast("✅ Synchronisation multi-PC actualisée !");
+    }
+
+    window.__processIncomingNetworkPacket = function (pkt) {
+      if (!pkt || !pkt.pktId) return;
+      if (pkt.senderDevice === DEVICE_ID || _processedPacketIds.has(pkt.pktId)) return;
+      _processedPacketIds.add(pkt.pktId);
+      if (_processedPacketIds.size > 600) {
+        const first = _processedPacketIds.values().next().value;
+        _processedPacketIds.delete(first);
+      }
+
+      if (pkt.kind === "sync_ping") {
+        // Si ce poste a des données locales ou est Admin, il partage l'état actuel
+        if (state.currentUser) {
+          if (isEffectiveAdmin()) {
+            broadcastNetworkPacket({
+              kind: "global_state",
+              users: state.users,
+              catalog: state.catalog,
+              patisserieCatalog: state.patisserieCatalog,
+              schedules: state.schedules,
+              techSheets: state.techSheets
+            });
+          }
+          if (state.selectedBoutique && state.storeData?.weeks?.[state.selectedWeekMonday]) {
+            broadcastNetworkPacket({
+              kind: "week_delta",
+              boutique: state.selectedBoutique,
+              mondayIso: state.selectedWeekMonday,
+              weekData: state.storeData.weeks[state.selectedWeekMonday]
+            });
+          }
+        }
+        return;
+      }
+
+      _isApplyingRemote = true;
+      try {
+        if (pkt.kind === "global_state") {
+          if (Array.isArray(pkt.users) && pkt.users.length) {
+            state.users = pkt.users;
+            safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
+            if (state.currentUser) {
+              const me = state.users.find(u => u.id === state.currentUser.id);
+              if (me) state.currentUser = me;
+            }
+          }
+          if (Array.isArray(pkt.catalog) && pkt.catalog.length) {
+            state.catalog = pkt.catalog;
+            safeSetItem(STORAGE_KEYS.catalog, JSON.stringify(state.catalog));
+          }
+          if (Array.isArray(pkt.patisserieCatalog) && pkt.patisserieCatalog.length) {
+            state.patisserieCatalog = pkt.patisserieCatalog;
+            safeSetItem(STORAGE_KEYS.patisserieCatalog, JSON.stringify(state.patisserieCatalog));
+          }
+          if (pkt.schedules && typeof pkt.schedules === "object") {
+            state.schedules = pkt.schedules;
+            safeSetItem(STORAGE_KEYS.schedules, JSON.stringify(state.schedules));
+          }
+          if (Array.isArray(pkt.techSheets) && pkt.techSheets.length) {
+            state.techSheets = pkt.techSheets;
+            safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
+          }
+          if (state.currentUser) renderAllViews();
+        } else if (pkt.kind === "week_delta" && pkt.boutique && pkt.mondayIso && pkt.weekData) {
+          const st = readBoutiqueStoreReadOnly(pkt.boutique);
+          st.weeks = st.weeks || {};
+          st.weeks[pkt.mondayIso] = pkt.weekData;
+          safeSetItem(boutiqueStorageKey(pkt.boutique), JSON.stringify(st));
+          if (state.selectedBoutique === pkt.boutique) {
+            state.storeData = st;
+            if (state.currentUser) renderAllViews();
+          }
+        } else if (pkt.kind === "cell_delta" && pkt.boutique && pkt.mondayIso) {
+          const st = readBoutiqueStoreReadOnly(pkt.boutique);
+          st.weeks = st.weeks || {};
+          if (!st.weeks[pkt.mondayIso]) {
+            st.weeks[pkt.mondayIso] = {
+              quantities: {},
+              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
+              patisserie: {},
+              caObjectif: [0,0,0,0,0,0,0],
+              caRealise: [0,0,0,0,0,0,0],
+              autoSyncTraiteur: true
+            };
+          }
+          const wk = st.weeks[pkt.mondayIso];
+          if (pkt.domain === "forecast" && pkt.productId) {
+            if (!wk.quantities[pkt.productId]) wk.quantities[pkt.productId] = [0,0,0,0,0,0,0];
+            wk.quantities[pkt.productId][pkt.dayIdx] = pkt.value;
+          } else if (pkt.domain === "traiteur" && pkt.trId) {
+            const item = (wk.traiteur || []).find(t => t.id === pkt.trId);
+            if (item) {
+              item.quantities[pkt.dayIdx] = pkt.value;
+              syncTraiteurToForecast(wk);
+            }
+          } else if (pkt.domain === "patisserie" && pkt.patId) {
+            if (!wk.patisserie[pkt.patId]) wk.patisserie[pkt.patId] = [0,0,0,0,0,0,0];
+            wk.patisserie[pkt.patId][pkt.dayIdx] = pkt.value;
+          } else if (pkt.domain === "caRealise") {
+            wk.caRealise[pkt.dayIdx] = pkt.value;
+          } else if (pkt.domain === "caObjectif") {
+            wk.caObjectif[pkt.dayIdx] = pkt.value;
+          }
+          safeSetItem(boutiqueStorageKey(pkt.boutique), JSON.stringify(st));
+          if (state.selectedBoutique === pkt.boutique) {
+            state.storeData = st;
+            if (state.currentUser) renderAllViews();
+          }
+        } else if (pkt.kind === "activity" && pkt.entry) {
+          if (!state.activityLog.some(x => x.id === pkt.entry.id)) {
+            state.activityLog.unshift(pkt.entry);
+            if (state.activityLog.length > 150) state.activityLog = state.activityLog.slice(0, 150);
+            safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
+            if (isEffectiveAdmin() && state.currentUser) {
+              showToast(`📡 ${pkt.entry.boutique} : ${pkt.entry.summary}`);
+              if (state.activeTab === "admin") renderAdminView();
+            }
+          }
+        }
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+    };
+
+    /* ==========================================================================
+       5. MIGRATION & PERSISTANCE DES DONNÉES (10 ANS)
        ========================================================================== */
     function loadGlobalConfig() {
       try {
@@ -1804,6 +1889,8 @@
       } catch (e) {
         state.users = JSON.parse(JSON.stringify(DEFAULT_USERS));
       }
+      // Garantir que les boutiques n'ont jamais de changement de mot de passe forcé
+      state.users.forEach(u => { u.mustChangePassword = false; });
 
       try {
         const c = JSON.parse(safeGetItem(STORAGE_KEYS.catalog));
@@ -1841,28 +1928,24 @@
       }
     }
 
-    let _isApplyingRemote = false;
-
     function recordNetworkActivity(type, boutiqueName, summary) {
-      const baseActor = state.currentUser ? state.currentUser.label : (boutiqueName || "Système");
-      const actor = `${baseActor} • ${PC_DEVICE_ID}`;
+      const actor = state.currentUser ? `${state.currentUser.label} [${DEVICE_ID}]` : `${boutiqueName || "Poste"} [${DEVICE_ID}]`;
       const entry = {
-        id: "act-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
+        id: "act-" + Date.now() + "-" + Math.floor(Math.random() * 100000),
         timestamp: new Date().toISOString(),
         type,
         actor,
-        pcId: PC_DEVICE_ID,
         boutique: boutiqueName || (state.currentUser?.boutique && state.currentUser.boutique !== "ALL" ? state.currentUser.boutique : state.selectedBoutique),
         summary
       };
       state.activityLog.unshift(entry);
-      if (state.activityLog.length > 200) state.activityLog = state.activityLog.slice(0, 200);
+      if (state.activityLog.length > 150) state.activityLog = state.activityLog.slice(0, 150);
       safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
-      if (!_isApplyingRemote && window.__julesCloud) {
-        if (window.__julesCloud.ready && window.__julesCloud.pushActivity) {
+
+      if (!_isApplyingRemote) {
+        broadcastNetworkPacket({ kind: "activity", entry });
+        if (window.__julesCloud && window.__julesCloud.pushActivity) {
           window.__julesCloud.pushActivity(entry);
-        } else {
-          window.__julesCloud.pendingActivities.push(entry);
         }
       }
     }
@@ -1880,66 +1963,25 @@
         migratedAt: new Date().toISOString()
       }));
       runFullAutoBackup(true);
-      if (!skipCloudPush && !_isApplyingRemote && window.__julesCloud) {
-        const payload = {
-          usersJson: JSON.stringify(state.users),
-          catalogJson: JSON.stringify(state.catalog),
-          patisserieCatalogJson: JSON.stringify(state.patisserieCatalog),
-          schedulesJson: JSON.stringify(state.schedules),
-          techSheetsJson: JSON.stringify(state.techSheets)
-        };
-        if (window.__julesCloud.ready && window.__julesCloud.pushGlobal) {
-          window.__julesCloud.pushGlobal(payload);
-        } else {
-          window.__julesCloud.pendingGlobal = payload;
-        }
-      }
-    }
 
-    function migrateAndPersistAllData() {
-      loadGlobalConfig();
-      BOUTIQUES.forEach(b => {
-        const key = boutiqueStorageKey(b.name);
-        if (!safeGetItem(key)) {
-          const initialWeeks = {};
-          const tbbShop = INITIAL_TBB_2026_DATA[b.name] || {};
-          Object.entries(tbbShop).forEach(([mondayIso, obj]) => {
-            initialWeeks[mondayIso] = {
-              quantities: {},
-              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
-              patisserie: {},
-              caObjectif: [...(obj.caObjectif || [0,0,0,0,0,0,0])],
-              caRealise: [...(obj.caRealise || [0,0,0,0,0,0,0])],
-              autoSyncTraiteur: true
-            };
+      if (!skipCloudPush && !_isApplyingRemote) {
+        broadcastNetworkPacket({
+          kind: "global_state",
+          users: state.users,
+          catalog: state.catalog,
+          patisserieCatalog: state.patisserieCatalog,
+          schedules: state.schedules,
+          techSheets: state.techSheets
+        });
+        if (window.__julesCloud && window.__julesCloud.pushGlobal) {
+          window.__julesCloud.pushGlobal({
+            usersJson: JSON.stringify(state.users),
+            catalogJson: JSON.stringify(state.catalog),
+            patisserieCatalogJson: JSON.stringify(state.patisserieCatalog),
+            schedulesJson: JSON.stringify(state.schedules),
+            techSheetsJson: JSON.stringify(state.techSheets)
           });
-          safeSetItem(key, JSON.stringify({ boutique: b.name, weeks: initialWeeks }));
         }
-      });
-      saveGlobalConfig(true);
-    }
-
-    function readBoutiqueStoreReadOnly(boutiqueName) {
-      try {
-        const raw = safeGetItem(boutiqueStorageKey(boutiqueName));
-        const parsed = raw ? JSON.parse(raw) : null;
-        if (parsed && typeof parsed === "object" && parsed.weeks) return parsed;
-      } catch (e) {}
-      return { boutique: boutiqueName, weeks: {} };
-    }
-
-    function loadBoutiqueStore(boutiqueName) {
-      state.storeData = readBoutiqueStoreReadOnly(boutiqueName);
-      if (!state.storeData.weeks) state.storeData.weeks = {};
-    }
-
-    function saveCurrentBoutiqueData(triggerBackup = true) {
-      if (!state.selectedBoutique || !state.storeData) return;
-      state.storeData.boutique = state.selectedBoutique;
-      safeSetItem(boutiqueStorageKey(state.selectedBoutique), JSON.stringify(state.storeData));
-      if (triggerBackup) {
-        runFullAutoBackup(true);
-        scheduleCloudPush();
       }
     }
 
@@ -1994,22 +2036,184 @@
       });
     }
 
+    function migrateAndPersistAllData() {
+      loadGlobalConfig();
+      BOUTIQUES.forEach(b => {
+        const key = boutiqueStorageKey(b.name);
+        if (!safeGetItem(key)) {
+          const initialWeeks = {};
+          const tbbShop = INITIAL_TBB_2026_DATA[b.name] || {};
+          Object.entries(tbbShop).forEach(([mondayIso, obj]) => {
+            initialWeeks[mondayIso] = {
+              quantities: {},
+              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
+              patisserie: {},
+              caObjectif: [...(obj.caObjectif || [0,0,0,0,0,0,0])],
+              caRealise: [...(obj.caRealise || [0,0,0,0,0,0,0])],
+              autoSyncTraiteur: true
+            };
+          });
+          safeSetItem(key, JSON.stringify({ boutique: b.name, weeks: initialWeeks }));
+        }
+      });
+      saveGlobalConfig(true);
+    }
+
+    function readBoutiqueStoreReadOnly(boutiqueName) {
+      try {
+        const raw = safeGetItem(boutiqueStorageKey(boutiqueName));
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && typeof parsed === "object" && parsed.weeks) return parsed;
+      } catch (e) {}
+      return { boutique: boutiqueName, weeks: {} };
+    }
+
+    function loadBoutiqueStore(boutiqueName) {
+      state.storeData = readBoutiqueStoreReadOnly(boutiqueName);
+      if (!state.storeData.weeks) state.storeData.weeks = {};
+    }
+
+    function saveCurrentBoutiqueData(triggerBackup = true) {
+      if (!state.selectedBoutique || !state.storeData) return;
+      state.storeData.boutique = state.selectedBoutique;
+      safeSetItem(boutiqueStorageKey(state.selectedBoutique), JSON.stringify(state.storeData));
+      if (triggerBackup) {
+        runFullAutoBackup(true);
+        scheduleCloudPush();
+      }
+    }
+
+    let _cloudPushTimer = null;
+    function scheduleCloudPush() {
+      if (_isApplyingRemote) return;
+      clearTimeout(_cloudPushTimer);
+      _cloudPushTimer = setTimeout(() => {
+        if (state.selectedBoutique && state.storeData?.weeks?.[state.selectedWeekMonday]) {
+          broadcastNetworkPacket({
+            kind: "week_delta",
+            boutique: state.selectedBoutique,
+            mondayIso: state.selectedWeekMonday,
+            weekData: state.storeData.weeks[state.selectedWeekMonday]
+          });
+        }
+        if (window.__julesCloud && window.__julesCloud.pushBoutique && state.selectedBoutique) {
+          window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
+        }
+      }, 200);
+    }
+
+    window.__getCurrentActorName = function () {
+      return state.currentUser ? state.currentUser.label : state.selectedBoutique;
+    };
+
+    window.__applyRemoteGlobalConfig = function (data) {
+      if (!data) return;
+      _isApplyingRemote = true;
+      try {
+        if (data.usersJson) {
+          const parsedUsers = JSON.parse(data.usersJson);
+          if (Array.isArray(parsedUsers) && parsedUsers.length) {
+            state.users = parsedUsers;
+            state.users.forEach(u => { u.mustChangePassword = false; });
+            safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
+            if (state.currentUser) {
+              const refreshedSelf = state.users.find(u => u.id === state.currentUser.id);
+              if (refreshedSelf) state.currentUser = refreshedSelf;
+            }
+          }
+        }
+        if (data.catalogJson) {
+          const parsedCat = JSON.parse(data.catalogJson);
+          if (Array.isArray(parsedCat) && parsedCat.length) {
+            state.catalog = parsedCat;
+            safeSetItem(STORAGE_KEYS.catalog, JSON.stringify(state.catalog));
+          }
+        }
+        if (data.patisserieCatalogJson) {
+          const parsedPat = JSON.parse(data.patisserieCatalogJson);
+          if (Array.isArray(parsedPat) && parsedPat.length) {
+            state.patisserieCatalog = parsedPat;
+            safeSetItem(STORAGE_KEYS.patisserieCatalog, JSON.stringify(state.patisserieCatalog));
+          }
+        }
+        if (data.schedulesJson) {
+          const parsedSch = JSON.parse(data.schedulesJson);
+          if (parsedSch && typeof parsedSch === "object") {
+            state.schedules = parsedSch;
+            safeSetItem(STORAGE_KEYS.schedules, JSON.stringify(state.schedules));
+          }
+        }
+        if (data.techSheetsJson) {
+          const parsedTs = JSON.parse(data.techSheetsJson);
+          if (Array.isArray(parsedTs) && parsedTs.length) {
+            state.techSheets = parsedTs;
+            safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
+          }
+        }
+        if (state.currentUser) renderAllViews();
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+    };
+
+    window.__applyRemoteBoutiqueData = function (docData) {
+      if (!docData || !docData.boutique || !docData.weeksJson) return;
+      _isApplyingRemote = true;
+      try {
+        const weeksObj = JSON.parse(docData.weeksJson);
+        const storeObj = { boutique: docData.boutique, weeks: weeksObj };
+        safeSetItem(boutiqueStorageKey(docData.boutique), JSON.stringify(storeObj));
+        if (state.selectedBoutique === docData.boutique) {
+          state.storeData = storeObj;
+          if (state.currentUser) renderAllViews();
+        }
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+    };
+
+    window.__applyRemoteActivityLogs = function (logs) {
+      if (!Array.isArray(logs)) return;
+      _isApplyingRemote = true;
+      try {
+        const prevTopId = state.activityLog[0]?.id;
+        logs.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
+        state.activityLog = logs.slice(0, 150);
+        safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
+        const newest = state.activityLog[0];
+        if (newest && newest.id !== prevTopId && isEffectiveAdmin() && state.currentUser && !String(newest.actor || "").includes(DEVICE_ID)) {
+          showToast(`📡 ${newest.boutique} : ${newest.summary}`);
+          if (state.activeTab === "admin") renderAdminView();
+        }
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+    };
+
+    window.addEventListener("storage", (ev) => {
+      if (!ev.key) return;
+      if (ev.key === STORAGE_KEYS.users || ev.key === STORAGE_KEYS.catalog || ev.key === STORAGE_KEYS.patisserieCatalog || ev.key === STORAGE_KEYS.schedules || ev.key === STORAGE_KEYS.techSheets || ev.key === STORAGE_KEYS.activityLog) {
+        loadGlobalConfig();
+        if (state.currentUser) renderAllViews();
+      } else if (ev.key === boutiqueStorageKey(state.selectedBoutique)) {
+        loadBoutiqueStore(state.selectedBoutique);
+        if (state.currentUser) renderAllViews();
+      }
+    });
+
     /* ==========================================================================
-       5. AUTHENTIFICATION, DROITS & MODE VUE MAGASIN
+       6. AUTHENTIFICATION, DROITS & MODE VUE MAGASIN
        ========================================================================== */
     function getEffectiveUser() {
       return state.impersonatedUser || state.currentUser;
     }
-
     function isSuperAdminUser(u) {
       return !!u && (u.isSuperAdmin || u.id === "usr-admin" || (u.email || "").toLowerCase() === "aurelien.chassignol@boulangeriechezjules.fr");
     }
-
     function isEffectiveAdmin() {
       const u = getEffectiveUser();
       return !!u && u.role === "admin";
     }
-
     function hasAdminTabAccess() {
       if (!isEffectiveAdmin()) return false;
       const u = getEffectiveUser();
@@ -2022,7 +2226,6 @@
         hasPermission("adminExportHtml")
       );
     }
-
     function hasPermission(permKey) {
       const u = getEffectiveUser();
       if (!u) return false;
@@ -2039,60 +2242,20 @@
 
       const found = state.users.find(u => u.email.toLowerCase() === email && u.password === pwd);
       if (!found) {
-        errBox.textContent = "Identifiant ou mot de passe incorrect.";
+        errBox.textContent = "Identifiant ou mot de passe incorrect. Contactez votre administrateur réseau.";
         errBox.classList.remove("hidden");
         return;
       }
       errBox.classList.add("hidden");
       state.currentUser = found;
       state.impersonatedUser = null;
-
-      if (found.mustChangePassword) {
-        document.getElementById("login-screen").classList.add("hidden");
-        document.getElementById("force-pwd-subtitle").textContent = `Bienvenue (${found.label}). Définissez votre mot de passe personnel pour continuer.`;
-        document.getElementById("force-pwd-screen").classList.remove("hidden");
-        return;
-      }
-
-      recordNetworkActivity("login", found.boutique === "ALL" ? "Réseau" : found.boutique, `Connexion de ${found.label}`);
+      recordNetworkActivity("login", found.boutique === "ALL" ? "Réseau" : found.boutique, `Connexion de ${found.label} (${found.email})`);
       safeSetItem(STORAGE_KEYS.session, JSON.stringify({ userId: found.id }));
       enterAuthenticatedApp();
     }
 
-    function handleForcePasswordSubmit(e) {
-      e.preventDefault();
-      const p1 = document.getElementById("new-pwd-1").value || "";
-      const p2 = document.getElementById("new-pwd-2").value || "";
-      const errBox = document.getElementById("force-pwd-error");
-      if (p1.length < 8) {
-        errBox.textContent = "Le mot de passe doit contenir au moins 8 caractères.";
-        errBox.classList.remove("hidden");
-        return;
-      }
-      if (p1 !== p2) {
-        errBox.textContent = "Les deux mots de passe ne correspondent pas.";
-        errBox.classList.remove("hidden");
-        return;
-      }
-      errBox.classList.add("hidden");
-      state.currentUser.password = p1;
-      state.currentUser.mustChangePassword = false;
-      state.currentUser.passwordChangedAt = new Date().toISOString();
-      recordNetworkActivity(
-        "password",
-        state.currentUser.boutique === "ALL" ? "Réseau" : state.currentUser.boutique,
-        `Changement de mot de passe effectué par ${state.currentUser.label} (${state.currentUser.email})`
-      );
-      saveGlobalConfig();
-      safeSetItem(STORAGE_KEYS.session, JSON.stringify({ userId: state.currentUser.id }));
-      document.getElementById("force-pwd-screen").classList.add("hidden");
-      enterAuthenticatedApp();
-      showToast("Mot de passe enregistré et transmis en temps réel !");
-    }
-
     function enterAuthenticatedApp() {
       document.getElementById("login-screen").classList.add("hidden");
-      document.getElementById("force-pwd-screen").classList.add("hidden");
       document.getElementById("app-shell").classList.remove("hidden");
 
       const effUser = getEffectiveUser();
@@ -2114,7 +2277,8 @@
       bSelect.value = state.selectedBoutique;
 
       const roleTag = effAdmin ? (isSuperAdminUser(effUser) ? "Super Admin • 9 Boutiques" : "Admin Délégué • 9 Boutiques") : "Boutique";
-      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique} • ${PC_DEVICE_ID}`;
+      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique}`;
+
       const btnStoreView = document.getElementById("btn-toggle-store-view");
       const btnImportExcel = document.getElementById("btn-import-forecast-excel");
       const banner = document.getElementById("store-view-banner");
@@ -2187,13 +2351,12 @@
       state.impersonatedUser = null;
       safeSetItem(STORAGE_KEYS.session, "");
       document.getElementById("app-shell").classList.add("hidden");
-      document.getElementById("force-pwd-screen").classList.add("hidden");
       document.getElementById("login-screen").classList.remove("hidden");
       document.getElementById("login-password").value = "";
     }
 
     /* ==========================================================================
-       6. NAVIGATION ONGLETS, SEMAINES & JOURS OUVRÉS
+       7. NAVIGATION ONGLETS, SEMAINES & JOURS OUVRÉS
        ========================================================================== */
     function switchTab(tabName) {
       state.activeTab = tabName;
@@ -2217,7 +2380,7 @@
       state.selectedBoutique = boutiqueName;
       const effUser = getEffectiveUser();
       const roleTag = isEffectiveAdmin() ? (isSuperAdminUser(effUser) ? "Super Admin • 9 Boutiques" : "Admin Délégué • 9 Boutiques") : "Boutique";
-      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique} • ${PC_DEVICE_ID}`;
+      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique}`;
       loadBoutiqueStore(boutiqueName);
       renderAllViews();
     }
@@ -2311,14 +2474,16 @@
     }
 
     /* ==========================================================================
-       7. ONGLET 1 : FEUILLE DE PRÉVISION & CALCUL DU CA
+       8. ONGLET 1 : FEUILLE DE PRÉVISION & CALCUL DU CA
        ========================================================================== */
     function computeDailyCa(wk, dayIdx) {
       let total = 0;
       state.catalog.forEach(p => {
         if (p.dormant || p.formula || p.isText || p.isTraiteurSupport) return;
         const baseQty = Number(wk.quantities?.[p.id]?.[dayIdx]) || 0;
-        const extraTraiteur = p.id === "tradition" ? getTraiteurAutoSupplementForDay(wk, "tradition", dayIdx) : 0;
+        const extraTraiteur = (p.id === "tradition" || p.id === "gaspard-sandwich")
+          ? getTraiteurAutoSupplementForDay(wk, p.id, dayIdx)
+          : 0;
         total += (baseQty + extraTraiteur) * (Number(p.price) || 0);
       });
       (wk.traiteur || []).forEach(tr => {
@@ -2360,9 +2525,7 @@
       const dayObjCa = Number(wk.caObjectif?.[d]) || 0;
       const dayRealCa = Number(wk.caRealise?.[d]) || 0;
 
-      let weekPrevCa = 0;
-      let weekObjCa = 0;
-      let weekRealCa = 0;
+      let weekPrevCa = 0, weekObjCa = 0, weekRealCa = 0;
       openDays.forEach(od => {
         weekPrevCa += computeDailyCa(wk, od.dayIdx);
         weekObjCa += Number(wk.caObjectif?.[od.dayIdx]) || 0;
@@ -2379,7 +2542,6 @@
           <div class="tabular" style="font-size:1.35rem; font-weight:900; margin:2px 0;">${formatNum(dayPrevCa, 0)} €</div>
           <div style="font-size:0.72rem; font-weight:700;">${dayStatus.label}</div>
         </div>
-
         <div class="ca-card">
           <div style="font-size:0.72rem; font-weight:800; color:#64748b;">🎯 CA OBJECTIF &amp; RÉALISÉ — ${DAY_NAMES[d].toUpperCase()}</div>
           <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-top:4px;">
@@ -2394,21 +2556,15 @@
             </div>
           </div>
         </div>
-
         <div class="ca-card ${weekStatus.cls}">
           <div style="font-size:0.72rem; font-weight:800; opacity:0.9;">CA PRÉVISIONNEL — SEMAINE (${openDays.length}j)</div>
           <div class="tabular" style="font-size:1.35rem; font-weight:900; margin:2px 0;">${formatNum(weekPrevCa, 0)} €</div>
           <div style="font-size:0.72rem; font-weight:700;">${weekStatus.label}</div>
         </div>
-
         <div class="ca-card">
           <div style="font-size:0.72rem; font-weight:800; color:#64748b;">📊 BILAN SEMAINE (OBJECTIF / RÉALISÉ)</div>
-          <div class="tabular" style="font-size:0.95rem; font-weight:800; color:#0f172a; margin-top:4px;">
-            Objectif : <strong>${formatNum(weekObjCa, 0)} €</strong>
-          </div>
-          <div class="tabular" style="font-size:0.9rem; font-weight:800; color:#059669; margin-top:2px;">
-            Réalisé : <strong>${formatNum(weekRealCa, 0)} €</strong>
-          </div>
+          <div class="tabular" style="font-size:0.95rem; font-weight:800; color:#0f172a; margin-top:4px;">Objectif : <strong>${formatNum(weekObjCa, 0)} €</strong></div>
+          <div class="tabular" style="font-size:0.9rem; font-weight:800; color:#059669; margin-top:2px;">Réalisé : <strong>${formatNum(weekRealCa, 0)} €</strong></div>
         </div>
       `;
     }
@@ -2418,17 +2574,16 @@
       const wk = getCurrentWeekData();
       const num = Math.max(0, Number(val) || 0);
       wk.caRealise[dayIdx] = num;
-      recordNetworkActivity("ca", state.selectedBoutique, `CA réalisé saisi : ${formatNum(num, 0)} € (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
+      broadcastNetworkPacket({
+        kind: "cell_delta",
+        boutique: state.selectedBoutique,
+        mondayIso: state.selectedWeekMonday,
+        domain: "caRealise",
+        dayIdx,
+        value: num
+      });
+      recordNetworkActivity("ca", state.selectedBoutique, `CA réalisé : ${formatNum(num, 0)} € (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
-      if (window.__julesCloud && window.__julesCloud.pushDelta) {
-        window.__julesCloud.pushDelta({
-          deltaType: "caRealise",
-          boutique: state.selectedBoutique,
-          mondayIso: state.selectedWeekMonday,
-          dayIdx,
-          value: num
-        });
-      }
       renderAllViews();
     }
 
@@ -2545,18 +2700,17 @@
       const num = Math.max(0, Math.round(Number(val) || 0));
       wk.quantities[productId][dayIdx] = num;
       const prod = state.catalog.find(p => p.id === productId);
+      broadcastNetworkPacket({
+        kind: "cell_delta",
+        boutique: state.selectedBoutique,
+        mondayIso: state.selectedWeekMonday,
+        domain: "forecast",
+        productId,
+        dayIdx,
+        value: num
+      });
       recordNetworkActivity("prevision", state.selectedBoutique, `Prévision ${prod ? prod.name : productId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
-      if (window.__julesCloud && window.__julesCloud.pushDelta) {
-        window.__julesCloud.pushDelta({
-          deltaType: "forecast",
-          boutique: state.selectedBoutique,
-          mondayIso: state.selectedWeekMonday,
-          productId,
-          dayIdx,
-          value: num
-        });
-      }
       renderAllViews();
     }
 
@@ -2575,7 +2729,7 @@
       }
       wk.patisserie = JSON.parse(JSON.stringify(prevWk.patisserie || {}));
       syncTraiteurToForecast(wk);
-      recordNetworkActivity("prevision", state.selectedBoutique, `Copie de la semaine S-1 (${formatShortFrDate(prevIso)})`);
+      recordNetworkActivity("prevision", state.selectedBoutique, `Copie de S-1 effectuée sur la semaine ${getIsoWeekNumber(state.selectedWeekMonday)}`);
       saveCurrentBoutiqueData(true);
       renderAllViews();
       showToast(`Semaine précédente copiée pour ${state.selectedBoutique}.`);
@@ -2588,7 +2742,7 @@
       (wk.traiteur || []).forEach(t => { t.quantities = [0, 0, 0, 0, 0, 0, 0]; });
       wk.patisserie = {};
       syncTraiteurToForecast(wk);
-      recordNetworkActivity("prevision", state.selectedBoutique, `Remise à 0 de la semaine ${formatShortFrDate(state.selectedWeekMonday)}`);
+      recordNetworkActivity("prevision", state.selectedBoutique, `Remise à zéro des prévisions (Semaine ${getIsoWeekNumber(state.selectedWeekMonday)})`);
       saveCurrentBoutiqueData(true);
       renderAllViews();
       showToast("Prévisions de la semaine remises à 0.");
@@ -2597,11 +2751,11 @@
     function openImportForecastProductsModal() {
       if (!hasPermission("adminManageCatalog")) return;
       openModal(`
-        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.35rem;">📥 Importer des produits manquants ou des prévisions (Excel)</h3>
+        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.35rem;">📥 Importer des produits ou prévisions (Excel)</h3>
         <p style="font-size:0.76rem; color:#4b5563; margin-bottom:0.65rem;">
           Format : <code>Famille ; Nom du produit ; Poids (g) ; Prix (€) ; Lun ; Mar ; Mer ; Jeu ; Ven ; Sam ; Dim</code>
         </p>
-        <textarea id="import-excel-rows-text" class="input" rows="7" style="font-size:0.76rem;" placeholder="Pains ; Baguette Tradition Graines ; 300 ; 1.60 ; 20 ; 20 ; 25 ; 20 ; 30 ; 35 ; 25"></textarea>
+        <textarea id="import-excel-rows-text" class="input" rows="7" style="font-size:0.76rem;"></textarea>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.75rem;">
           <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
           <button type="button" class="btn btn-emerald" onclick="processImportedExcelRows()">✅ Importer</button>
@@ -2620,30 +2774,19 @@
       lines.forEach(line => {
         const cols = line.split(/\t|;/).map(c => c.trim());
         if (!cols.length || !cols[0]) return;
-        let cat = "Pains";
-        let name = cols[0];
-        let offset = 1;
+        let cat = "Pains", name = cols[0], offset = 1;
         const firstLow = slugify(cols[0]);
         if (["pains", "pain", "brioche", "brioches", "viennoiserie", "viennoiseries"].includes(firstLow) && cols[1]) {
-          if (firstLow.startsWith("brioche")) cat = "Brioche";
-          else if (firstLow.startsWith("viennoiserie")) cat = "Viennoiserie";
-          else cat = "Pains";
+          cat = firstLow.startsWith("brioche") ? "Brioche" : (firstLow.startsWith("viennoiserie") ? "Viennoiserie" : "Pains");
           name = cols[1];
           offset = 2;
         }
-        if (!name || slugify(name) === "produit" || slugify(name) === "total") return;
         const weight = parseFloat((cols[offset] || "0").replace(",", ".")) || 0;
         const price = parseFloat((cols[offset + 1] || "0").replace(/[€\s]/g, "").replace(",", ".")) || 0;
+
         let prod = state.catalog.find(p => slugify(p.name) === slugify(name));
         if (!prod) {
-          prod = {
-            id: "prod-" + slugify(name) + "-" + Math.floor(Math.random() * 10000),
-            category: cat,
-            name,
-            unitWeight: weight || 300,
-            price: price || 0,
-            petrinId: cat === "Brioche" ? "petrin-brioche" : (cat === "Pains" ? "petrin-tradition" : "")
-          };
+          prod = { id: "prod-" + slugify(name) + "-" + Math.floor(Math.random() * 10000), category: cat, name, unitWeight: weight || 300, price: price || 0 };
           state.catalog.push(prod);
           addedProducts++;
         }
@@ -2660,11 +2803,11 @@
       saveCurrentBoutiqueData(true);
       closeModal();
       renderAllViews();
-      showToast(`${addedProducts} nouveau(x) produit(s) importé(s).`);
+      showToast(`${addedProducts} nouveau(x) produit(s) ajouté(s).`);
     }
 
     /* ==========================================================================
-       8. ONGLET 2 : PÉTRIES JOURNALIÈRES (AVEC PRODUITS & SANDWICHS LIÉS AUX PÉTRIES)
+       9. ONGLET 2 : PÉTRIES JOURNALIÈRES (AVEC PRODUITS LIÉS AUX PÉTRIES)
        ========================================================================== */
     function toggleHideZeroPetries(checked) {
       state.hideZeroPetries = !!checked;
@@ -2689,22 +2832,14 @@
       const michesTotal = ["miche-noix", "miche-figues", "miche-olives", "miche-chorizo"].reduce((s, id) => s + q(id), 0);
 
       const getCustomItemsForPetrin = (petrinId) => {
-        const extras = [];
-        state.catalog.forEach(p => {
-          if (!p.dormant && p.petrinId === petrinId) {
-            extras.push({ name: p.name, weight: Number(p.unitWeight) || 0, qty: q(p.id) });
-          }
+        const list = [];
+        state.catalog.filter(p => !p.dormant && p.petrinId === petrinId).forEach(p => {
+          list.push({ name: `${p.name} (Ajouté)`, weight: Number(p.unitWeight) || 300, qty: q(p.id) });
         });
-        (wk.traiteur || []).forEach(tr => {
-          if (!tr.dormant && tr.petrinId === petrinId && !tr.targetProductId) {
-            extras.push({
-              name: `${tr.name} (Traiteur)`,
-              weight: Number(tr.doughWeightGrams) || 150,
-              qty: Number(tr.quantities?.[dayIdx]) || 0
-            });
-          }
+        (wk.traiteur || []).filter(tr => !tr.dormant && tr.petrinId === petrinId && !tr.targetProductId).forEach(tr => {
+          list.push({ name: `${tr.name} — Support Traiteur (${tr.breadLabel || "Pâte"})`, weight: Number(tr.petrinWeight) || 150, qty: Number(tr.quantities?.[dayIdx]) || 0 });
         });
-        return extras;
+        return list;
       };
 
       const allPetries = [
@@ -3236,7 +3371,7 @@
     }
 
     /* ==========================================================================
-       9. ONGLET 3 : GAMME TRAITEUR (LIAISON PAIN OU PÉTRIE)
+       10. ONGLET 3 : GAMME TRAITEUR (LIAISON AU PAIN OU À UNE PÉTRIE)
        ========================================================================== */
     function renderTraiteurView(openDays) {
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
@@ -3250,7 +3385,7 @@
 
       document.getElementById("traiteur-thead").innerHTML = `
         <tr>
-          <th class="sticky-col">Recette Traiteur &amp; Support Pain</th>
+          <th class="sticky-col">Recette Traiteur &amp; Support Pain / Pétrie</th>
           ${openDays.map(od => `<th style="${od.dayIdx === state.selectedDayIdx ? "background:#065f46;" : ""}">${od.dayShort} ${od.dateFr}</th>`).join("")}
         </tr>
       `;
@@ -3262,11 +3397,13 @@
         html += `<tr class="cat-row"><td colspan="${openDays.length + 1}">${escapeHtml(cat)}</td></tr>`;
         items.forEach(tr => {
           const priceBadge = hasPermission("viewCa") ? `<span class="price-badge tabular">${formatNum(tr.price, 2)} €</span>` : "";
-          const syncTag = tr.targetProductId
-            ? `<span class="auto-badge">🔗 Pain : ${escapeHtml(tr.breadLabel)}</span>`
-            : (tr.petrinId
-              ? `<span class="support-badge">🥣 Pétrie : ${escapeHtml(tr.breadLabel)} (${tr.doughWeightGrams || 150}g)</span>`
-              : `<span class="weight-badge">${escapeHtml(tr.breadLabel)}</span>`);
+          let syncTag = `<span class="weight-badge">${escapeHtml(tr.breadLabel)}</span>`;
+          if (tr.targetProductId) {
+            syncTag = `<span class="auto-badge">🥖 ${escapeHtml(tr.breadLabel)}</span>`;
+          } else if (tr.petrinId) {
+            const pObj = PETRIN_DEFINITIONS.find(p => p.id === tr.petrinId);
+            syncTag = `<span class="support-badge">🥣 ${escapeHtml(pObj ? pObj.title : tr.petrinId)} (${tr.petrinWeight || 150}g)</span>`;
+          }
           html += `<tr>
             <td class="sticky-col">
               <div style="font-weight:700; color:#111827;">${escapeHtml(tr.name)}${priceBadge}${syncTag}</div>
@@ -3293,81 +3430,78 @@
       const num = Math.max(0, Math.round(Number(val) || 0));
       item.quantities[dayIdx] = num;
       syncTraiteurToForecast(wk);
+      broadcastNetworkPacket({
+        kind: "cell_delta",
+        boutique: state.selectedBoutique,
+        mondayIso: state.selectedWeekMonday,
+        domain: "traiteur",
+        trId,
+        dayIdx,
+        value: num
+      });
       recordNetworkActivity("traiteur", state.selectedBoutique, `Traiteur ${item.name} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
-      if (window.__julesCloud && window.__julesCloud.pushDelta) {
-        window.__julesCloud.pushDelta({
-          deltaType: "traiteur",
-          boutique: state.selectedBoutique,
-          mondayIso: state.selectedWeekMonday,
-          trId,
-          dayIdx,
-          value: num
-        });
-      }
       renderTraiteurView();
     }
 
-    function onNewTraiteurLinkModeChange(mode) {
-      const painBox = document.getElementById("new-tr-pain-box");
-      const petrinBox = document.getElementById("new-tr-petrin-box");
-      if (painBox) painBox.classList.toggle("hidden", mode !== "pain");
-      if (petrinBox) petrinBox.classList.toggle("hidden", mode !== "petrin");
+    function onTraiteurLinkModeChange(mode) {
+      document.getElementById("tr-link-bread-box")?.classList.toggle("hidden", mode !== "bread");
+      document.getElementById("tr-link-petrin-box")?.classList.toggle("hidden", mode !== "petrin");
     }
 
     function openAddTraiteurModal() {
       if (!hasPermission("adminManageCatalog")) return;
       const breadOpts = state.catalog.filter(p => !p.formula && !p.isText).map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+      const petrinOpts = PETRIN_DEFINITIONS.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join("");
       openModal(`
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">+ Ajouter un produit à la Gamme Traiteur</h3>
         <div style="display:flex; flex-direction:column; gap:0.7rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
             <select id="new-tr-cat" class="select">
-              <option>Les Sandwichs</option><option>Les Toastés</option><option>Burgers</option>
-              <option>Paninis</option><option>Snacking</option><option>Grandes Salades</option>
-              <option>Petites Salades (Pot 30cl)</option><option>Plats du Jour &amp; Autres</option>
+              <option>Grandes Salades</option><option>Petites Salades (Pot 30cl)</option><option>Les Sandwichs</option>
+              <option>Les Toastés</option><option>Burgers</option><option>Snacking</option><option>Paninis</option><option>Plats du Jour &amp; Autres</option>
             </select>
           </div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Nom du produit</label><input id="new-tr-name" class="input" placeholder="Ex: Sandwich Montagnard" /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">Nom du sandwich / produit Traiteur</label><input id="new-tr-name" class="input" placeholder="Ex: Sandwich Montagnard" /></div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
-            <div><label style="font-size:0.75rem; font-weight:700;">Support / Pain affiché</label><input id="new-tr-bread" class="input" placeholder="Ex: Miche Tradition 150g" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Support / Pain affiché</label><input id="new-tr-bread" class="input" placeholder="Ex: 1/2 Baguette ou Ciappo 180g" /></div>
             <div><label style="font-size:0.75rem; font-weight:700;">Prix de vente (€)</label><input id="new-tr-price" type="number" step="0.1" value="5.50" class="input" /></div>
           </div>
 
           <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem;">
-            <label style="font-size:0.76rem; font-weight:800; color:#0f172a; display:block; margin-bottom:0.35rem;">🔗 Liaison automatique du support pain :</label>
-            <select id="new-tr-link-mode" class="select" onchange="onNewTraiteurLinkModeChange(this.value)">
-              <option value="pain">🥖 Lier à un PAIN existant de la feuille de prévision</option>
-              <option value="petrin">🥣 Lier directement à une PÉTRIE (ajout direct au pétrin)</option>
-              <option value="none">-- Aucun lien pain / pétrie (ex: Salade, Quiche) --</option>
+            <label style="font-size:0.76rem; font-weight:900; color:#0f172a; display:block; margin-bottom:0.35rem;">🔗 Liaison automatique de fabrication :</label>
+            <select id="new-tr-link-mode" class="select" onchange="onTraiteurLinkModeChange(this.value)">
+              <option value="none">Aucune liaison pain/pétrie (ex: Salade, Quiche...)</option>
+              <option value="bread">🥖 Option A : Lier à un PAIN de la feuille de prévision</option>
+              <option value="petrin">🥣 Option B : Lier directement à une PÉTRIE (ajout direct au pétrin)</option>
             </select>
 
-            <div id="new-tr-pain-box" style="margin-top:0.55rem; display:flex; flex-direction:column; gap:0.45rem;">
+            <div id="tr-link-bread-box" class="hidden" style="margin-top:0.55rem; display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Pain cible sur la feuille de prévision :</label>
+                <label style="font-size:0.73rem; font-weight:700;">Pain cible sur la feuille</label>
                 <select id="new-tr-target" class="select">${breadOpts}</select>
               </div>
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Ratio pain (ex: 0.5 pour 1/2 pain, 1 pour 1 pain entier) :</label>
+                <label style="font-size:0.73rem; font-weight:700;">Ratio (0.5 = 1/2 pain)</label>
                 <input id="new-tr-ratio" type="number" step="0.1" value="1" class="input" />
               </div>
             </div>
 
-            <div id="new-tr-petrin-box" class="hidden" style="margin-top:0.55rem; display:flex; flex-direction:column; gap:0.45rem;">
+            <div id="tr-link-petrin-box" class="hidden" style="margin-top:0.55rem; display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Pétrie cible (s'ajoute directement au pétrin) :</label>
-                <select id="new-tr-petrin-id" class="select">${getPetrinOptionsHtml("petrin-tradition")}</select>
+                <label style="font-size:0.73rem; font-weight:700;">Pétrin cible</label>
+                <select id="new-tr-petrin" class="select">${petrinOpts}</select>
               </div>
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Poids de pâte unitaire du support (en grammes) :</label>
-                <input id="new-tr-dough-weight" type="number" min="10" step="5" value="150" class="input" />
+                <label style="font-size:0.73rem; font-weight:700;">Poids pâte unit. (g)</label>
+                <input id="new-tr-petrin-weight" type="number" step="5" value="150" class="input" />
               </div>
             </div>
           </div>
 
-          <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.35rem;">
+          <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.3rem;">
             <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
-            <button type="button" class="btn btn-emerald" onclick="createTraiteurProduct()">Enregistrer</button>
+            <button type="button" class="btn btn-emerald" onclick="createTraiteurProduct()">✅ Enregistrer</button>
           </div>
         </div>
       `);
@@ -3383,26 +3517,31 @@
         category: document.getElementById("new-tr-cat").value,
         name,
         breadLabel: document.getElementById("new-tr-bread").value || "Standard",
-        targetProductId: mode === "pain" ? (document.getElementById("new-tr-target").value || "") : "",
-        ratio: mode === "pain" ? (Number(document.getElementById("new-tr-ratio").value) || 0) : 0,
-        petrinId: mode === "petrin" ? (document.getElementById("new-tr-petrin-id").value || "") : "",
-        doughWeightGrams: mode === "petrin" ? (Number(document.getElementById("new-tr-dough-weight").value) || 150) : 0,
+        targetProductId: mode === "bread" ? (document.getElementById("new-tr-target").value || "") : "",
+        ratio: mode === "bread" ? (Number(document.getElementById("new-tr-ratio").value) || 0) : 0,
+        petrinId: mode === "petrin" ? (document.getElementById("new-tr-petrin").value || "") : "",
+        petrinWeight: mode === "petrin" ? (Number(document.getElementById("new-tr-petrin-weight").value) || 150) : 0,
         price: Number(document.getElementById("new-tr-price").value) || 0,
         quantities: [0,0,0,0,0,0,0]
       };
       DEFAULT_TRAITEUR.push(newObj);
-      const wk = getCurrentWeekData();
-      wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
-      syncTraiteurToForecast(wk);
-      recordNetworkActivity("catalog", "Réseau", `Nouveau produit Traiteur ajouté : "${name}"`);
-      saveCurrentBoutiqueData(true);
+      BOUTIQUES.forEach(b => {
+        const st = readBoutiqueStoreReadOnly(b.name);
+        Object.values(st.weeks || {}).forEach(wk => {
+          if (Array.isArray(wk.traiteur)) wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
+        });
+        safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
+      });
+      loadBoutiqueStore(state.selectedBoutique);
+      recordNetworkActivity("catalog", "Réseau", `Nouveau produit Traiteur ajouté : ${name}`);
+      saveGlobalConfig();
       closeModal();
       renderTraiteurView();
-      showToast("Produit Traiteur ajouté.");
+      showToast("Produit Traiteur ajouté et raccordé.");
     }
 
     /* ==========================================================================
-       10. ONGLET 4 : GAMME PÂTISSERIE
+       11. ONGLET 4 : GAMME PÂTISSERIE CHEZ JULES
        ========================================================================== */
     function renderPatisserieView(openDays) {
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
@@ -3451,18 +3590,17 @@
       const num = Math.max(0, Math.round(Number(val) || 0));
       wk.patisserie[patId][dayIdx] = num;
       const pat = state.patisserieCatalog.find(p => p.id === patId);
+      broadcastNetworkPacket({
+        kind: "cell_delta",
+        boutique: state.selectedBoutique,
+        mondayIso: state.selectedWeekMonday,
+        domain: "patisserie",
+        patId,
+        dayIdx,
+        value: num
+      });
       recordNetworkActivity("patisserie", state.selectedBoutique, `Pâtisserie ${pat ? pat.name : patId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
-      if (window.__julesCloud && window.__julesCloud.pushDelta) {
-        window.__julesCloud.pushDelta({
-          deltaType: "patisserie",
-          boutique: state.selectedBoutique,
-          mondayIso: state.selectedWeekMonday,
-          patId,
-          dayIdx,
-          value: num
-        });
-      }
       renderPatisserieView();
     }
 
@@ -3473,14 +3611,8 @@
         <div style="display:flex; flex-direction:column; gap:0.7rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
             <select id="new-pat-cat" class="select">
-              <option>Flans &amp; Crèmes</option>
-              <option>Éclairs, Choux &amp; Millefeuilles</option>
-              <option>Tartelettes Individuelles</option>
-              <option>Entremets &amp; Pâtisseries Individuelles</option>
-              <option>Voyage, Crumbles &amp; Desserts</option>
-              <option>Macarons &amp; Mignardises</option>
-              <option>Grands Formats (4 / 6 / 8 pers)</option>
-              <option>Grandes Tartes &amp; Flans Entiers</option>
+              <option>Flans &amp; Crèmes</option><option>Éclairs, Choux &amp; Millefeuilles</option><option>Tartelettes Individuelles</option>
+              <option>Entremets &amp; Pâtisseries Individuelles</option><option>Voyage, Crumbles &amp; Desserts</option><option>Grands Formats (4 / 6 / 8 pers)</option>
             </select>
           </div>
           <div><label style="font-size:0.75rem; font-weight:700;">Nom</label><input id="new-pat-name" class="input" placeholder="Ex: Tartelette Framboises" /></div>
@@ -3503,7 +3635,7 @@
         name,
         price: Number(document.getElementById("new-pat-price").value) || 0
       });
-      recordNetworkActivity("catalog", "Réseau", `Nouvelle pâtisserie ajoutée : "${name}"`);
+      recordNetworkActivity("catalog", "Réseau", `Nouvelle pâtisserie ajoutée : ${name}`);
       saveGlobalConfig();
       closeModal();
       renderPatisserieView();
@@ -3511,14 +3643,13 @@
     }
 
     /* ==========================================================================
-       11. ONGLET 5 : FICHES TECHNIQUES
+       12. ONGLET 5 : FICHES TECHNIQUES
        ========================================================================== */
     function selectTechSheetFolder(folder) {
       state.selectedTechSheetFolder = folder;
       state.selectedTechSheetId = null;
       renderTechSheetsView();
     }
-
     function selectTechSheetItem(sheetId) {
       state.selectedTechSheetId = sheetId;
       renderTechSheetsView();
@@ -3561,7 +3692,6 @@
             </div>
             ${canEditTs ? `<button type="button" class="btn btn-emerald btn-sm" onclick="openTechSheetEditor('')">+ Nouvelle Fiche Technique</button>` : ""}
           </div>
-
           <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.75rem;">
             ${folders.map(f => `
               <button type="button" class="btn btn-sm ${activeFolder === f ? "btn-amber" : "btn-white"}" onclick="selectTechSheetFolder('${escapeHtml(f)}')">
@@ -3573,16 +3703,12 @@
 
         <div class="ft-layout">
           <div class="card" style="max-height:74vh; overflow-y:auto;">
-            <div style="font-size:0.76rem; font-weight:800; color:#64748b; margin-bottom:0.5rem;">
-              ${filteredSheets.length} fiche(s) disponible(s)
-            </div>
+            <div style="font-size:0.76rem; font-weight:800; color:#64748b; margin-bottom:0.5rem;">${filteredSheets.length} fiche(s) disponible(s)</div>
             ${filteredSheets.map(s => `
               <div class="ft-card-item ${currentSheet?.id === s.id ? "active" : ""}" onclick="selectTechSheetItem('${s.id}')">
                 <img src="${escapeHtml(s.photoUrl || defaultThumb)}" onerror="this.src='${defaultThumb}'" alt="${escapeHtml(s.title)}" class="ft-card-thumb" />
                 <div style="min-width:0; flex:1;">
-                  <div style="font-weight:800; font-size:0.82rem; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                    ${escapeHtml(s.title)}
-                  </div>
+                  <div style="font-weight:800; font-size:0.82rem; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(s.title)}</div>
                   <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">
                     ${escapeHtml(s.folder || "Réseau")}
                     ${s.isBaseRecipe ? `<span class="base-badge">Base 1 kg farine</span>` : ""}
@@ -3592,13 +3718,8 @@
               </div>
             `).join("") || `<p style="font-size:0.8rem; color:#64748b;">Aucune fiche dans ce dossier.</p>`}
           </div>
-
           <div>
-            ${currentSheet ? renderSingleTechSheetDetail(currentSheet, canEditTs, defaultThumb) : `
-              <div class="card" style="text-align:center; padding:2rem; color:#64748b;">
-                Sélectionnez une fiche technique dans la liste.
-              </div>
-            `}
+            ${currentSheet ? renderSingleTechSheetDetail(currentSheet, canEditTs, defaultThumb) : `<div class="card" style="text-align:center; padding:2rem; color:#64748b;">Sélectionnez une fiche technique dans la liste.</div>`}
           </div>
         </div>
       `;
@@ -3624,7 +3745,6 @@
                 ${sheet.isSalad ? `<div style="font-size:0.75rem; color:#065f46; font-weight:800; margin-top:3px;">🥗 Production possible la veille • Datation obligatoire à J+2</div>` : ""}
               </div>
             </div>
-
             <div style="display:flex; flex-wrap:wrap; gap:0.4rem;" class="no-print">
               ${canEditTs ? `
                 <label class="btn btn-white btn-sm" style="cursor:pointer;">
@@ -3643,8 +3763,7 @@
                 <h4 style="font-size:0.9rem; font-weight:900; color:#0f172a;">⚖️ Recette de Base (sur 1 000 g / 1 kg de base)</h4>
                 <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.76rem; font-weight:700;">
                   <span>Base (g) :</span>
-                  <input id="ft-scale-grams" type="number" min="50" step="50" value="1000" class="input tabular" style="width:92px; padding:0.25rem 0.45rem; font-weight:800;"
-                    oninput="recalcTechSheetScale()" />
+                  <input id="ft-scale-grams" type="number" min="50" step="50" value="1000" class="input tabular" style="width:92px; padding:0.25rem 0.45rem; font-weight:800;" oninput="recalcTechSheetScale()" />
                 </div>
               </div>
               <div class="table-wrap">
@@ -3713,17 +3832,13 @@
             ${Array.isArray(sheet.qualityPoints) && sheet.qualityPoints.length ? `
               <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:10px; padding:0.65rem 0.8rem;">
                 <div style="font-size:0.8rem; font-weight:900; color:#065f46; margin-bottom:0.25rem;">✅ Points Qualité</div>
-                <ul style="padding-left:1.1rem; font-size:0.78rem; color:#047857;">
-                  ${sheet.qualityPoints.map(qp => `<li>${escapeHtml(qp)}</li>`).join("")}
-                </ul>
+                <ul style="padding-left:1.1rem; font-size:0.78rem; color:#047857;">${sheet.qualityPoints.map(qp => `<li>${escapeHtml(qp)}</li>`).join("")}</ul>
               </div>
             ` : ""}
             ${Array.isArray(sheet.attentionPoints) && sheet.attentionPoints.length ? `
               <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:0.65rem 0.8rem;">
                 <div style="font-size:0.8rem; font-weight:900; color:#991b1b; margin-bottom:0.25rem;">⚠️ Points d'Attention</div>
-                <ul style="padding-left:1.1rem; font-size:0.78rem; color:#b91c1c;">
-                  ${sheet.attentionPoints.map(ap => `<li>${escapeHtml(ap)}</li>`).join("")}
-                </ul>
+                <ul style="padding-left:1.1rem; font-size:0.78rem; color:#b91c1c;">${sheet.attentionPoints.map(ap => `<li>${escapeHtml(ap)}</li>`).join("")}</ul>
               </div>
             ` : ""}
           </div>
@@ -3770,7 +3885,7 @@
             <div><label style="font-size:0.75rem; font-weight:700;">T° Base Hiver (°C)</label><input id="ts-tbw" type="number" class="input" value="${existing?.tempBaseWinter || 56}" /></div>
             <div><label style="font-size:0.75rem; font-weight:700;">T° Base Été (°C)</label><input id="ts-tbs" type="number" class="input" value="${existing?.tempBaseSummer || 52}" /></div>
           </div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Support / Division</label><input id="ts-support" class="input" value="${escapeHtml(existing?.divisionInfo || existing?.support || "")}" /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">Support / Pain (Traiteur)</label><input id="ts-support" class="input" value="${escapeHtml(existing?.divisionInfo || existing?.support || "")}" /></div>
           <div><label style="font-size:0.75rem; font-weight:700;">Ingrédients / Mini-recettes (1 par ligne)</label><textarea id="ts-ing" class="input" rows="5">${escapeHtml((existing?.ingredients || []).join("\n"))}</textarea></div>
           <div><label style="font-size:0.75rem; font-weight:700;">Étapes de fabrication / montage</label><textarea id="ts-steps" class="input" rows="4">${escapeHtml(existing?.steps || (existing?.detailedSteps || []).map(x => `${x.step} : ${x.desc}`).join("\n"))}</textarea></div>
           <label style="font-size:0.78rem; font-weight:700; display:flex; align-items:center; gap:0.4rem;">
@@ -3796,13 +3911,10 @@
           const scale = Math.min(1, maxW / img.width);
           canvas.width = Math.round(img.width * scale);
           canvas.height = Math.round(img.height * scale);
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          const compressedUrl = canvas.toDataURL("image/jpeg", 0.78);
+          canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
           const sheet = state.techSheets.find(s => s.id === sheetId);
           if (sheet) {
-            sheet.photoUrl = compressedUrl;
-            recordNetworkActivity("fiche", "Réseau", `Photo mise à jour sur la fiche "${sheet.title}"`);
+            sheet.photoUrl = canvas.toDataURL("image/jpeg", 0.78);
             saveGlobalConfig();
             renderTechSheetsView();
             showToast("Photo du produit enregistrée !");
@@ -3845,7 +3957,7 @@
         state.techSheets.unshift(obj);
       }
       state.selectedTechSheetId = obj.id;
-      recordNetworkActivity("fiche", "Réseau", `Fiche technique enregistrée : "${title}"`);
+      recordNetworkActivity("fiche", "Réseau", `Fiche technique enregistrée : ${title}`);
       saveGlobalConfig();
       closeModal();
       renderTechSheetsView();
@@ -3854,17 +3966,15 @@
 
     function deleteTechSheet(id) {
       if (!hasPermission("editTechSheets")) return;
-      const target = state.techSheets.find(s => s.id === id);
       state.techSheets = state.techSheets.filter(s => s.id !== id);
       state.selectedTechSheetId = null;
-      recordNetworkActivity("fiche", "Réseau", `Fiche technique supprimée : "${target ? target.title : id}"`);
       saveGlobalConfig();
       renderTechSheetsView();
       showToast("Fiche technique supprimée.");
     }
 
     /* ==========================================================================
-       12. ONGLET 6 : ADMINISTRATION RÉSEAU
+       13. ONGLET 6 : ADMINISTRATION RÉSEAU
        ========================================================================== */
     function renderAdminView() {
       if (!hasAdminTabAccess()) return;
@@ -3876,12 +3986,13 @@
       const canExport = hasPermission("adminExportHtml");
 
       container.innerHTML = `
+        <!-- 1. Gestion des Comptes, Mots de passe (Admin uniquement) & Autorisations -->
         ${canUsers ? `
         <div class="card">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
             <div>
-              <h2 style="font-size:1.05rem; font-weight:900; color:#111827;">🔐 Gestion des Comptes Admin, Boutiques &amp; Autorisations</h2>
-              <p style="font-size:0.76rem; color:#4b5563;">Créez des accès <strong>Administrateur</strong> ou <strong>Boutique</strong> avec des autorisations sur mesure, réinitialisez un mot de passe ou prévisualisez l'interface d'un compte.</p>
+              <h2 style="font-size:1.05rem; font-weight:900; color:#111827;">🔐 Gestion des Comptes &amp; Mots de Passe (100 % Administrateur)</h2>
+              <p style="font-size:0.76rem; color:#4b5563;">Vous seul gérez les mots de passe de toutes les boutiques et des administrateurs délégués. Tout changement est immédiatement synchronisé sur tous les PC.</p>
             </div>
             <button type="button" class="btn btn-emerald btn-sm" onclick="openCreateUserModal()">+ Nouvel Accès (Admin ou Boutique)</button>
           </div>
@@ -3891,8 +4002,7 @@
                 <tr>
                   <th style="text-align:left; padding-left:0.75rem;">Compte &amp; Rôle</th>
                   <th>Identifiant</th>
-                  <th>Mot de passe actuel</th>
-                  <th>Statut MDP</th>
+                  <th>Mot de passe actif</th>
                   <th>Actions &amp; Autorisations</th>
                 </tr>
               </thead>
@@ -3909,20 +4019,18 @@
                   <tr>
                     <td style="padding-left:0.75rem; font-weight:800;">
                       ${escapeHtml(u.label)} ${roleBadge}
-                      ${isAdm ? `<div style="font-size:0.68rem; color:#059669; font-weight:700; margin-top:2px;">🌐 Accès complet aux 9 boutiques du réseau</div>` : ""}
+                      ${isAdm ? `<div style="font-size:0.68rem; color:#059669; font-weight:700; margin-top:2px;">🌐 Accès complet aux 9 boutiques</div>` : ""}
                     </td>
                     <td style="text-align:center; font-size:0.76rem;">${escapeHtml(u.email)}</td>
-                    <td style="text-align:center;"><code style="background:#f1f5f9; padding:3px 7px; border-radius:6px; font-weight:800; color:#0f172a;">${escapeHtml(u.password)}</code></td>
                     <td style="text-align:center;">
-                      ${u.mustChangePassword
-                        ? `<span class="support-badge">⏳ 1ère connexion en attente</span>`
-                        : `<span class="price-badge">✅ MDP personnalisé</span>${u.passwordChangedAt ? `<div style="font-size:0.65rem; color:#64748b; margin-top:2px;">Modifié le ${new Date(u.passwordChangedAt).toLocaleDateString("fr-FR")} à ${new Date(u.passwordChangedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</div>` : ""}`}
+                      <code style="background:#f1f5f9; padding:3px 8px; border-radius:6px; font-weight:800; color:#0f172a;">${escapeHtml(u.password)}</code>
+                      ${u.passwordChangedAt ? `<div style="font-size:0.65rem; color:#64748b; margin-top:2px;">Défini le ${new Date(u.passwordChangedAt).toLocaleDateString("fr-FR")}</div>` : ""}
                     </td>
                     <td style="text-align:center; display:flex; flex-wrap:wrap; justify-content:center; gap:0.3rem;">
+                      ${!isSuper ? `<button type="button" class="btn btn-dark btn-sm" onclick="openAdminChangePasswordModal('${u.id}')">🔑 Changer MDP</button>` : ""}
                       ${!isSuper && u.id !== state.currentUser?.id ? `<button type="button" class="btn btn-amber btn-sm" onclick="impersonateUser('${u.id}')">👁️ Voir comme</button>` : ""}
                       ${!isSuper ? `<button type="button" class="btn btn-white btn-sm" onclick="openUserPermissionsModal('${u.id}')">🛡️ Droits</button>` : `<span style="font-size:0.7rem; color:#64748b; font-weight:700; padding:4px;">Tous droits (verrouillé)</span>`}
-                      ${!isSuper ? `<button type="button" class="btn btn-white btn-sm" onclick="resetUserPassword('${u.id}')">🔄 Réinit. MDP</button>` : ""}
-                      ${!isSuper && u.id.startsWith("usr-custom-") ? `<button type="button" class="btn btn-danger btn-sm" onclick="deleteCustomUser('${u.id}')" title="Supprimer ce compte">🗑️</button>` : ""}
+                      ${!isSuper && u.id.startsWith("usr-custom-") ? `<button type="button" class="btn btn-danger btn-sm" onclick="deleteCustomUser('${u.id}')" title="Supprimer">🗑️</button>` : ""}
                     </td>
                   </tr>
                 `;
@@ -3933,32 +4041,30 @@
         </div>
         ` : ""}
 
+        <!-- 1bis. Journal en temps réel Multi-PC -->
         <div class="card" style="margin-top:1rem; border-color:#bfdbfe; background:#eff6ff;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.55rem;">
             <div>
-              <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Temps Réel Multi-PC — Tous les Changements en Direct</h3>
-              <p style="font-size:0.75rem; color:#1d4ed8;">Canal réseau actif : <code style="background:#dbeafe; padding:2px 6px; border-radius:5px; font-weight:800;">${escapeHtml(window.__julesCloud.room)}</code> • Synchronisation instantanée entre tous les PC.</p>
+              <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Direct Multi-PC — Toutes les Modifications du Réseau</h3>
+              <p style="font-size:0.75rem; color:#1d4ed8;">
+                Canal réseau partagé : <code style="background:#dbeafe; padding:1px 6px; border-radius:4px; font-weight:800;">${escapeHtml(getActiveNetworkChannel())}</code> • Poste actuel : <strong>${DEVICE_ID}</strong>
+              </p>
             </div>
-            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem;">
-              <button type="button" class="btn btn-white btn-sm" onclick="copyMultiPcShareLink()">🔗 Copier Lien Multi-PC</button>
-              <button type="button" class="btn btn-amber btn-sm" onclick="forceImmediateNetworkSync()">🔄 Synchroniser maintenant</button>
-              <span style="font-size:0.72rem; font-weight:800; background:#dbeafe; color:#1e40af; padding:3px 9px; border-radius:999px;">
-                ${state.activityLog.length} événement(s)
-              </span>
+            <div style="display:flex; flex-wrap:wrap; gap:0.35rem; align-items:center;">
+              <button type="button" class="btn btn-white btn-sm" onclick="copyMultiPcShareLink()">🔗 Copier lien Multi-PC</button>
+              <button type="button" class="btn btn-emerald btn-sm" onclick="forceManualSyncNow()">🔄 Actualiser en direct</button>
             </div>
           </div>
-          <div style="max-height:260px; overflow-y:auto; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:0.45rem 0.65rem;">
+          <div style="max-height:240px; overflow-y:auto; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:0.45rem 0.65rem;">
             ${state.activityLog.length === 0 ? `
-              <div style="font-size:0.78rem; color:#64748b; padding:0.5rem;">Aucune modification enregistrée pour le moment. Toutes les actions effectuées sur n'importe quel PC apparaîtront ici en direct.</div>
-            ` : state.activityLog.slice(0, 60).map(ev => {
+              <div style="font-size:0.78rem; color:#64748b; padding:0.5rem;">En attente d'actions sur le réseau... Chaque saisie (prévisions, Traiteur, Pâtisserie, CA, impression) apparaîtra ici en direct.</div>
+            ` : state.activityLog.slice(0, 50).map(ev => {
               const dt = ev.timestamp ? new Date(ev.timestamp) : new Date();
               const timeStr = dt.toLocaleDateString("fr-FR") + " " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
               const badgeStyle = ev.type === "password"
                 ? "background:#fef3c7; color:#92400e; border:1px solid #f59e0b;"
-                : (ev.type === "print"
-                  ? "background:#dbeafe; color:#1e40af; border:1px solid #93c5fd;"
-                  : "background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;");
-              const icon = ev.type === "password" ? "🔑" : (ev.type === "ca" ? "💶" : (ev.type === "print" ? "🖨️" : (ev.type === "login" ? "🔐" : "📝")));
+                : (ev.type === "print" ? "background:#dbeafe; color:#1e40af; border:1px solid #93c5fd;" : "background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;");
+              const icon = ev.type === "password" ? "🔑" : (ev.type === "print" ? "🖨️" : (ev.type === "ca" ? "💶" : "📝"));
               return `
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.4rem; padding:0.36rem 0.25rem; border-bottom:1px solid #f1f5f9; font-size:0.77rem;">
                   <div>
@@ -3973,6 +4079,7 @@
           </div>
         </div>
 
+        <!-- 2. Jours d'ouverture par boutique -->
         ${canSchedules ? `
         <div class="card" style="margin-top:1rem;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">🗓️ Jours d'Ouverture par Boutique (9 Magasins)</h3>
@@ -3994,22 +4101,24 @@
         </div>
         ` : ""}
 
+        <!-- 3. Tarifs & CA Objectif / Réalisé -->
         ${canPricesCa ? `
         <div class="card" style="margin-top:1rem;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">💶 Tarifs Réseau &amp; CA Objectif / Réalisé</h3>
-          <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.45rem;">
+          <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.4rem;">
             <button type="button" class="btn btn-amber btn-sm" onclick="openPricesManagerModal()">💶 Modifier les Tarifs (€)</button>
             <button type="button" class="btn btn-emerald btn-sm" onclick="openAdminCaObjectivesModal()">🎯 CA Objectif &amp; CA Réalisé (9 Boutiques)</button>
           </div>
         </div>
         ` : ""}
 
+        <!-- 4. Gestion du Catalogue Produits & Ordre -->
         ${canCatalog ? `
         <div class="card" style="margin-top:1rem;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.65rem;">
             <div>
-              <h3 style="font-size:1rem; font-weight:900; color:#111827;">📦 Gestion de la Gamme Boulangerie / Viennoiserie &amp; Ordre</h3>
-              <p style="font-size:0.75rem; color:#4b5563;">Ajoutez un produit (lié à une pétrie ou au plaquage), mettez en dormance ou réordonnez les produits.</p>
+              <h3 style="font-size:1rem; font-weight:900; color:#111827;">📦 Gestion de la Gamme Boulangerie / Viennoiserie &amp; Liaison Pétries</h3>
+              <p style="font-size:0.75rem; color:#4b5563;">Ajoutez un produit en le liant directement à une pétrie, mettez en dormance ou glissez-déposez pour changer l'ordre.</p>
             </div>
             <div style="display:flex; gap:0.4rem;">
               <button type="button" class="btn btn-white btn-sm" onclick="openImportForecastProductsModal()">📥 Importer Excel</button>
@@ -4020,6 +4129,7 @@
         </div>
         ` : ""}
 
+        <!-- 5. Sauvegarde 10 ans & Générateur index.html -->
         ${canExport ? `
         <div class="card" style="margin-top:1rem; background:#f8fafc; border-color:#cbd5e1;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">💾 Sauvegarde Réseau 10 ans &amp; Export index.html</h3>
@@ -4038,11 +4148,9 @@
 
       const prodListEl = document.getElementById("admin-catalog-order-list");
       if (prodListEl) {
-        prodListEl.innerHTML = `
-          <div style="font-size:0.73rem; color:#475569; background:#f8fafc; border:1px solid #e2e8f0; border-radius:7px; padding:0.38rem 0.55rem; margin-bottom:0.4rem; font-weight:700;">
-            ↕️ Glissez-déposez les produits (icône <strong>⋮⋮</strong>) pour les placer dans l'ordre exact souhaité sur les feuilles de prévision.
-          </div>
-          ${state.catalog.map(p => `
+        prodListEl.innerHTML = state.catalog.map(p => {
+          const linkedPetrin = p.petrinId ? PETRIN_DEFINITIONS.find(pt => pt.id === p.petrinId) : null;
+          return `
             <div draggable="true" data-drag-pid="${p.id}"
               ondragstart="onAdminProdDragStart(event, '${p.id}')"
               ondragover="onAdminProdDragOver(event)"
@@ -4053,7 +4161,7 @@
                 <span style="color:#94a3b8; font-weight:900; font-size:0.95rem; user-select:none;">⋮⋮</span>
                 <div>
                   <strong>${escapeHtml(p.name)}</strong> <span style="color:#64748b;">(${escapeHtml(p.category)})</span>
-                  ${p.petrinId ? `<span class="support-badge">🥣 ${escapeHtml(p.petrinId)}</span>` : ""}
+                  ${linkedPetrin ? `<span class="support-badge">🥣 ${escapeHtml(linkedPetrin.title)}</span>` : ""}
                   ${p.dormant ? `<span class="dormant-badge">💤 Dormance</span>` : ""}
                 </div>
               </div>
@@ -4064,219 +4172,78 @@
                 ${!p.formula ? `<button type="button" class="btn btn-danger btn-sm" onclick="deleteCatalogProduct('${p.id}')">×</button>` : ""}
               </div>
             </div>
-          `).join("")}
-        `;
+          `;
+        }).join("");
       }
 
       refreshAdminHtmlPanel();
     }
 
-    function scheduleCloudPush() {
-      if (_isApplyingRemote || !state.selectedBoutique) return;
-      if (window.__julesCloud && window.__julesCloud.pushBoutique) {
-        window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
-      }
-    }
-
     function copyMultiPcShareLink() {
+      const ch = getActiveNetworkChannel();
       const baseUrl = window.location.href.split("?")[0];
-      const shareUrl = `${baseUrl}?reseau=${encodeURIComponent(window.__julesCloud.room)}`;
+      const shareUrl = `${baseUrl}?reseau=${encodeURIComponent(ch)}`;
       const tmp = document.createElement("textarea");
       tmp.value = shareUrl;
       document.body.appendChild(tmp);
       tmp.select();
       try { document.execCommand("copy"); } catch (e) {}
       tmp.remove();
-      showToast("Lien Multi-PC copié ! Ouvrez ce même fichier ou lien sur vos PC boutiques.");
+      showToast(`Lien Multi-PC copié : ${shareUrl}`);
     }
 
-    window.__processIncomingNetworkPacket = function (packet) {
-      if (!packet || !packet.kind) return;
-      _isApplyingRemote = true;
-      try {
-        if (packet.kind === "delta" && packet.boutique && packet.mondayIso) {
-          const st = readBoutiqueStoreReadOnly(packet.boutique);
-          if (!st.weeks[packet.mondayIso]) {
-            const tbb = INITIAL_TBB_2026_DATA[packet.boutique]?.[packet.mondayIso];
-            st.weeks[packet.mondayIso] = {
-              quantities: {},
-              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
-              patisserie: {},
-              caObjectif: tbb ? [...tbb.caObjectif] : [0,0,0,0,0,0,0],
-              caRealise: tbb ? [...tbb.caRealise] : [0,0,0,0,0,0,0],
-              autoSyncTraiteur: true
-            };
-          }
-          const wk = st.weeks[packet.mondayIso];
-          if (packet.deltaType === "forecast" && packet.productId) {
-            if (!wk.quantities[packet.productId]) wk.quantities[packet.productId] = [0,0,0,0,0,0,0];
-            wk.quantities[packet.productId][packet.dayIdx] = Number(packet.value) || 0;
-          } else if (packet.deltaType === "traiteur" && packet.trId) {
-            const trItem = (wk.traiteur || []).find(t => t.id === packet.trId);
-            if (trItem) trItem.quantities[packet.dayIdx] = Number(packet.value) || 0;
-            syncTraiteurToForecast(wk);
-          } else if (packet.deltaType === "patisserie" && packet.patId) {
-            if (!wk.patisserie) wk.patisserie = {};
-            if (!wk.patisserie[packet.patId]) wk.patisserie[packet.patId] = [0,0,0,0,0,0,0];
-            wk.patisserie[packet.patId][packet.dayIdx] = Number(packet.value) || 0;
-          } else if (packet.deltaType === "caRealise") {
-            if (!Array.isArray(wk.caRealise)) wk.caRealise = [0,0,0,0,0,0,0];
-            wk.caRealise[packet.dayIdx] = Number(packet.value) || 0;
-          }
-          safeSetItem(boutiqueStorageKey(packet.boutique), JSON.stringify(st));
-          if (state.selectedBoutique === packet.boutique) {
-            state.storeData = st;
-            if (state.currentUser) renderAllViews();
-          }
-        } else if (packet.kind === "boutique_full" && packet.boutique && packet.weeks) {
-          const storeObj = { boutique: packet.boutique, weeks: packet.weeks };
-          safeSetItem(boutiqueStorageKey(packet.boutique), JSON.stringify(storeObj));
-          if (state.selectedBoutique === packet.boutique) {
-            state.storeData = storeObj;
-            if (state.currentUser) renderAllViews();
-          }
-        } else if (packet.kind === "global_config" && packet.payload) {
-          window.__applyRemoteGlobalConfig(packet.payload);
-        } else if (packet.kind === "activity" && packet.entry) {
-          if (!state.activityLog.some(x => x.id === packet.entry.id)) {
-            state.activityLog.unshift(packet.entry);
-            state.activityLog.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
-            if (state.activityLog.length > 200) state.activityLog = state.activityLog.slice(0, 200);
-            safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
-            if (state.currentUser && packet.entry.pcId !== PC_DEVICE_ID) {
-              showToast(`📡 EN DIRECT [${packet.entry.boutique}] : ${packet.entry.summary}`);
-              if (state.activeTab === "admin") renderAdminView();
-            }
-          }
-        }
-      } catch (e) {} finally {
-        _isApplyingRemote = false;
-      }
-    };
+    function openAdminChangePasswordModal(userId) {
+      if (!hasPermission("adminManageUsers")) return;
+      const u = state.users.find(x => x.id === userId);
+      if (!u || isSuperAdminUser(u)) return;
+      openModal(`
+        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.4rem;">🔑 Modifier le mot de passe — ${escapeHtml(u.label)}</h3>
+        <p style="font-size:0.76rem; color:#4b5563; margin-bottom:0.75rem;">
+          Identifiant : <strong>${escapeHtml(u.email)}</strong>. Le nouveau mot de passe sera immédiatement actif sur tous les PC du réseau.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:0.65rem;">
+          <div>
+            <label style="font-size:0.75rem; font-weight:700;">Nouveau mot de passe</label>
+            <input id="admin-set-pwd-val" type="text" class="input" value="${escapeHtml(u.password)}" />
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+            <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
+            <button type="button" class="btn btn-emerald" onclick="saveAdminSetPassword('${u.id}')">✅ Enregistrer &amp; Diffuser</button>
+          </div>
+        </div>
+      `);
+    }
 
-    window.__getCurrentActorName = function () {
-      return state.currentUser ? `${state.currentUser.label} (${PC_DEVICE_ID})` : `${state.selectedBoutique} (${PC_DEVICE_ID})`;
-    };
-
-    window.__applyRemoteGlobalConfig = function (data) {
-      if (!data) return;
-      _isApplyingRemote = true;
-      try {
-        if (data.usersJson) {
-          const parsedUsers = JSON.parse(data.usersJson);
-          if (Array.isArray(parsedUsers) && parsedUsers.length) {
-            state.users = parsedUsers;
-            safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
-            if (state.currentUser) {
-              const refreshedSelf = state.users.find(u => u.id === state.currentUser.id);
-              if (refreshedSelf) state.currentUser = refreshedSelf;
-            }
-          }
-        }
-        if (data.catalogJson) {
-          const parsedCat = JSON.parse(data.catalogJson);
-          if (Array.isArray(parsedCat) && parsedCat.length) {
-            state.catalog = parsedCat;
-            safeSetItem(STORAGE_KEYS.catalog, JSON.stringify(state.catalog));
-          }
-        }
-        if (data.patisserieCatalogJson) {
-          const parsedPat = JSON.parse(data.patisserieCatalogJson);
-          if (Array.isArray(parsedPat) && parsedPat.length) {
-            state.patisserieCatalog = parsedPat;
-            safeSetItem(STORAGE_KEYS.patisserieCatalog, JSON.stringify(state.patisserieCatalog));
-          }
-        }
-        if (data.schedulesJson) {
-          const parsedSch = JSON.parse(data.schedulesJson);
-          if (parsedSch && typeof parsedSch === "object") {
-            state.schedules = parsedSch;
-            safeSetItem(STORAGE_KEYS.schedules, JSON.stringify(state.schedules));
-          }
-        }
-        if (data.techSheetsJson) {
-          const parsedTs = JSON.parse(data.techSheetsJson);
-          if (Array.isArray(parsedTs) && parsedTs.length) {
-            state.techSheets = parsedTs;
-            safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
-          }
-        }
-        if (state.currentUser) {
-          renderAllViews();
-        }
-      } catch (e) {} finally {
-        _isApplyingRemote = false;
+    function saveAdminSetPassword(userId) {
+      if (!hasPermission("adminManageUsers")) return;
+      const u = state.users.find(x => x.id === userId);
+      if (!u || isSuperAdminUser(u)) return;
+      const newPwd = (document.getElementById("admin-set-pwd-val")?.value || "").trim();
+      if (newPwd.length < 4) {
+        showToast("Le mot de passe doit contenir au moins 4 caractères.");
+        return;
       }
-    };
-
-    window.__applyRemoteBoutiqueData = function (docData) {
-      if (!docData || !docData.boutique || !docData.weeksJson) return;
-      _isApplyingRemote = true;
-      try {
-        const weeksObj = JSON.parse(docData.weeksJson);
-        const storeObj = { boutique: docData.boutique, weeks: weeksObj };
-        safeSetItem(boutiqueStorageKey(docData.boutique), JSON.stringify(storeObj));
-        if (state.selectedBoutique === docData.boutique) {
-          state.storeData = storeObj;
-          if (state.currentUser) renderAllViews();
-        }
-      } catch (e) {} finally {
-        _isApplyingRemote = false;
-      }
-    };
-
-    window.__applyRemoteActivityLogs = function (logs) {
-      if (!Array.isArray(logs)) return;
-      _isApplyingRemote = true;
-      try {
-        const prevTopId = state.activityLog[0]?.id;
-        logs.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
-        state.activityLog = logs.slice(0, 200);
-        safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
-        const newest = state.activityLog[0];
-        if (newest && newest.id !== prevTopId && state.currentUser && newest.pcId !== PC_DEVICE_ID) {
-          showToast(`📡 EN DIRECT [${newest.boutique}] : ${newest.summary}`);
-          if (state.activeTab === "admin") renderAdminView();
-        }
-      } catch (e) {} finally {
-        _isApplyingRemote = false;
-      }
-    };
-
-    window.addEventListener("storage", (ev) => {
-      if (!ev.key) return;
-      if (ev.key === STORAGE_KEYS.users || ev.key === STORAGE_KEYS.catalog || ev.key === STORAGE_KEYS.patisserieCatalog || ev.key === STORAGE_KEYS.schedules || ev.key === STORAGE_KEYS.techSheets || ev.key === STORAGE_KEYS.activityLog) {
-        loadGlobalConfig();
-        if (state.currentUser) renderAllViews();
-      } else if (ev.key === boutiqueStorageKey(state.selectedBoutique)) {
-        loadBoutiqueStore(state.selectedBoutique);
-        if (state.currentUser) renderAllViews();
-      }
-    });
+      u.password = newPwd;
+      u.mustChangePassword = false;
+      u.passwordChangedAt = new Date().toISOString();
+      recordNetworkActivity("password", u.boutique === "ALL" ? "Réseau" : u.boutique, `Mot de passe modifié par l'administrateur pour ${u.label}`);
+      saveGlobalConfig();
+      closeModal();
+      renderAdminView();
+      showToast(`Mot de passe mis à jour pour ${u.label} et diffusé aux PC !`);
+    }
 
     /* Drag & Drop Ordre Produits */
     let draggedCatalogProductId = null;
-
     function onAdminProdDragStart(e, productId) {
       draggedCatalogProductId = productId;
-      if (e.dataTransfer) {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", productId);
-      }
+      if (e.dataTransfer) { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", productId); }
     }
-    function onAdminProdDragOver(e) {
-      e.preventDefault();
-      e.currentTarget.style.background = "#fef3c7";
-      e.currentTarget.style.borderTop = "2px solid #d97706";
-    }
-    function onAdminProdDragLeave(e) {
-      e.currentTarget.style.background = "#fff";
-      e.currentTarget.style.borderTop = "";
-    }
+    function onAdminProdDragOver(e) { e.preventDefault(); e.currentTarget.style.background = "#fef3c7"; }
+    function onAdminProdDragLeave(e) { e.currentTarget.style.background = "#fff"; }
     function onAdminProdDrop(e, targetProductId) {
       e.preventDefault();
       e.currentTarget.style.background = "#fff";
-      e.currentTarget.style.borderTop = "";
       const sourceId = draggedCatalogProductId || e.dataTransfer?.getData("text/plain");
       draggedCatalogProductId = null;
       if (!sourceId || sourceId === targetProductId) return;
@@ -4311,7 +4278,6 @@
       const p = state.catalog.find(x => x.id === productId);
       if (!p) return;
       p.dormant = !p.dormant;
-      recordNetworkActivity("catalog", "Réseau", `${p.name} : ${p.dormant ? "mis en dormance" : "réactivé"}`);
       saveGlobalConfig();
       renderAdminView();
       showToast(`${p.name} : ${p.dormant ? "mis en dormance" : "réactivé"}.`);
@@ -4319,9 +4285,7 @@
 
     function deleteCatalogProduct(productId) {
       if (!hasPermission("adminManageCatalog")) return;
-      const target = state.catalog.find(x => x.id === productId);
       state.catalog = state.catalog.filter(x => x.id !== productId);
-      recordNetworkActivity("catalog", "Réseau", `Produit supprimé du catalogue : ${target ? target.name : productId}`);
       saveGlobalConfig();
       renderAdminView();
       showToast("Produit supprimé du catalogue.");
@@ -4329,41 +4293,32 @@
 
     function openAddCatalogProductModal() {
       if (!hasPermission("adminManageCatalog")) return;
+      const petrinOpts = PETRIN_DEFINITIONS.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join("");
       openModal(`
-        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.8rem;">+ Nouveau Produit Boulangerie / Viennoiserie</h3>
+        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.8rem;">+ Nouveau Produit Boulangerie / Brioche / Viennoiserie</h3>
         <div style="display:flex; flex-direction:column; gap:0.65rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
-            <select id="np-cat" class="select" onchange="onNewCatalogCategoryChange(this.value)">
-              <option value="Pains">Pains</option>
-              <option value="Brioche">Brioche</option>
-              <option value="Viennoiserie">Viennoiserie</option>
-            </select>
+            <select id="np-cat" class="select"><option>Pains</option><option>Brioche</option><option>Viennoiserie</option></select>
           </div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Nom du produit</label><input id="np-name" class="input" placeholder="Ex: Baguette Sésame / Brioche Feuilletée..." /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">Nom du produit</label><input id="np-name" class="input" placeholder="Ex: Baguette Sésame ou Brioche Feuilletee" /></div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
             <div><label style="font-size:0.75rem; font-weight:700;">Poids de pâte unitaire (g)</label><input id="np-weight" type="number" value="350" class="input" /></div>
             <div><label style="font-size:0.75rem; font-weight:700;">Prix de vente (€)</label><input id="np-price" type="number" step="0.05" value="2.50" class="input" /></div>
           </div>
-          <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:9px; padding:0.6rem 0.7rem;">
-            <label style="font-size:0.75rem; font-weight:800; color:#92400e; display:block; margin-bottom:0.3rem;">🥣 Lier à une Pétrie (pour calcul automatique du pétrin) :</label>
-            <select id="np-petrin-id" class="select">${getPetrinOptionsHtml("petrin-tradition")}</select>
-            <small style="display:block; font-size:0.69rem; color:#78350f; margin-top:3px;">Si vous choisissez une pétrie, le poids de pâte et les ingrédients s'ajouteront automatiquement au pétrin sélectionné.</small>
+          <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:9px; padding:0.55rem 0.7rem;">
+            <label style="font-size:0.75rem; font-weight:900; color:#92400e; display:block; margin-bottom:0.25rem;">🥣 Lier ce produit à une Pétrie (ajout automatique au pétrin) :</label>
+            <select id="np-petrin" class="select">
+              <option value="">-- Aucune pétrie (ex: Viennoiserie en plaquage) --</option>
+              ${petrinOpts}
+            </select>
           </div>
           <label style="font-size:0.78rem; font-weight:700;"><input id="np-support" type="checkbox" /> Pain fabriqué uniquement pour les sandwichs (prix = 0 €)</label>
           <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
             <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
-            <button type="button" class="btn btn-emerald" onclick="createCatalogProduct()">Ajouter</button>
+            <button type="button" class="btn btn-emerald" onclick="createCatalogProduct()">✅ Ajouter au réseau</button>
           </div>
         </div>
       `);
-    }
-
-    function onNewCatalogCategoryChange(cat) {
-      const sel = document.getElementById("np-petrin-id");
-      if (!sel) return;
-      if (cat === "Brioche") sel.value = "petrin-brioche";
-      else if (cat === "Viennoiserie") sel.value = "";
-      else sel.value = "petrin-tradition";
     }
 
     function createCatalogProduct() {
@@ -4371,7 +4326,7 @@
       const name = (document.getElementById("np-name").value || "").trim();
       if (!name) return;
       const isSupp = document.getElementById("np-support").checked;
-      const petrinId = document.getElementById("np-petrin-id")?.value || "";
+      const petrinId = document.getElementById("np-petrin")?.value || "";
       state.catalog.push({
         id: "prod-" + slugify(name) + "-" + Date.now(),
         category: document.getElementById("np-cat").value,
@@ -4381,11 +4336,11 @@
         isTraiteurSupport: isSupp,
         petrinId
       });
-      recordNetworkActivity("catalog", "Réseau", `Nouveau produit ajouté au catalogue : "${name}"${petrinId ? " (lié à " + petrinId + ")" : ""}`);
+      recordNetworkActivity("catalog", "Réseau", `Nouveau produit ajouté : ${name}${petrinId ? " (lié à " + petrinId + ")" : ""}`);
       saveGlobalConfig();
       closeModal();
       renderAdminView();
-      showToast("Produit ajouté et raccordé à sa pétrie.");
+      showToast("Produit ajouté et raccordé.");
     }
 
     /* Modale Tarifs */
@@ -4393,16 +4348,15 @@
       if (!hasPermission("adminManagePricesCa")) return;
       const wk = getCurrentWeekData();
       openModal(`
-        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.65rem;">💶 Gestion des Tarifs (€) — Boulangerie, Traiteur &amp; Pâtisserie</h3>
+        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.65rem;">💶 Gestion des Tarifs (€)</h3>
         <div style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:0.4rem;">
-          <div style="font-weight:900; font-size:0.8rem; color:#92400e; margin-top:0.3rem;">Pains, Brioches &amp; Viennoiserie (hors supports sandwichs)</div>
+          <div style="font-weight:900; font-size:0.8rem; color:#92400e;">Pains, Brioches &amp; Viennoiserie</div>
           ${state.catalog.filter(p => !p.formula && !p.isText && !p.isTraiteurSupport).map(p => `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0.4rem; border-bottom:1px solid #f1f5f9; font-size:0.8rem;">
               <span>${escapeHtml(p.name)}</span>
               <input type="number" step="0.05" min="0" value="${Number(p.price)||0}" class="input" style="width:90px; text-align:right;" onchange="updateCatalogPrice('${p.id}', this.value)" />
             </div>
           `).join("")}
-
           <div style="font-weight:900; font-size:0.8rem; color:#065f46; margin-top:0.6rem;">Gamme Traiteur</div>
           ${(wk.traiteur || []).map(tr => `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0.4rem; border-bottom:1px solid #f1f5f9; font-size:0.8rem;">
@@ -4410,7 +4364,6 @@
               <input type="number" step="0.05" min="0" value="${Number(tr.price)||0}" class="input" style="width:90px; text-align:right;" onchange="updateTraiteurPrice('${tr.id}', this.value)" />
             </div>
           `).join("")}
-
           <div style="font-weight:900; font-size:0.8rem; color:#1e40af; margin-top:0.6rem;">Gamme Pâtisserie</div>
           ${state.patisserieCatalog.map(pat => `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:0.3rem 0.4rem; border-bottom:1px solid #f1f5f9; font-size:0.8rem;">
@@ -4427,11 +4380,7 @@
 
     function updateCatalogPrice(id, val) {
       const p = state.catalog.find(x => x.id === id);
-      if (p) {
-        p.price = Math.max(0, Number(val) || 0);
-        recordNetworkActivity("ca", "Réseau", `Tarif modifié : ${p.name} → ${formatNum(p.price, 2)} €`);
-        saveGlobalConfig();
-      }
+      if (p) { p.price = Math.max(0, Number(val) || 0); saveGlobalConfig(); }
     }
     function updateTraiteurPrice(id, val) {
       const price = Math.max(0, Number(val) || 0);
@@ -4445,19 +4394,14 @@
         });
         safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
       });
-      recordNetworkActivity("ca", "Réseau", `Tarif Traiteur modifié : ${def ? def.name : id} → ${formatNum(price, 2)} €`);
       loadBoutiqueStore(state.selectedBoutique);
     }
     function updatePatisseriePrice(id, val) {
       const p = state.patisserieCatalog.find(x => x.id === id);
-      if (p) {
-        p.price = Math.max(0, Number(val) || 0);
-        recordNetworkActivity("ca", "Réseau", `Tarif Pâtisserie modifié : ${p.name} → ${formatNum(p.price, 2)} €`);
-        saveGlobalConfig();
-      }
+      if (p) { p.price = Math.max(0, Number(val) || 0); saveGlobalConfig(); }
     }
 
-    /* Modale Admin : CA Objectif & CA Réalisé */
+    /* Modale Admin CA Objectif & Réalisé */
     function openAdminCaObjectivesModal() {
       if (!hasPermission("adminManagePricesCa")) return;
       const isoMonday = state.selectedWeekMonday;
@@ -4476,11 +4420,9 @@
             <td style="padding:0.4rem 0.5rem; font-weight:800; white-space:nowrap;">${escapeHtml(b.name)}</td>
             ${DAY_SHORT.map((ds, dIdx) => `
               <td style="padding:0.3rem 0.25rem; text-align:center;">
-                <input type="number" min="0" step="1" placeholder="Obj" title="CA Objectif ${b.name} ${DAY_NAMES[dIdx]}"
-                  value="${Number(objArr[dIdx]) || 0}" class="input tabular" style="width:74px; padding:0.25rem; font-size:0.75rem; font-weight:800; border-color:#f59e0b; margin-bottom:2px;"
+                <input type="number" min="0" step="1" value="${Number(objArr[dIdx]) || 0}" class="input tabular" style="width:74px; padding:0.25rem; font-size:0.75rem; font-weight:800; border-color:#f59e0b; margin-bottom:2px;"
                   onchange="saveAdminBoutiqueCaValue('${escapeHtml(b.name)}', ${dIdx}, 'caObjectif', this.value)" />
-                <input type="number" min="0" step="1" placeholder="Réal" title="CA Réalisé ${b.name} ${DAY_NAMES[dIdx]}"
-                  value="${Number(realArr[dIdx]) || 0}" class="input tabular" style="width:74px; padding:0.25rem; font-size:0.75rem; color:#065f46; border-color:#a7f3d0;"
+                <input type="number" min="0" step="1" value="${Number(realArr[dIdx]) || 0}" class="input tabular" style="width:74px; padding:0.25rem; font-size:0.75rem; color:#065f46; border-color:#a7f3d0;"
                   onchange="saveAdminBoutiqueCaValue('${escapeHtml(b.name)}', ${dIdx}, 'caRealise', this.value)" />
               </td>
             `).join("")}
@@ -4493,21 +4435,8 @@
       }).join("");
 
       openModal(`
-        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.35rem;">🎯 CA Objectif &amp; CA Réalisé par Boutique — Semaine ${wkNum} (${formatShortFrDate(isoMonday)})</h3>
-        <p style="font-size:0.76rem; color:#4b5563; margin-bottom:0.65rem;">
-          Ligne du haut (bordure orange) = <strong>CA Objectif (€)</strong> • Ligne du bas (bordure verte) = <strong>CA Réalisé (€)</strong>.
-        </p>
-
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.6rem 0.75rem; margin-bottom:0.75rem;">
-          <div style="font-size:0.76rem; font-weight:800; color:#1e293b; margin-bottom:0.3rem;">📋 Import rapide par copier-coller depuis Excel / SharePoint :</div>
-          <textarea id="paste-ca-sharepoint" class="input" rows="3" style="font-size:0.75rem;" placeholder="Collez ici les lignes copiées depuis votre fichier Excel (ex: Boutique [Tab] CA Objectif [Tab] CA Réalisé)..."></textarea>
-          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.5rem; margin-top:0.4rem;">
-            <span style="font-size:0.71rem; color:#64748b;">Format : <code>Boutique ; CA Objectif ; CA Réalisé</code></span>
-            <button type="button" class="btn btn-amber btn-sm" onclick="importPastedCaFromExcel()">📥 Appliquer les chiffres collés</button>
-          </div>
-        </div>
-
-        <div class="table-wrap" style="max-height:52vh; overflow:auto;">
+        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.35rem;">🎯 CA Objectif &amp; CA Réalisé — Semaine ${wkNum} (${formatShortFrDate(isoMonday)})</h3>
+        <div class="table-wrap" style="max-height:55vh; overflow:auto; margin-top:0.6rem;">
           <table class="forecast-table" style="font-size:0.76rem;">
             <thead>
               <tr>
@@ -4519,9 +4448,8 @@
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>
-
         <div style="display:flex; justify-content:flex-end; margin-top:0.8rem;">
-          <button type="button" class="btn btn-emerald" onclick="closeModal(); renderAllViews(); showToast('CA Objectif & CA Réalisé enregistrés.');">✅ Fermer et Actualiser</button>
+          <button type="button" class="btn btn-emerald" onclick="closeModal(); renderAllViews(); showToast('CA Objectif & Réalisé enregistrés.');">✅ Fermer</button>
         </div>
       `);
     }
@@ -4531,77 +4459,18 @@
       const isoMonday = state.selectedWeekMonday;
       const st = readBoutiqueStoreReadOnly(boutiqueName);
       if (!st.weeks[isoMonday]) {
-        st.weeks[isoMonday] = {
-          quantities: {},
-          traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
-          patisserie: {},
-          caObjectif: [0,0,0,0,0,0,0],
-          caRealise: [0,0,0,0,0,0,0],
-          autoSyncTraiteur: true
-        };
+        st.weeks[isoMonday] = { quantities: {}, traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)), patisserie: {}, caObjectif: [0,0,0,0,0,0,0], caRealise: [0,0,0,0,0,0,0], autoSyncTraiteur: true };
       }
       const wk = st.weeks[isoMonday];
-      if (!Array.isArray(wk.caObjectif) || wk.caObjectif.length !== 7) wk.caObjectif = [0,0,0,0,0,0,0];
-      if (!Array.isArray(wk.caRealise) || wk.caRealise.length !== 7) wk.caRealise = [0,0,0,0,0,0,0];
-      wk[field][dayIdx] = Math.max(0, Number(val) || 0);
+      const num = Math.max(0, Number(val) || 0);
+      wk[field][dayIdx] = num;
       safeSetItem(boutiqueStorageKey(boutiqueName), JSON.stringify(st));
-      if (window.__julesCloud && window.__julesCloud.pushBoutique) {
-        window.__julesCloud.pushBoutique(boutiqueName, st);
-      }
-      if (boutiqueName === state.selectedBoutique) {
-        loadBoutiqueStore(boutiqueName);
-      }
+      broadcastNetworkPacket({ kind: "cell_delta", boutique: boutiqueName, mondayIso: isoMonday, domain: field, dayIdx, value: num });
+      if (boutiqueName === state.selectedBoutique) loadBoutiqueStore(boutiqueName);
       runFullAutoBackup(true);
     }
 
-    function importPastedCaFromExcel() {
-      const raw = (document.getElementById("paste-ca-sharepoint")?.value || "").trim();
-      if (!raw) return;
-      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      let updatedCount = 0;
-
-      lines.forEach(line => {
-        const parts = line.split(/\t|;/).map(c => c.trim());
-        if (parts.length < 2) return;
-        const shopRaw = slugify(parts[0]);
-        const matchedBoutique = BOUTIQUES.find(b => {
-          const sb = slugify(b.name);
-          return shopRaw.includes(sb) || sb.includes(shopRaw);
-        });
-        if (!matchedBoutique) return;
-
-        const parseEuro = str => {
-          if (!str) return 0;
-          const cleaned = str.replace(/[€\s\u00A0]/g, "").replace(",", ".");
-          return Math.max(0, parseFloat(cleaned) || 0);
-        };
-
-        const nums = parts.slice(1).map(parseEuro);
-        if (nums.length >= 14) {
-          for (let d = 0; d < 7; d++) {
-            saveAdminBoutiqueCaValue(matchedBoutique.name, d, "caObjectif", nums[d * 2]);
-            saveAdminBoutiqueCaValue(matchedBoutique.name, d, "caRealise", nums[d * 2 + 1]);
-          }
-          updatedCount++;
-        } else if (nums.length >= 2) {
-          saveAdminBoutiqueCaValue(matchedBoutique.name, state.selectedDayIdx, "caObjectif", nums[0]);
-          saveAdminBoutiqueCaValue(matchedBoutique.name, state.selectedDayIdx, "caRealise", nums[1]);
-          updatedCount++;
-        } else if (nums.length === 1) {
-          saveAdminBoutiqueCaValue(matchedBoutique.name, state.selectedDayIdx, "caObjectif", nums[0]);
-          updatedCount++;
-        }
-      });
-
-      if (updatedCount > 0) {
-        openAdminCaObjectivesModal();
-        showToast(`${updatedCount} boutique(s) mise(s) à jour depuis votre copier-coller !`);
-      } else {
-        showToast("Aucune boutique reconnue.");
-      }
-    }
-
-    /* Modales Droits, Utilisateurs & Horaires */
+    /* Modales Droits & Nouveaux Utilisateurs */
     function openUserPermissionsModal(userId) {
       if (!hasPermission("adminManageUsers")) return;
       const u = state.users.find(x => x.id === userId);
@@ -4614,7 +4483,7 @@
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.35rem;">🛡️ Autorisations personnalisées — ${escapeHtml(u.label)}</h3>
         <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.5rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:0.55rem 0.7rem; margin-bottom:0.7rem;">
           <div style="font-size:0.78rem; font-weight:800; color:#1e293b;">
-            Type de compte :
+            Type :
             <select id="edit-user-role-sel" class="select" style="width:auto; display:inline-block; padding:0.25rem 0.5rem; font-weight:800;" onchange="changeUserRoleType('${u.id}', this.value)">
               <option value="boutique" ${!isAdm ? "selected" : ""}>🏪 Compte Boutique</option>
               <option value="admin" ${isAdm ? "selected" : ""}>🛡️ Compte Administrateur Délégué</option>
@@ -4625,7 +4494,6 @@
             <button type="button" class="btn btn-white btn-sm" onclick="applyRolePresetToUser('${u.id}', 'prod_manager')">Chef Prod / Labo</button>
           </div>
         </div>
-
         <div style="max-height:56vh; overflow-y:auto; display:flex; flex-direction:column; gap:0.65rem;">
           <div>
             <div style="font-size:0.76rem; font-weight:900; color:#92400e; text-transform:uppercase; margin-bottom:0.3rem;">🛡️ Autorisations d'Administration Réseau</div>
@@ -4638,9 +4506,8 @@
               `).join("")}
             </div>
           </div>
-
           <div>
-            <div style="font-size:0.76rem; font-weight:900; color:#065f46; text-transform:uppercase; margin-bottom:0.3rem;">🏪 Autorisations Boutiques, Prévisions &amp; Pétries</div>
+            <div style="font-size:0.76rem; font-weight:900; color:#065f46; text-transform:uppercase; margin-bottom:0.3rem;">🏪 Autorisations Boutiques &amp; Production</div>
             <div style="display:flex; flex-direction:column; gap:0.35rem;">
               ${storePerms.map(pm => `
                 <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; padding:0.38rem 0.5rem; background:#f8fafc; border:1px solid #e2e8f0; border-radius:7px; cursor:pointer;">
@@ -4651,7 +4518,6 @@
             </div>
           </div>
         </div>
-
         <div style="display:flex; justify-content:flex-end; margin-top:0.85rem;">
           <button type="button" class="btn btn-emerald" onclick="closeModal(); renderAdminView(); showToast('Autorisations enregistrées.');">✅ Terminer</button>
         </div>
@@ -4667,14 +4533,9 @@
         u.boutique = "ALL";
         u.permissions.adminAllBoutiques = true;
       } else {
-        if (!u.boutique || u.boutique === "ALL") {
-          u.boutique = BOUTIQUES[0].name;
-        }
-        Object.keys(ADMIN_PERMISSIONS).forEach(k => {
-          if (k.startsWith("admin")) u.permissions[k] = false;
-        });
+        if (!u.boutique || u.boutique === "ALL") u.boutique = BOUTIQUES[0].name;
+        Object.keys(ADMIN_PERMISSIONS).forEach(k => { if (k.startsWith("admin")) u.permissions[k] = false; });
       }
-      recordNetworkActivity("users", "Réseau", `Rôle modifié pour ${u.label} → ${u.role}`);
       saveGlobalConfig();
       openUserPermissionsModal(userId);
     }
@@ -4690,12 +4551,7 @@
       } else if (preset === "prod_manager") {
         u.role = "admin";
         u.boutique = "ALL";
-        u.permissions = {
-          ...ADMIN_PERMISSIONS,
-          adminManageUsers: false,
-          adminExportHtml: false,
-          adminManagePricesCa: false
-        };
+        u.permissions = { ...ADMIN_PERMISSIONS, adminManageUsers: false, adminExportHtml: false, adminManagePricesCa: false };
       }
       saveGlobalConfig();
       openUserPermissionsModal(userId);
@@ -4715,25 +4571,12 @@
       saveGlobalConfig();
     }
 
-    function resetUserPassword(userId) {
-      if (!hasPermission("adminManageUsers")) return;
-      const u = state.users.find(x => x.id === userId);
-      if (!u || isSuperAdminUser(u)) return;
-      u.password = "Jules2026!";
-      u.mustChangePassword = true;
-      u.passwordChangedAt = null;
-      recordNetworkActivity("password", u.boutique === "ALL" ? "Réseau" : u.boutique, `Réinitialisation mot de passe pour ${u.label}`);
-      saveGlobalConfig();
-      renderAdminView();
-      showToast(`Mot de passe réinitialisé à Jules2026! pour ${u.label}.`);
-    }
-
     function deleteCustomUser(userId) {
       if (!hasPermission("adminManageUsers")) return;
       const u = state.users.find(x => x.id === userId);
       if (!u || isSuperAdminUser(u) || !u.id.startsWith("usr-custom-")) return;
       state.users = state.users.filter(x => x.id !== userId);
-      recordNetworkActivity("users", "Réseau", `Compte supprimé : ${u.label}`);
+      recordNetworkActivity("users", "Réseau", `Accès supprimé : ${u.label}`);
       saveGlobalConfig();
       renderAdminView();
       showToast(`Compte "${u.label}" supprimé.`);
@@ -4741,12 +4584,9 @@
 
     function onCreateUserRoleChange(roleVal) {
       const isAdmin = roleVal === "admin";
-      const adminBox = document.getElementById("nu-admin-perms-box");
-      const boutiqueBox = document.getElementById("nu-boutique-wrap");
-      const allShopsNote = document.getElementById("nu-all-boutiques-note");
-      if (adminBox) adminBox.classList.toggle("hidden", !isAdmin);
-      if (boutiqueBox) boutiqueBox.classList.toggle("hidden", isAdmin);
-      if (allShopsNote) allShopsNote.classList.toggle("hidden", !isAdmin);
+      document.getElementById("nu-admin-perms-box")?.classList.toggle("hidden", !isAdmin);
+      document.getElementById("nu-boutique-wrap")?.classList.toggle("hidden", isAdmin);
+      document.getElementById("nu-all-boutiques-note")?.classList.toggle("hidden", !isAdmin);
     }
 
     function openCreateUserModal() {
@@ -4768,14 +4608,13 @@
               <select id="nu-boutique" class="select">${BOUTIQUES.map(b => `<option>${escapeHtml(b.name)}</option>`).join("")}</select>
             </div>
             <div id="nu-all-boutiques-note" style="display:flex; align-items:center; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; padding:0.45rem 0.65rem; font-size:0.75rem; font-weight:800; color:#065f46;">
-              🌐 Accès automatique aux 9 boutiques (aucune boutique fixe)
+              🌐 Accès automatique aux 9 boutiques
             </div>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
             <div><label style="font-size:0.75rem; font-weight:700;">Email de connexion</label><input id="nu-email" type="email" class="input" placeholder="prenom.nom@boulangeriechezjules.fr" /></div>
-            <div><label style="font-size:0.75rem; font-weight:700;">Mot de passe temporaire</label><input id="nu-pwd" class="input" value="Jules2026!" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Mot de passe attribué</label><input id="nu-pwd" class="input" value="Jules2026!" /></div>
           </div>
-
           <div id="nu-admin-perms-box" style="background:#fffbeb; border:1px solid #fcd34d; border-radius:10px; padding:0.6rem 0.75rem;">
             <div style="font-size:0.76rem; font-weight:900; color:#92400e; margin-bottom:0.4rem;">🛡️ Autorisations accordées à cet Administrateur :</div>
             <div style="display:grid; grid-template-columns:1fr; gap:0.3rem; max-height:210px; overflow-y:auto;">
@@ -4787,7 +4626,6 @@
               `).join("")}
             </div>
           </div>
-
           <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.25rem;">
             <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
             <button type="button" class="btn btn-emerald" onclick="createNewUser()">✅ Créer l'accès</button>
@@ -4800,19 +4638,11 @@
       if (!hasPermission("adminManageUsers")) return;
       const label = (document.getElementById("nu-label").value || "").trim();
       const email = (document.getElementById("nu-email").value || "").trim().toLowerCase();
-      if (!label || !email) {
-        showToast("Renseignez le nom et l'email de connexion.");
-        return;
-      }
-      if (state.users.some(u => u.email.toLowerCase() === email)) {
-        showToast("Cet email existe déjà.");
-        return;
-      }
-      const role = document.getElementById("nu-role")?.value === "admin" ? "admin" : "boutique";
-      const perms = role === "admin"
-        ? { ...ADMIN_PERMISSIONS, adminManageUsers: false }
-        : { ...DEFAULT_BOUTIQUE_PERMISSIONS };
+      if (!label || !email) { showToast("Renseignez le nom et l'email de connexion."); return; }
+      if (state.users.some(u => u.email.toLowerCase() === email)) { showToast("Cet email existe déjà."); return; }
 
+      const role = document.getElementById("nu-role")?.value === "admin" ? "admin" : "boutique";
+      const perms = role === "admin" ? { ...ADMIN_PERMISSIONS, adminManageUsers: false } : { ...DEFAULT_BOUTIQUE_PERMISSIONS };
       if (role === "admin") {
         document.querySelectorAll(".nu-admin-perm-chk").forEach(chk => {
           const k = chk.getAttribute("data-perm");
@@ -4827,23 +4657,24 @@
         role,
         boutique: role === "admin" ? "ALL" : document.getElementById("nu-boutique").value,
         label,
-        mustChangePassword: true,
-        passwordChangedAt: null,
+        mustChangePassword: false,
+        passwordChangedAt: new Date().toISOString(),
         permissions: perms
       });
-      recordNetworkActivity("users", "Réseau", `Nouvel accès créé : ${label} (${role === "admin" ? "Admin 9 boutiques" : "Boutique"})`);
+      recordNetworkActivity("users", "Réseau", `Nouvel accès créé : ${label} (${role === "admin" ? "Admin" : "Boutique"})`);
       saveGlobalConfig();
       closeModal();
       renderAdminView();
-      showToast(`Accès ${role === "admin" ? "Administrateur (9 boutiques)" : "Boutique"} créé pour ${label}.`);
+      showToast(`Accès créé pour ${label}.`);
     }
 
+    /* Horaires */
     function openBoutiqueScheduleModal(boutiqueName) {
       const sc = state.schedules[boutiqueName] || { weeklyDays: [0,1,2,3,4,5,6], exceptionalOpenDates: [], exceptionalClosedDates: [] };
       openModal(`
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.7rem;">🗓️ Jours d'ouverture — ${escapeHtml(boutiqueName)}</h3>
         <div style="margin-bottom:0.85rem;">
-          <div style="font-size:0.78rem; font-weight:800; margin-bottom:0.35rem;">1. Jours ouvrés habituels de la semaine :</div>
+          <div style="font-size:0.78rem; font-weight:800; margin-bottom:0.35rem;">1. Jours ouvrés habituels :</div>
           <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
             ${DAY_NAMES.map((dn, idx) => `
               <label style="padding:0.35rem 0.6rem; border:1px solid #cbd5e1; border-radius:8px; font-size:0.78rem; font-weight:700; background:#f8fafc;">
@@ -4882,10 +4713,8 @@
       const set = new Set(sc.weeklyDays || []);
       if (checked) set.add(dayIdx); else set.delete(dayIdx);
       sc.weeklyDays = [...set].sort();
-      recordNetworkActivity("schedule", bName, `Jours d'ouverture modifiés pour ${bName}`);
       saveGlobalConfig();
     }
-
     function addExceptionalDate(bName, type) {
       const sc = state.schedules[bName];
       const val = document.getElementById(type === "open" ? "ex-open-date" : "ex-closed-date")?.value;
@@ -4895,7 +4724,6 @@
       saveGlobalConfig();
       openBoutiqueScheduleModal(bName);
     }
-
     function removeExceptionalDate(bName, type, dt) {
       const sc = state.schedules[bName];
       if (!sc) return;
@@ -4906,13 +4734,11 @@
     }
 
     /* ==========================================================================
-       19. SAUVEGARDE AUTOMATIQUE 10 ANS & GÉNÉRATEUR INDEX.HTML
+       14. SAUVEGARDE 10 ANS & EXPORT INDEX.HTML
        ========================================================================== */
     function runFullAutoBackup(silent = true) {
       const stores = {};
-      BOUTIQUES.forEach(b => {
-        stores[b.name] = readBoutiqueStoreReadOnly(b.name);
-      });
+      BOUTIQUES.forEach(b => { stores[b.name] = readBoutiqueStoreReadOnly(b.name); });
       const snapshot = {
         exportedAt: new Date().toISOString(),
         schemaVersion: APP_DATA_VERSION,
@@ -4992,10 +4818,8 @@
 
       const cloneDoc = document.documentElement.cloneNode(true);
       const loginScreen = cloneDoc.querySelector("#login-screen");
-      const forceScreen = cloneDoc.querySelector("#force-pwd-screen");
       const appShell = cloneDoc.querySelector("#app-shell");
       if (loginScreen) loginScreen.classList.remove("hidden");
-      if (forceScreen) forceScreen.classList.add("hidden");
       if (appShell) appShell.classList.add("hidden");
 
       const htmlContent = "<!DOCTYPE html>\n" + cloneDoc.outerHTML;
@@ -5008,11 +4832,11 @@
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      showToast("Fichier index.html généré et téléchargé (données 10 ans préservées) !");
+      showToast("Fichier index.html généré et téléchargé !");
     }
 
     /* ==========================================================================
-       20. IMPRESSION & GÉNÉRATION PDF (3 FEUILLES A4 MAX POUR PÉTRIES)
+       15. IMPRESSION & GÉNÉRATION PDF (3 A4 MAX POUR LES PÉTRIES + SUIVI TEMPS RÉEL)
        ========================================================================== */
     function openPrintPdfModal() {
       const dayName = DAY_NAMES[state.selectedDayIdx] || "Jour";
@@ -5020,9 +4844,8 @@
       openModal(`
         <h3 style="font-size:1.08rem; font-weight:900; color:#111827; margin-bottom:0.3rem;">🖨️ Impression &amp; Génération PDF — ${escapeHtml(state.selectedBoutique)}</h3>
         <p style="font-size:0.78rem; color:#4b5563; margin-bottom:0.85rem;">
-          Document pour <strong>${dayName} ${dateStr}</strong> (Semaine ${getIsoWeekNumber(state.selectedWeekMonday)}). Choisissez les sections à inclure dans votre PDF :
+          Document pour <strong>${dayName} ${dateStr}</strong> (Semaine ${getIsoWeekNumber(state.selectedWeekMonday)}).
         </p>
-
         <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.95rem;">
           <label style="display:flex; align-items:center; gap:0.55rem; padding:0.55rem 0.75rem; background:#fffbeb; border:1px solid #fcd34d; border-radius:9px; font-weight:800; font-size:0.82rem; color:#92400e; cursor:pointer;">
             <input id="pdf-opt-petries" type="checkbox" checked />
@@ -5041,14 +4864,12 @@
             <span>Masquer les produits à zéro (0)</span>
           </label>
         </div>
-
         <div style="display:flex; flex-wrap:wrap; gap:0.45rem; margin-bottom:0.85rem;">
           <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: false, patisserie: false })">📄 PDF Pétries seules (3 A4 max)</button>
           <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: false, traiteur: true, patisserie: false })">📄 PDF Traiteur seul</button>
           <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: false, traiteur: false, patisserie: true })">📄 PDF Pâtisserie seule</button>
           <button type="button" class="btn btn-amber btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: true, patisserie: true })">📑 PDF Tout Ensemble</button>
         </div>
-
         <div style="display:flex; flex-wrap:wrap; justify-content:flex-end; gap:0.5rem; border-top:1px solid #e5e7eb; padding-top:0.75rem;">
           <button type="button" class="btn btn-white" onclick="closeModal()">Fermer</button>
           <button type="button" class="btn btn-dark" onclick="downloadPrintableHtmlBundle()">⬇️ Télécharger fiche HTML/PDF</button>
@@ -5108,7 +4929,6 @@
             const slice = cards.slice(i * chunkSize, (i + 1) * chunkSize);
             if (slice.length > 0) pages.push(slice);
           }
-
           threePagePetriesHtml = pages.map((slice, pIdx) => {
             const cardsHtml = slice.map(c => c.outerHTML).join("");
             if (pIdx === 0) {
@@ -5116,10 +4936,8 @@
                 <div>
                   ${headerCard ? headerCard.outerHTML : ""}
                   ${viennoiserieCard ? viennoiserieCard.outerHTML : ""}
-                  <div class="petries-a4-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.45rem;">
-                    ${cardsHtml}
-                  </div>
-                  <div style="text-align:right; font-size:0.68rem; color:#64748b; margin-top:4px; font-weight:700;">Feuille de Pétries (Format Paysage) — Page 1 / ${pages.length} (3 A4 max)</div>
+                  <div class="petries-a4-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.45rem;">${cardsHtml}</div>
+                  <div style="text-align:right; font-size:0.68rem; color:#64748b; margin-top:4px; font-weight:700;">Feuille de Pétries — Page 1 / ${pages.length} (3 A4 max)</div>
                 </div>
               `;
             }
@@ -5129,9 +4947,7 @@
                   <span>🥣 SUITE DES PÉTRIES — ${escapeHtml(state.selectedBoutique)} (${dayName} ${dateStr})</span>
                   <span>Page ${pIdx + 1} / ${pages.length} (3 A4 max)</span>
                 </div>
-                <div class="petries-a4-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.45rem;">
-                  ${cardsHtml}
-                </div>
+                <div class="petries-a4-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.45rem;">${cardsHtml}</div>
               </div>
             `;
           }).join("");
@@ -5152,14 +4968,8 @@
       if (includeTraiteur) {
         const trRows = (wk.traiteur || [])
           .filter(t => !t.dormant)
-          .map(t => ({
-            category: t.category,
-            name: t.name,
-            breadLabel: t.breadLabel || "",
-            qty: Number(t.quantities?.[dayIdx]) || 0
-          }))
+          .map(t => ({ category: t.category, name: t.name, breadLabel: t.breadLabel || "", qty: Number(t.quantities?.[dayIdx]) || 0 }))
           .filter(r => !hideZeros || r.qty > 0);
-
         const trTotal = trRows.reduce((s, r) => s + r.qty, 0);
         sections.push(`
           <div class="${sections.length > 0 ? "print-page-break" : ""}" style="margin-bottom:1.5rem;">
@@ -5195,13 +5005,8 @@
       if (includePatisserie) {
         const patRows = state.patisserieCatalog
           .filter(p => !p.dormant)
-          .map(p => ({
-            category: p.category,
-            name: p.name,
-            qty: Number(wk.patisserie?.[p.id]?.[dayIdx]) || 0
-          }))
+          .map(p => ({ category: p.category, name: p.name, qty: Number(wk.patisserie?.[p.id]?.[dayIdx]) || 0 }))
           .filter(r => !hideZeros || r.qty > 0);
-
         const patTotal = patRows.reduce((s, r) => s + r.qty, 0);
         sections.push(`
           <div class="${sections.length > 0 ? "print-page-break" : ""}" style="margin-bottom:1.5rem;">
@@ -5249,27 +5054,26 @@
     }
 
     function generateAndPrintBundle(customOpts) {
+      const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
+      const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
+      const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
       const bodyHtml = buildPrintableDocumentHtml(customOpts);
       if (!bodyHtml) {
         showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
         return;
       }
-      const dayName = DAY_NAMES[state.selectedDayIdx] || "Jour";
-      const dateStr = formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx));
-      recordNetworkActivity("print", state.selectedBoutique, `Impression / PDF lancé pour ${dayName} ${dateStr}`);
+
+      const printedParts = [includePetries ? "Pétries" : "", includeTraiteur ? "Traiteur" : "", includePatisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
+      const dayLabel = `${DAY_NAMES[state.selectedDayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx))}`;
+      recordNetworkActivity("print", state.selectedBoutique, `Impression / PDF lancée (${printedParts}) pour ${dayLabel}`);
+
       closeModal();
 
       const dedicatedEl = document.getElementById("dedicated-print-sheet");
-      if (dedicatedEl) {
-        dedicatedEl.innerHTML = bodyHtml;
-      }
+      if (dedicatedEl) dedicatedEl.innerHTML = bodyHtml;
 
       let printWin = null;
-      try {
-        printWin = window.open("", "_blank", "width=1024,height=800");
-      } catch (e) {
-        printWin = null;
-      }
+      try { printWin = window.open("", "_blank", "width=1024,height=800"); } catch (e) { printWin = null; }
 
       if (printWin && printWin.document) {
         const styles = document.querySelector("style")?.innerHTML || "";
@@ -5278,7 +5082,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Chez Jules — Impression PDF Paysage (${escapeHtml(state.selectedBoutique)})</title>
+  <title>chez Jules — Impression PDF Paysage (${escapeHtml(state.selectedBoutique)})</title>
   <style>
     ${styles}
     @page { size: A4 landscape; margin: 7mm; }
@@ -5290,7 +5094,7 @@
 <body>
   <div class="no-print-bar">
     <strong>📄 Aperçu PDF Paysage (A4) prêt — Choisissez « Enregistrer au format PDF » dans la fenêtre d'impression</strong>
-    <button type="button" onclick="window.print()" style="background:#d97706; color:#fff; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:800; cursor:pointer;">🖨️ Imprimer / Enregistrer en PDF (Paysage)</button>
+    <button type="button" onclick="window.print()" style="background:#d97706; color:#fff; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:800; cursor:pointer;">🖨️ Imprimer / Enregistrer en PDF</button>
   </div>
   ${bodyHtml}
   <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };<\/script>
@@ -5300,34 +5104,28 @@
       } else {
         document.body.classList.add("print-bundle-mode");
         setTimeout(() => {
-          try {
-            window.print();
-          } catch (e) {}
-          setTimeout(() => {
-            document.body.classList.remove("print-bundle-mode");
-          }, 1200);
+          try { window.print(); } catch (e) {}
+          setTimeout(() => { document.body.classList.remove("print-bundle-mode"); }, 1200);
         }, 150);
       }
     }
 
     function downloadPrintableHtmlBundle() {
       const bodyHtml = buildPrintableDocumentHtml();
-      if (!bodyHtml) {
-        showToast("Cochez au moins une section.");
-        return;
-      }
+      if (!bodyHtml) { showToast("Cochez au moins une section."); return; }
+      const dayLabel = `${DAY_NAMES[state.selectedDayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx))}`;
+      recordNetworkActivity("print", state.selectedBoutique, `Fiche HTML/PDF téléchargée pour ${dayLabel}`);
+
       const styles = document.querySelector("style")?.innerHTML || "";
       const dayName = slugify(DAY_NAMES[state.selectedDayIdx] || "jour");
       const fullDoc = `<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Chez Jules — ${escapeHtml(state.selectedBoutique)} (${dayName})</title>
+  <title>chez Jules — ${escapeHtml(state.selectedBoutique)} (${dayName})</title>
   <style>${styles} @page { size: A4 landscape; margin: 7mm; } body { background:#fff; padding:1rem; }</style>
 </head>
-<body onload="window.print()">
-  ${bodyHtml}
-</body>
+<body onload="window.print()">${bodyHtml}</body>
 </html>`;
       const blob = new Blob([fullDoc], { type: "text/html;charset=utf-8" });
       const url = URL.createObjectURL(blob);
@@ -5389,7 +5187,7 @@
           return;
         }
       } catch (e) {}
-      pill.textContent = `🌤️ Météo ${b.name} (hors ligne)`;
+      pill.textContent = `🌤️ Météo ${b.name}`;
     }
 
     function openModal(innerHtml) {
@@ -5401,10 +5199,11 @@
     }
 
     /* ==========================================================================
-       21. INITIALISATION AU CHARGEMENT
+       16. INITIALISATION AU CHARGEMENT
        ========================================================================== */
     function initApp() {
       migrateAndPersistAllData();
+      initUniversalMultiPcSync();
       state.selectedWeekMonday = toIsoDate(getMondayOfDate(new Date()));
       const jsDay = new Date().getDay();
       state.selectedDayIdx = jsDay === 0 ? 6 : jsDay - 1;
@@ -5427,7 +5226,7 @@
       try { savedSess = JSON.parse(safeGetItem(STORAGE_KEYS.session)); } catch (e) {}
       if (savedSess?.userId) {
         const u = state.users.find(x => x.id === savedSess.userId);
-        if (u && !u.mustChangePassword) {
+        if (u) {
           state.currentUser = u;
           enterAuthenticatedApp();
           return;
