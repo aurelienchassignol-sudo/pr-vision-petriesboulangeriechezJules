@@ -553,8 +553,8 @@
         </div>
 
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem;">
-          <span id="realtime-sync-badge" style="font-size:0.7rem; font-weight:700; background:#1e3a8a; color:#bfdbfe; border:1px solid #3b82f6; padding:0.28rem 0.6rem; border-radius:999px;">
-            ● EN DIRECT • Multi-PC
+          <span id="realtime-sync-badge" style="font-size:0.7rem; font-weight:700; background:#1e3a8a; color:#bfdbfe; border:1px solid #3b82f6; padding:0.28rem 0.6rem; border-radius:999px; cursor:pointer;" onclick="forceImmediateNetworkSync()" title="Cliquer pour forcer la synchronisation immédiate entre tous les PC">
+            🔄 Connexion Multi-PC...
           </span>
           <span id="auto-backup-badge" style="font-size:0.7rem; font-weight:700; background:#064e3b; color:#a7f3d0; border:1px solid #047857; padding:0.28rem 0.6rem; border-radius:999px;">
             💾 Sauvegarde auto active (10 ans)
@@ -708,160 +708,226 @@
   <!-- NOTIFICATION TOAST -->
   <div id="toast-box" class="toast hidden"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  <script>
+    /* ==========================================================================
+       0. MOTEUR TEMPS RÉEL MULTI-PC UNIVERSEL (FONCTIONNE SUR TOUS LES PC & HÉBERGEURS)
+       ========================================================================== */
+    const DEFAULT_NETWORK_ROOM = "chez-jules-lyon-reseau-9boutiques-v1";
+    const RELAY_BASE_URL = "https://ntfy.sh";
 
-    window.__julesCloud = {
-      ready: false,
-      db: null,
-      auth: null,
-      appId: typeof __app_id !== "undefined" ? __app_id : "chez-jules-reseau-2026",
-      pushGlobal: null,
-      pushBoutique: null,
-      pushActivity: null,
-      pendingGlobal: null,
-      pendingBoutiques: {},
-      pendingActivities: []
-    };
-
-    async function initRealtimeCloud() {
-      const badge = document.getElementById("realtime-sync-badge");
+    function getActiveNetworkRoom() {
       try {
-        if (typeof __firebase_config === "undefined" || !__firebase_config) {
-          if (badge) badge.textContent = "🟢 EN DIRECT • Multi-PC (Local)";
-          return;
-        }
-        const firebaseConfig = typeof __firebase_config === "string" ? JSON.parse(__firebase_config) : __firebase_config;
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = window.__julesCloud.appId;
-
-        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-
-        if (!auth.currentUser) return;
-        window.__julesCloud.db = db;
-        window.__julesCloud.auth = auth;
-
-        const globalDocRef = doc(db, "artifacts", appId, "public", "data", "jules_network_state", "global_config");
-        const boutiquesColRef = collection(db, "artifacts", appId, "public", "data", "jules_boutiques_live");
-        const activityColRef = collection(db, "artifacts", appId, "public", "data", "jules_activity_log");
-
-        window.__julesCloud.pushGlobal = async (payload) => {
-          if (!auth.currentUser) return;
-          try {
-            await setDoc(globalDocRef, {
-              ...payload,
-              updatedAt: new Date().toISOString(),
-              updatedBy: window.__getCurrentActorName ? window.__getCurrentActorName() : "Réseau"
-            });
-          } catch (err) {
-            console.error("Sync global error:", err);
-          }
-        };
-
-        window.__julesCloud.pushBoutique = async (boutiqueName, storeObj) => {
-          if (!auth.currentUser || !boutiqueName) return;
-          try {
-            const bDocRef = doc(db, "artifacts", appId, "public", "data", "jules_boutiques_live", boutiqueName);
-            await setDoc(bDocRef, {
-              boutique: boutiqueName,
-              weeksJson: JSON.stringify(storeObj.weeks || {}),
-              updatedAt: new Date().toISOString(),
-              updatedBy: window.__getCurrentActorName ? window.__getCurrentActorName() : boutiqueName
-            });
-          } catch (err) {
-            console.error("Sync boutique error:", err);
-          }
-        };
-
-        window.__julesCloud.pushActivity = async (entry) => {
-          if (!auth.currentUser) return;
-          try {
-            const actDocRef = doc(db, "artifacts", appId, "public", "data", "jules_activity_log", entry.id);
-            await setDoc(actDocRef, entry);
-          } catch (err) {
-            console.error("Sync activity error:", err);
-          }
-        };
-
-        window.__julesCloud.ready = true;
-
-        if (badge) {
-          badge.style.background = "#064e3b";
-          badge.style.color = "#a7f3d0";
-          badge.style.borderColor = "#10b981";
-          badge.textContent = "🟢 EN DIRECT • Cloud Multi-PC Actif";
-        }
-
-        // Vider la file d'attente des modifications faites avant la fin de la connexion Cloud
-        if (window.__julesCloud.pendingGlobal) {
-          const pg = window.__julesCloud.pendingGlobal;
-          window.__julesCloud.pendingGlobal = null;
-          await window.__julesCloud.pushGlobal(pg);
-        }
-        const pendingBKeys = Object.keys(window.__julesCloud.pendingBoutiques);
-        for (const bKey of pendingBKeys) {
-          const stObj = window.__julesCloud.pendingBoutiques[bKey];
-          delete window.__julesCloud.pendingBoutiques[bKey];
-          await window.__julesCloud.pushBoutique(bKey, stObj);
-        }
-        if (window.__julesCloud.pendingActivities.length > 0) {
-          const acts = [...window.__julesCloud.pendingActivities];
-          window.__julesCloud.pendingActivities = [];
-          for (const act of acts) {
-            await window.__julesCloud.pushActivity(act);
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomParam = urlParams.get("reseau");
+        if (roomParam && roomParam.trim()) {
+          const clean = roomParam.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+          if (clean) {
+            window.localStorage.setItem("jules_network_room_id", clean);
+            return clean;
           }
         }
-
-        let initialGlobalChecked = false;
-        onSnapshot(globalDocRef, (snap) => {
-          if (!snap.exists()) {
-            if (!initialGlobalChecked && window.__seedInitialGlobalCloud) {
-              initialGlobalChecked = true;
-              window.__seedInitialGlobalCloud();
-            }
-            return;
-          }
-          initialGlobalChecked = true;
-          const data = snap.data();
-          if (window.__applyRemoteGlobalConfig) {
-            window.__applyRemoteGlobalConfig(data);
-          }
-        }, () => {});
-
-        onSnapshot(boutiquesColRef, (snap) => {
-          snap.docChanges().forEach(change => {
-            if (change.type === "added" || change.type === "modified") {
-              const d = change.doc.data();
-              if (window.__applyRemoteBoutiqueData && d && d.boutique) {
-                window.__applyRemoteBoutiqueData(d);
-              }
-            }
-          });
-        }, () => {});
-
-        onSnapshot(activityColRef, (snap) => {
-          const allLogs = [];
-          snap.forEach(docSnap => {
-            if (docSnap.exists()) allLogs.push(docSnap.data());
-          });
-          if (window.__applyRemoteActivityLogs) {
-            window.__applyRemoteActivityLogs(allLogs);
-          }
-        }, () => {});
+        return window.localStorage.getItem("jules_network_room_id") || DEFAULT_NETWORK_ROOM;
       } catch (e) {
-        if (badge) badge.textContent = "🟢 EN DIRECT • Multi-PC";
+        return DEFAULT_NETWORK_ROOM;
       }
     }
 
-    initRealtimeCloud();
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = "";
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    }
+
+    function base64ToUtf8(b64) {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+
+    window.__julesCloud = {
+      ready: false,
+      room: getActiveNetworkRoom(),
+      seenMsgIds: new Set(),
+      eventSource: null,
+      pollTimer: null,
+      pushGlobal: null,
+      pushBoutique: null,
+      pushActivity: null,
+      pushDelta: null,
+      pendingDeltas: []
+    };
+
+    function updateSyncBadge(status, text) {
+      const badge = document.getElementById("realtime-sync-badge");
+      if (!badge) return;
+      if (status === "ok") {
+        badge.style.background = "#064e3b";
+        badge.style.color = "#a7f3d0";
+        badge.style.borderColor = "#10b981";
+      } else if (status === "syncing") {
+        badge.style.background = "#92400e";
+        badge.style.color = "#fef3c7";
+        badge.style.borderColor = "#f59e0b";
+      } else {
+        badge.style.background = "#1e3a8a";
+        badge.style.color = "#bfdbfe";
+        badge.style.borderColor = "#3b82f6";
+      }
+      badge.textContent = text;
+    }
+
+    async function sendRelayPacket(packetObj) {
+      const room = window.__julesCloud.room;
+      const packet = {
+        ...packetObj,
+        msgId: packetObj.msgId || ("m-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8)),
+        senderPc: typeof PC_DEVICE_ID !== "undefined" ? PC_DEVICE_ID : "PC",
+        sentAt: new Date().toISOString()
+      };
+      window.__julesCloud.seenMsgIds.add(packet.msgId);
+
+      // Diffusion immédiate entre onglets du même navigateur via BroadcastChannel
+      try {
+        if (window.__julesBC) window.__julesBC.postMessage(packet);
+      } catch (e) {}
+
+      // Diffusion Internet temps réel multi-PC
+      try {
+        const encoded = utf8ToBase64(JSON.stringify(packet));
+        updateSyncBadge("syncing", "📡 Envoi en direct...");
+        const res = await fetch(`${RELAY_BASE_URL}/${encodeURIComponent(room)}`, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: encoded
+        });
+        if (res.ok) {
+          updateSyncBadge("ok", "🟢 EN DIRECT • Multi-PC Connecté");
+        }
+      } catch (err) {
+        updateSyncBadge("warn", "🟠 Sync locale (vérifiez Internet)");
+      }
+    }
+
+    function handleIncomingRelayRaw(rawText) {
+      if (!rawText) return;
+      let packet = null;
+      try {
+        const lineObj = JSON.parse(rawText);
+        if (lineObj && lineObj.event === "message" && lineObj.message) {
+          packet = JSON.parse(base64ToUtf8(lineObj.message));
+        } else if (lineObj && lineObj.kind) {
+          packet = lineObj;
+        }
+      } catch (e) {
+        try {
+          packet = JSON.parse(base64ToUtf8(rawText.trim()));
+        } catch (e2) {}
+      }
+
+      if (!packet || !packet.msgId || !packet.kind) return;
+      if (window.__julesCloud.seenMsgIds.has(packet.msgId)) return;
+      window.__julesCloud.seenMsgIds.add(packet.msgId);
+      if (packet.senderPc === PC_DEVICE_ID) return;
+
+      if (window.__processIncomingNetworkPacket) {
+        window.__processIncomingNetworkPacket(packet);
+      }
+    }
+
+    async function fetchRecentRelayHistory(sinceParam = "24h") {
+      const room = window.__julesCloud.room;
+      try {
+        const res = await fetch(`${RELAY_BASE_URL}/${encodeURIComponent(room)}/json?poll=1&since=${sinceParam}`, {
+          cache: "no-store"
+        });
+        if (!res.ok) return;
+        const text = await res.text();
+        const lines = text.split(/\r?\n/).filter(Boolean);
+        lines.forEach(line => handleIncomingRelayRaw(line));
+        updateSyncBadge("ok", "🟢 EN DIRECT • Multi-PC Connecté");
+      } catch (e) {}
+    }
+
+    function startUniversalRealtimeSync() {
+      const room = window.__julesCloud.room;
+
+      try {
+        window.__julesBC = new BroadcastChannel("jules_bc_" + room);
+        window.__julesBC.onmessage = (ev) => {
+          if (ev.data) handleIncomingRelayRaw(JSON.stringify(ev.data));
+        };
+      } catch (e) {}
+
+      window.__julesCloud.pushDelta = (deltaPayload) => {
+        sendRelayPacket({ kind: "delta", ...deltaPayload });
+      };
+      window.__julesCloud.pushGlobal = (payload) => {
+        sendRelayPacket({ kind: "global_config", payload });
+      };
+      window.__julesCloud.pushBoutique = (boutiqueName, storeObj) => {
+        sendRelayPacket({
+          kind: "boutique_full",
+          boutique: boutiqueName,
+          weeks: storeObj.weeks || {}
+        });
+      };
+      window.__julesCloud.pushActivity = (entry) => {
+        sendRelayPacket({ kind: "activity", entry });
+      };
+      window.__julesCloud.ready = true;
+
+      // 1. Récupérer immédiatement les 24 dernières heures de saisies multi-PC
+      fetchRecentRelayHistory("24h");
+
+      // 2. Flux temps réel instantané (Server-Sent Events)
+      try {
+        if (window.__julesCloud.eventSource) {
+          window.__julesCloud.eventSource.close();
+        }
+        const es = new EventSource(`${RELAY_BASE_URL}/${encodeURIComponent(room)}/sse`);
+        es.onopen = () => {
+          updateSyncBadge("ok", "🟢 EN DIRECT • Multi-PC Connecté");
+        };
+        es.onmessage = (ev) => {
+          if (ev && ev.data) handleIncomingRelayRaw(ev.data);
+        };
+        es.onerror = () => {
+          updateSyncBadge("warn", "🔄 Reconnexion Multi-PC...");
+        };
+        window.__julesCloud.eventSource = es;
+      } catch (e) {}
+
+      // 3. Filet de sécurité HTTP toutes les 4 secondes si un pare-feu bloque SSE
+      clearInterval(window.__julesCloud.pollTimer);
+      window.__julesCloud.pollTimer = setInterval(() => {
+        fetchRecentRelayHistory("30s");
+      }, 4000);
+    }
+
+    function forceImmediateNetworkSync() {
+      updateSyncBadge("syncing", "🔄 Synchronisation...");
+      fetchRecentRelayHistory("24h").then(() => {
+        if (typeof state !== "undefined" && state.currentUser && state.selectedBoutique) {
+          if (window.__julesCloud.pushBoutique) {
+            window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
+          }
+          if (isEffectiveAdmin() && window.__julesCloud.pushGlobal) {
+            window.__julesCloud.pushGlobal({
+              usersJson: JSON.stringify(state.users),
+              catalogJson: JSON.stringify(state.catalog),
+              patisserieCatalogJson: JSON.stringify(state.patisserieCatalog),
+              schedulesJson: JSON.stringify(state.schedules),
+              techSheetsJson: JSON.stringify(state.techSheets)
+            });
+          }
+        }
+        showToast("Synchronisation Multi-PC effectuée !");
+      });
+    }
+
+    startUniversalRealtimeSync();
   </script>
 
   <script>
@@ -2354,6 +2420,15 @@
       wk.caRealise[dayIdx] = num;
       recordNetworkActivity("ca", state.selectedBoutique, `CA réalisé saisi : ${formatNum(num, 0)} € (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
+      if (window.__julesCloud && window.__julesCloud.pushDelta) {
+        window.__julesCloud.pushDelta({
+          deltaType: "caRealise",
+          boutique: state.selectedBoutique,
+          mondayIso: state.selectedWeekMonday,
+          dayIdx,
+          value: num
+        });
+      }
       renderAllViews();
     }
 
@@ -2472,6 +2547,16 @@
       const prod = state.catalog.find(p => p.id === productId);
       recordNetworkActivity("prevision", state.selectedBoutique, `Prévision ${prod ? prod.name : productId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
+      if (window.__julesCloud && window.__julesCloud.pushDelta) {
+        window.__julesCloud.pushDelta({
+          deltaType: "forecast",
+          boutique: state.selectedBoutique,
+          mondayIso: state.selectedWeekMonday,
+          productId,
+          dayIdx,
+          value: num
+        });
+      }
       renderAllViews();
     }
 
@@ -3210,6 +3295,16 @@
       syncTraiteurToForecast(wk);
       recordNetworkActivity("traiteur", state.selectedBoutique, `Traiteur ${item.name} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
+      if (window.__julesCloud && window.__julesCloud.pushDelta) {
+        window.__julesCloud.pushDelta({
+          deltaType: "traiteur",
+          boutique: state.selectedBoutique,
+          mondayIso: state.selectedWeekMonday,
+          trId,
+          dayIdx,
+          value: num
+        });
+      }
       renderTraiteurView();
     }
 
@@ -3358,6 +3453,16 @@
       const pat = state.patisserieCatalog.find(p => p.id === patId);
       recordNetworkActivity("patisserie", state.selectedBoutique, `Pâtisserie ${pat ? pat.name : patId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
+      if (window.__julesCloud && window.__julesCloud.pushDelta) {
+        window.__julesCloud.pushDelta({
+          deltaType: "patisserie",
+          boutique: state.selectedBoutique,
+          mondayIso: state.selectedWeekMonday,
+          patId,
+          dayIdx,
+          value: num
+        });
+      }
       renderPatisserieView();
     }
 
@@ -3832,11 +3937,15 @@
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.55rem;">
             <div>
               <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Temps Réel Multi-PC — Tous les Changements en Direct</h3>
-              <p style="font-size:0.75rem; color:#1d4ed8;">Mise à jour instantanée dès qu'un utilisateur sur n'importe quel PC change son mot de passe, modifie une prévision, le Traiteur, la Pâtisserie, le CA ou imprime.</p>
+              <p style="font-size:0.75rem; color:#1d4ed8;">Canal réseau actif : <code style="background:#dbeafe; padding:2px 6px; border-radius:5px; font-weight:800;">${escapeHtml(window.__julesCloud.room)}</code> • Synchronisation instantanée entre tous les PC.</p>
             </div>
-            <span style="font-size:0.72rem; font-weight:800; background:#dbeafe; color:#1e40af; padding:3px 9px; border-radius:999px;">
-              ${state.activityLog.length} événement(s) en direct
-            </span>
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem;">
+              <button type="button" class="btn btn-white btn-sm" onclick="copyMultiPcShareLink()">🔗 Copier Lien Multi-PC</button>
+              <button type="button" class="btn btn-amber btn-sm" onclick="forceImmediateNetworkSync()">🔄 Synchroniser maintenant</button>
+              <span style="font-size:0.72rem; font-weight:800; background:#dbeafe; color:#1e40af; padding:3px 9px; border-radius:999px;">
+                ${state.activityLog.length} événement(s)
+              </span>
+            </div>
           </div>
           <div style="max-height:260px; overflow-y:auto; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:0.45rem 0.65rem;">
             ${state.activityLog.length === 0 ? `
@@ -3964,14 +4073,86 @@
 
     function scheduleCloudPush() {
       if (_isApplyingRemote || !state.selectedBoutique) return;
-      if (window.__julesCloud) {
-        if (window.__julesCloud.ready && window.__julesCloud.pushBoutique) {
-          window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
-        } else {
-          window.__julesCloud.pendingBoutiques[state.selectedBoutique] = JSON.parse(JSON.stringify(state.storeData));
-        }
+      if (window.__julesCloud && window.__julesCloud.pushBoutique) {
+        window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
       }
     }
+
+    function copyMultiPcShareLink() {
+      const baseUrl = window.location.href.split("?")[0];
+      const shareUrl = `${baseUrl}?reseau=${encodeURIComponent(window.__julesCloud.room)}`;
+      const tmp = document.createElement("textarea");
+      tmp.value = shareUrl;
+      document.body.appendChild(tmp);
+      tmp.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      tmp.remove();
+      showToast("Lien Multi-PC copié ! Ouvrez ce même fichier ou lien sur vos PC boutiques.");
+    }
+
+    window.__processIncomingNetworkPacket = function (packet) {
+      if (!packet || !packet.kind) return;
+      _isApplyingRemote = true;
+      try {
+        if (packet.kind === "delta" && packet.boutique && packet.mondayIso) {
+          const st = readBoutiqueStoreReadOnly(packet.boutique);
+          if (!st.weeks[packet.mondayIso]) {
+            const tbb = INITIAL_TBB_2026_DATA[packet.boutique]?.[packet.mondayIso];
+            st.weeks[packet.mondayIso] = {
+              quantities: {},
+              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
+              patisserie: {},
+              caObjectif: tbb ? [...tbb.caObjectif] : [0,0,0,0,0,0,0],
+              caRealise: tbb ? [...tbb.caRealise] : [0,0,0,0,0,0,0],
+              autoSyncTraiteur: true
+            };
+          }
+          const wk = st.weeks[packet.mondayIso];
+          if (packet.deltaType === "forecast" && packet.productId) {
+            if (!wk.quantities[packet.productId]) wk.quantities[packet.productId] = [0,0,0,0,0,0,0];
+            wk.quantities[packet.productId][packet.dayIdx] = Number(packet.value) || 0;
+          } else if (packet.deltaType === "traiteur" && packet.trId) {
+            const trItem = (wk.traiteur || []).find(t => t.id === packet.trId);
+            if (trItem) trItem.quantities[packet.dayIdx] = Number(packet.value) || 0;
+            syncTraiteurToForecast(wk);
+          } else if (packet.deltaType === "patisserie" && packet.patId) {
+            if (!wk.patisserie) wk.patisserie = {};
+            if (!wk.patisserie[packet.patId]) wk.patisserie[packet.patId] = [0,0,0,0,0,0,0];
+            wk.patisserie[packet.patId][packet.dayIdx] = Number(packet.value) || 0;
+          } else if (packet.deltaType === "caRealise") {
+            if (!Array.isArray(wk.caRealise)) wk.caRealise = [0,0,0,0,0,0,0];
+            wk.caRealise[packet.dayIdx] = Number(packet.value) || 0;
+          }
+          safeSetItem(boutiqueStorageKey(packet.boutique), JSON.stringify(st));
+          if (state.selectedBoutique === packet.boutique) {
+            state.storeData = st;
+            if (state.currentUser) renderAllViews();
+          }
+        } else if (packet.kind === "boutique_full" && packet.boutique && packet.weeks) {
+          const storeObj = { boutique: packet.boutique, weeks: packet.weeks };
+          safeSetItem(boutiqueStorageKey(packet.boutique), JSON.stringify(storeObj));
+          if (state.selectedBoutique === packet.boutique) {
+            state.storeData = storeObj;
+            if (state.currentUser) renderAllViews();
+          }
+        } else if (packet.kind === "global_config" && packet.payload) {
+          window.__applyRemoteGlobalConfig(packet.payload);
+        } else if (packet.kind === "activity" && packet.entry) {
+          if (!state.activityLog.some(x => x.id === packet.entry.id)) {
+            state.activityLog.unshift(packet.entry);
+            state.activityLog.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
+            if (state.activityLog.length > 200) state.activityLog = state.activityLog.slice(0, 200);
+            safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
+            if (state.currentUser && packet.entry.pcId !== PC_DEVICE_ID) {
+              showToast(`📡 EN DIRECT [${packet.entry.boutique}] : ${packet.entry.summary}`);
+              if (state.activeTab === "admin") renderAdminView();
+            }
+          }
+        }
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+    };
 
     window.__getCurrentActorName = function () {
       return state.currentUser ? `${state.currentUser.label} (${PC_DEVICE_ID})` : `${state.selectedBoutique} (${PC_DEVICE_ID})`;
