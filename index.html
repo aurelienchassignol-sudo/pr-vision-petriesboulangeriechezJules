@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
   <style>
     :root {
       --amber: #d97706;
@@ -1566,6 +1567,27 @@
        ========================================================================== */
     const weatherCache = {};
 
+    function getWeatherEmojiFromWmo(code) {
+      const c = Number(code);
+      if (isNaN(c)) return "🌤️";
+      if (c === 0) return "☀️";
+      if (c <= 2) return "⛅";
+      if (c === 3) return "☁️";
+      if (c === 45 || c === 48) return "🌫️";
+      if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82)) return "🌧️";
+      if ((c >= 71 && c <= 77) || c === 85 || c === 86) return "❄️";
+      if (c >= 95) return "⛈️";
+      return "🌤️";
+    }
+
+    function getDayWeatherLabel(boutiqueName, mondayIso, dayIdx) {
+      const cacheKey = `${boutiqueName}_${mondayIso}`;
+      const entry = weatherCache[cacheKey];
+      if (!entry || !entry.days || !entry.days[dayIdx]) return "";
+      const d = entry.days[dayIdx];
+      return `${d.icon} ${d.tMin}°/${d.tMax}°`;
+    }
+
     const state = {
       currentUser: null,
       impersonatedUser: null,
@@ -2026,6 +2048,9 @@
         if (window.__julesCloud && window.__julesCloud.pushActivity) {
           window.__julesCloud.pushActivity(entry);
         }
+      }
+      if (state.activeTab === "admin" && isEffectiveAdmin()) {
+        renderAdminView();
       }
     }
 
@@ -2527,12 +2552,15 @@
         if (openDays.length === 0) {
           pillsEl.innerHTML = `<div style="padding:0.55rem 0.85rem; background:#fee2e2; color:#991b1b; border-radius:9px; font-size:0.8rem; font-weight:700;">⚠️ Aucun jour ouvré configuré cette semaine pour ${escapeHtml(state.selectedBoutique)}.</div>`;
         } else {
-          pillsEl.innerHTML = openDays.map(od => `
-            <button type="button" class="day-pill ${od.dayIdx === state.selectedDayIdx ? "active" : ""}" onclick="selectActiveDay(${od.dayIdx})">
-              <span>${od.dayName} ${od.isExceptionalOpen ? "⭐" : ""}</span>
-              <small>${od.dateFr}</small>
-            </button>
-          `).join("");
+          pillsEl.innerHTML = openDays.map(od => {
+            const wStr = getDayWeatherLabel(state.selectedBoutique, state.selectedWeekMonday, od.dayIdx);
+            return `
+              <button type="button" class="day-pill ${od.dayIdx === state.selectedDayIdx ? "active" : ""}" onclick="selectActiveDay(${od.dayIdx})">
+                <span>${od.dayName} ${od.isExceptionalOpen ? "⭐" : ""}</span>
+                <small>${od.dateFr}${wStr ? ` • ${wStr}` : ""}</small>
+              </button>
+            `;
+          }).join("");
         }
       }
 
@@ -2688,12 +2716,15 @@
       document.getElementById("forecast-thead").innerHTML = `
         <tr>
           <th class="sticky-col">Produit (Ordre réseau)</th>
-          ${openDays.map(od => `
-            <th style="${od.dayIdx === state.selectedDayIdx ? "background:#b45309;" : ""}">
-              ${od.dayShort} ${od.dateFr}<br/>
-              <small style="font-weight:600; opacity:0.85;">N-1 | Prév | S-1</small>
-            </th>
-          `).join("")}
+          ${openDays.map(od => {
+            const wStr = getDayWeatherLabel(state.selectedBoutique, state.selectedWeekMonday, od.dayIdx);
+            return `
+              <th style="${od.dayIdx === state.selectedDayIdx ? "background:#b45309;" : ""}">
+                ${od.dayShort} ${od.dateFr} ${wStr ? `<span style="font-weight:700; opacity:0.95;">(${wStr})</span>` : ""}<br/>
+                <small style="font-weight:600; opacity:0.85;">N-1 | Prév | S-1</small>
+              </th>
+            `;
+          }).join("")}
           <th>Total Sem.</th>
         </tr>
       `;
@@ -3467,7 +3498,10 @@
       document.getElementById("traiteur-thead").innerHTML = `
         <tr>
           <th class="sticky-col">Recette Traiteur &amp; Support Pain / Pétrie</th>
-          ${openDays.map(od => `<th style="${od.dayIdx === state.selectedDayIdx ? "background:#065f46;" : ""}">${od.dayShort} ${od.dateFr}</th>`).join("")}
+          ${openDays.map(od => {
+            const wStr = getDayWeatherLabel(state.selectedBoutique, state.selectedWeekMonday, od.dayIdx);
+            return `<th style="${od.dayIdx === state.selectedDayIdx ? "background:#065f46;" : ""}">${od.dayShort} ${od.dateFr}${wStr ? `<br/><small style="font-weight:700; opacity:0.9;">${wStr}</small>` : ""}</th>`;
+          }).join("")}
         </tr>
       `;
 
@@ -3636,7 +3670,10 @@
       document.getElementById("patisserie-thead").innerHTML = `
         <tr>
           <th class="sticky-col">Pâtisserie Chez Jules</th>
-          ${openDays.map(od => `<th style="${od.dayIdx === state.selectedDayIdx ? "background:#92400e;" : ""}">${od.dayShort} ${od.dateFr}</th>`).join("")}
+          ${openDays.map(od => {
+            const wStr = getDayWeatherLabel(state.selectedBoutique, state.selectedWeekMonday, od.dayIdx);
+            return `<th style="${od.dayIdx === state.selectedDayIdx ? "background:#92400e;" : ""}">${od.dayShort} ${od.dateFr}${wStr ? `<br/><small style="font-weight:700; opacity:0.9;">${wStr}</small>` : ""}</th>`;
+          }).join("")}
         </tr>
       `;
 
@@ -4067,13 +4104,13 @@
       const canExport = hasPermission("adminExportHtml");
 
       container.innerHTML = `
-        <!-- 1. Gestion des Comptes, Mots de passe (Admin uniquement) & Autorisations -->
+        <!-- 1. Gestion des Comptes & Mots de Passe -->
         ${canUsers ? `
         <div class="card">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
             <div>
-              <h2 style="font-size:1.05rem; font-weight:900; color:#111827;">🔐 Gestion des Comptes &amp; Mots de Passe (100 % Administrateur)</h2>
-              <p style="font-size:0.76rem; color:#4b5563;">Vous seul gérez les mots de passe de toutes les boutiques et des administrateurs délégués. Tout changement est immédiatement synchronisé sur tous les PC.</p>
+              <h2 style="font-size:1.05rem; font-weight:900; color:#111827;">🔐 Gestion des Comptes, Mots de Passe &amp; Autorisations</h2>
+              <p style="font-size:0.76rem; color:#4b5563;">Les mots de passe sont gérés exclusivement par vous. Toute modification est immédiatement appliquée sur tous les PC.</p>
             </div>
             <button type="button" class="btn btn-emerald btn-sm" onclick="openCreateUserModal()">+ Nouvel Accès (Admin ou Boutique)</button>
           </div>
@@ -4103,14 +4140,11 @@
                       ${isAdm ? `<div style="font-size:0.68rem; color:#059669; font-weight:700; margin-top:2px;">🌐 Accès complet aux 9 boutiques</div>` : ""}
                     </td>
                     <td style="text-align:center; font-size:0.76rem;">${escapeHtml(u.email)}</td>
-                    <td style="text-align:center;">
-                      <code style="background:#f1f5f9; padding:3px 8px; border-radius:6px; font-weight:800; color:#0f172a;">${escapeHtml(u.password)}</code>
-                      ${u.passwordChangedAt ? `<div style="font-size:0.65rem; color:#64748b; margin-top:2px;">Défini le ${new Date(u.passwordChangedAt).toLocaleDateString("fr-FR")}</div>` : ""}
-                    </td>
+                    <td style="text-align:center;"><code style="background:#f1f5f9; padding:3px 7px; border-radius:6px; font-weight:800; color:#0f172a;">${escapeHtml(u.password)}</code></td>
                     <td style="text-align:center; display:flex; flex-wrap:wrap; justify-content:center; gap:0.3rem;">
-                      ${!isSuper ? `<button type="button" class="btn btn-dark btn-sm" onclick="openAdminChangePasswordModal('${u.id}')">🔑 Changer MDP</button>` : ""}
                       ${!isSuper && u.id !== state.currentUser?.id ? `<button type="button" class="btn btn-amber btn-sm" onclick="impersonateUser('${u.id}')">👁️ Voir comme</button>` : ""}
-                      ${!isSuper ? `<button type="button" class="btn btn-white btn-sm" onclick="openUserPermissionsModal('${u.id}')">🛡️ Droits</button>` : `<span style="font-size:0.7rem; color:#64748b; font-weight:700; padding:4px;">Tous droits (verrouillé)</span>`}
+                      ${!isSuper ? `<button type="button" class="btn btn-white btn-sm" onclick="openAdminChangePasswordModal('${u.id}')">🔑 Changer MDP</button>` : ""}
+                      ${!isSuper ? `<button type="button" class="btn btn-white btn-sm" onclick="openUserPermissionsModal('${u.id}')">🛡️ Droits</button>` : `<span style="font-size:0.7rem; color:#64748b; font-weight:700; padding:4px;">Super Admin (verrouillé)</span>`}
                       ${!isSuper && u.id.startsWith("usr-custom-") ? `<button type="button" class="btn btn-danger btn-sm" onclick="deleteCustomUser('${u.id}')" title="Supprimer">🗑️</button>` : ""}
                     </td>
                   </tr>
@@ -4122,7 +4156,76 @@
         </div>
         ` : ""}
 
-        <!-- 1bis. Journal en temps réel Multi-PC -->
+        <!-- 1bis. Tableau de Bord Visuel : État des Prévisions & Téléchargements PDF par Boutique -->
+        <div class="card" style="margin-top:1rem; border-color:#a7f3d0; background:#f0fdf4;">
+          <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.65rem;">
+            <div>
+              <h3 style="font-size:1rem; font-weight:900; color:#065f46;">📊 État des Feuilles de Prévision &amp; PDF par Boutique (Semaine ${getIsoWeekNumber(state.selectedWeekMonday)})</h3>
+              <p style="font-size:0.75rem; color:#047857;">Visualisez en un coup d'œil quelles boutiques ont rempli leurs prévisions et téléchargé ou imprimé leurs fiches.</p>
+            </div>
+            <button type="button" class="btn btn-emerald btn-sm" onclick="forceManualSyncNow()">🔄 Actualiser le statut</button>
+          </div>
+          <div class="table-wrap">
+            <table class="forecast-table" style="font-size:0.78rem;">
+              <thead>
+                <tr>
+                  <th style="text-align:left; padding-left:0.7rem;">Boutique</th>
+                  <th>Feuille de Prévision (Semaine ${getIsoWeekNumber(state.selectedWeekMonday)})</th>
+                  <th>Statut PDF / Impression</th>
+                  <th>Dernière activité</th>
+                  <th>Action rapide</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${BOUTIQUES.map(b => {
+                  const st = readBoutiqueStoreReadOnly(b.name);
+                  const wk = st.weeks?.[state.selectedWeekMonday];
+                  let filledCount = 0;
+                  if (wk) {
+                    Object.values(wk.quantities || {}).forEach(arr => {
+                      if (Array.isArray(arr)) filledCount += arr.reduce((s, v) => s + (Number(v) > 0 ? 1 : 0), 0);
+                    });
+                    (wk.traiteur || []).forEach(tr => {
+                      if (Array.isArray(tr.quantities)) filledCount += tr.quantities.reduce((s, v) => s + (Number(v) > 0 ? 1 : 0), 0);
+                    });
+                    Object.values(wk.patisserie || {}).forEach(arr => {
+                      if (Array.isArray(arr)) filledCount += arr.reduce((s, v) => s + (Number(v) > 0 ? 1 : 0), 0);
+                    });
+                  }
+                  const shopLogs = state.activityLog.filter(ev => slugify(ev.boutique) === slugify(b.name));
+                  const lastPrintEv = shopLogs.find(ev => ev.type === "print");
+                  const lastAnyEv = shopLogs[0];
+                  const prevBadge = filledCount > 0
+                    ? `<span class="price-badge">✅ Prévisions remplies (${filledCount} saisie${filledCount > 1 ? "s" : ""})</span>`
+                    : `<span class="dormant-badge">⏳ Non remplie</span>`;
+                  let pdfBadge = `<span style="font-size:0.71rem; color:#64748b; font-weight:700;">— Non généré</span>`;
+                  if (lastPrintEv) {
+                    const pDt = new Date(lastPrintEv.timestamp);
+                    const pStr = pDt.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }) + " à " + pDt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+                    const isDownload = String(lastPrintEv.summary || "").toLowerCase().includes("télécharg");
+                    pdfBadge = `<span class="auto-badge">${isDownload ? "⬇️ PDF Téléchargé" : "🖨️ Imprimé"} (${pStr})</span>`;
+                  }
+                  const lastTime = lastAnyEv
+                    ? `${new Date(lastAnyEv.timestamp).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })} ${new Date(lastAnyEv.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`
+                    : "Aucune";
+                  return `
+                    <tr>
+                      <td style="padding-left:0.7rem; font-weight:800;">${escapeHtml(b.name)}</td>
+                      <td style="text-align:center;">${prevBadge}</td>
+                      <td style="text-align:center;">${pdfBadge}</td>
+                      <td class="tabular" style="text-align:center; font-size:0.73rem; color:#475569;">${lastTime}</td>
+                      <td style="text-align:center;">
+                        <button type="button" class="btn btn-white btn-sm" onclick="onBoutiqueChange('${escapeHtml(b.name)}'); switchTab('prevision');">👁️ Ouvrir</button>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 1ter. Journal en temps réel Multi-PC -->
         <div class="card" style="margin-top:1rem; border-color:#bfdbfe; background:#eff6ff;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.55rem;">
             <div>
@@ -4953,8 +5056,8 @@
         </div>
         <div style="display:flex; flex-wrap:wrap; justify-content:flex-end; gap:0.5rem; border-top:1px solid #e5e7eb; padding-top:0.75rem;">
           <button type="button" class="btn btn-white" onclick="closeModal()">Fermer</button>
-          <button type="button" class="btn btn-dark" onclick="downloadPrintableHtmlBundle()">⬇️ Télécharger fiche HTML/PDF</button>
-          <button type="button" class="btn btn-emerald" onclick="generateAndPrintBundle()">🖨️ Imprimer / Enregistrer en PDF</button>
+          <button type="button" class="btn btn-dark" onclick="downloadDirectPdfBundle()">⬇️ Télécharger le PDF</button>
+          <button type="button" class="btn btn-emerald" onclick="generateAndPrintBundle()">🖨️ Imprimer</button>
         </div>
       `);
     }
@@ -5146,7 +5249,7 @@
 
       const printedParts = [includePetries ? "Pétries" : "", includeTraiteur ? "Traiteur" : "", includePatisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
       const dayLabel = `${DAY_NAMES[state.selectedDayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx))}`;
-      recordNetworkActivity("print", state.selectedBoutique, `Impression / PDF lancée (${printedParts}) pour ${dayLabel}`);
+      recordNetworkActivity("print", state.selectedBoutique, `Impression lancée (${printedParts}) pour ${dayLabel}`);
 
       closeModal();
 
@@ -5191,33 +5294,62 @@
       }
     }
 
-    function downloadPrintableHtmlBundle() {
-      const bodyHtml = buildPrintableDocumentHtml();
-      if (!bodyHtml) { showToast("Cochez au moins une section."); return; }
-      const dayLabel = `${DAY_NAMES[state.selectedDayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx))}`;
-      recordNetworkActivity("print", state.selectedBoutique, `Fiche HTML/PDF téléchargée pour ${dayLabel}`);
+    function downloadDirectPdfBundle(customOpts) {
+      const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
+      const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
+      const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
+      const bodyHtml = buildPrintableDocumentHtml(customOpts);
+      if (!bodyHtml) {
+        showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
+        return;
+      }
 
-      const styles = document.querySelector("style")?.innerHTML || "";
+      const printedParts = [includePetries ? "Pétries" : "", includeTraiteur ? "Traiteur" : "", includePatisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
+      const dayLabel = `${DAY_NAMES[state.selectedDayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx))}`;
+      recordNetworkActivity("print", state.selectedBoutique, `PDF téléchargé (${printedParts}) pour ${dayLabel}`);
+
       const dayName = slugify(DAY_NAMES[state.selectedDayIdx] || "jour");
-      const fullDoc = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>chez Jules — ${escapeHtml(state.selectedBoutique)} (${dayName})</title>
-  <style>${styles} @page { size: A4 landscape; margin: 7mm; } body { background:#fff; padding:1rem; }</style>
-</head>
-<body onload="window.print()">${bodyHtml}</body>
-</html>`;
-      const blob = new Blob([fullDoc], { type: "text/html;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `chez-jules-${slugify(state.selectedBoutique)}-${dayName}-${state.selectedWeekMonday}.html`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      showToast("Fiche téléchargée.");
+      const fileName = `chez-jules-${slugify(state.selectedBoutique)}-${dayName}-${state.selectedWeekMonday}.pdf`;
+
+      closeModal();
+      showToast("Génération du fichier PDF en cours...");
+
+      const pdfWrapper = document.createElement("div");
+      pdfWrapper.style.background = "#ffffff";
+      pdfWrapper.style.color = "#111827";
+      pdfWrapper.style.padding = "10px";
+      pdfWrapper.style.width = "1050px";
+      pdfWrapper.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+      pdfWrapper.innerHTML = bodyHtml;
+
+      pdfWrapper.querySelectorAll(".petries-a4-grid").forEach(grid => {
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+        grid.style.gap = "8px";
+      });
+      pdfWrapper.querySelectorAll(".petries-a4-card").forEach(card => {
+        card.style.padding = "6px 8px";
+        card.style.borderRadius = "7px";
+        card.style.boxShadow = "none";
+      });
+
+      if (typeof window.html2pdf === "function") {
+        const opt = {
+          margin: [6, 6, 6, 6],
+          filename: fileName,
+          image: { type: "jpeg", quality: 0.96 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+          pagebreak: { mode: ["css", "legacy"], before: ".print-page-break" }
+        };
+        window.html2pdf().set(opt).from(pdfWrapper).save().then(() => {
+          showToast(`✅ PDF téléchargé : ${fileName}`);
+        }).catch(() => {
+          generateAndPrintBundle(customOpts);
+        });
+      } else {
+        generateAndPrintBundle(customOpts);
+      }
     }
 
     function openHistoryModal() {
@@ -5250,21 +5382,29 @@
       if (!b || !pill) return;
       const cacheKey = `${b.name}_${state.selectedWeekMonday}`;
       if (weatherCache[cacheKey]) {
-        pill.textContent = weatherCache[cacheKey];
+        pill.textContent = weatherCache[cacheKey].summary;
         return;
       }
       try {
         const endDate = addDaysIso(state.selectedWeekMonday, 6);
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${b.lat}&longitude=${b.lon}&daily=temperature_2m_max,temperature_2m_min&timezone=Europe%2FParis&start_date=${state.selectedWeekMonday}&end_date=${endDate}`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${b.lat}&longitude=${b.lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Europe%2FParis&start_date=${state.selectedWeekMonday}&end_date=${endDate}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("weather");
         const data = await res.json();
         const maxArr = data?.daily?.temperature_2m_max || [];
+        const minArr = data?.daily?.temperature_2m_min || [];
+        const codeArr = data?.daily?.weathercode || [];
         if (maxArr.length) {
+          const days = maxArr.map((tMax, i) => ({
+            icon: getWeatherEmojiFromWmo(codeArr[i]),
+            tMin: Math.round(Number(minArr[i]) || 0),
+            tMax: Math.round(Number(tMax) || 0)
+          }));
           const avgMax = Math.round(maxArr.reduce((s, v) => s + v, 0) / maxArr.length);
-          const txt = `🌤️ ${b.name} : ~${avgMax}°C max cette semaine`;
-          weatherCache[cacheKey] = txt;
-          pill.textContent = txt;
+          const summary = `🌤️ ${b.name} : ~${avgMax}°C max cette semaine`;
+          weatherCache[cacheKey] = { summary, days };
+          pill.textContent = summary;
+          renderAllViews();
           return;
         }
       } catch (e) {}
