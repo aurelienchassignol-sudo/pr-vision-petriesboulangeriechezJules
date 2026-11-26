@@ -987,7 +987,7 @@
       { id: "leonie-gros", category: "Pains", name: "Léonie Gros Pain (2600g)", unitWeight: 2600, price: 18.50 },
       { id: "gaspard", category: "Pains", name: "Gaspard (Baguette 350g)", unitWeight: 350, price: 2.60 },
       { id: "gaspard-flute", category: "Pains", name: "Gaspard Flûte (700g)", unitWeight: 700, price: 4.80 },
-      { id: "gaspard-sandwich", category: "Pains", name: "Gaspard Sandwich (300g)", unitWeight: 300, price: 2.30 },
+      { id: "gaspard-sandwich", category: "Pains", name: "Gaspard Sandwich (300g)", unitWeight: 300, price: 0, isTraiteurSupport: true },
       { id: "complet", category: "Pains", name: "Pain Complet (350g)", unitWeight: 350, price: 2.40 },
       { id: "complet-gros", category: "Pains", name: "Pain Complet Gros (700g)", unitWeight: 700, price: 4.50 },
       { id: "celestine", category: "Pains", name: "Célestine (600g)", unitWeight: 600, price: 4.20 },
@@ -1024,7 +1024,7 @@
       { id: "pain-sandwich-nature", category: "Pains", name: "Pain Sandwich Trad Nature (Auto Traiteur)", unitWeight: 175, price: 0, isTraiteurSupport: true },
       { id: "pain-sandwich-sesame", category: "Pains", name: "Pain Sandwich Trad Sésame (Auto Traiteur)", unitWeight: 175, price: 0, isTraiteurSupport: true },
       { id: "pain-sandwich-5graines", category: "Pains", name: "Pain Sandwich 5 Graines (Auto Traiteur)", unitWeight: 175, price: 0, isTraiteurSupport: true },
-      { id: "pain-sandwich-gaspard", category: "Pains", name: "1/2 Gaspard Sandwich (Auto Traiteur)", unitWeight: 300, price: 0, isTraiteurSupport: true },
+      { id: "pain-sandwich-gaspard", category: "Pains", name: "1/2 Gaspard Sandwich (Auto Traiteur)", unitWeight: 300, price: 0, isTraiteurSupport: true, dormant: true },
       { id: "pain-sandwich-sportif", category: "Pains", name: "Pain Sandwich Sportif (Auto Traiteur)", unitWeight: 160, price: 0, isTraiteurSupport: true },
       { id: "pain-mais-epinard", category: "Pains", name: "Pain Maïs Épinards (Auto Traiteur)", unitWeight: 160, price: 0, isTraiteurSupport: true },
       { id: "ficelle-sandwich", category: "Pains", name: "Ficelle Sandwich (Auto Traiteur)", unitWeight: 150, price: 0, isTraiteurSupport: true },
@@ -1998,6 +1998,16 @@
         state.catalog = Array.isArray(c) && c.length ? c : JSON.parse(JSON.stringify(DEFAULT_CATALOG));
       } catch (e) {
         state.catalog = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
+      }
+      // Garantir que Gaspard Sandwich 300g reste bien verrouillé en Auto Traiteur
+      const gaspSand = state.catalog.find(p => p.id === "gaspard-sandwich");
+      if (gaspSand && gaspSand.isTraiteurSupport === undefined) {
+        gaspSand.isTraiteurSupport = true;
+        gaspSand.price = 0;
+      }
+      const oldHalfGasp = state.catalog.find(p => p.id === "pain-sandwich-gaspard");
+      if (oldHalfGasp && oldHalfGasp.dormant === undefined) {
+        oldHalfGasp.dormant = true;
       }
 
       try {
@@ -3073,8 +3083,7 @@
           items: [
             { name: "Gaspard Baguette (350g)", weight: 350, qty: q("gaspard") },
             { name: "Gaspard Flûte (700g)", weight: 700, qty: q("gaspard-flute") },
-            { name: "Gaspard Sandwich (300g)", weight: 300, qty: q("gaspard-sandwich") },
-            { name: "1/2 Gaspard Sandwich (300g)", weight: 300, qty: q("pain-sandwich-gaspard") },
+            { name: "Gaspard Sandwich (300g — Auto Traiteur 4 sand. = 2 pains)", weight: 300, qty: q("gaspard-sandwich") },
             ...getCustomItemsForPetrin("petrin-gaspard")
           ],
           computeIngredients: (totalPateG) => {
@@ -3519,9 +3528,12 @@
             const pObj = PETRIN_DEFINITIONS.find(p => p.id === tr.petrinId);
             syncTag = `<span class="support-badge">🥣 ${escapeHtml(pObj ? pObj.title : tr.petrinId)} (${tr.petrinWeight || 150}g)</span>`;
           }
+          const editBtn = canManageCatalog
+            ? `<button type="button" class="btn btn-white btn-sm" style="margin-left:6px; padding:1px 6px; font-size:0.68rem;" onclick="openEditTraiteurModal('${tr.id}')" title="Modifier ce produit Traiteur">✏️</button>`
+            : "";
           html += `<tr>
             <td class="sticky-col">
-              <div style="font-weight:700; color:#111827;">${escapeHtml(tr.name)}${priceBadge}${syncTag}</div>
+              <div style="font-weight:700; color:#111827;">${escapeHtml(tr.name)}${priceBadge}${syncTag}${editBtn}</div>
             </td>
             ${openDays.map(od => {
               const d = od.dayIdx;
@@ -3566,69 +3578,105 @@
 
     function openAddTraiteurModal() {
       if (!hasPermission("adminManageCatalog")) return;
-      const breadOpts = state.catalog.filter(p => !p.formula && !p.isText).map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
-      const petrinOpts = PETRIN_DEFINITIONS.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join("");
+      openEditTraiteurModal("");
+    }
+
+    function openEditTraiteurModal(trId) {
+      if (!hasPermission("adminManageCatalog")) return;
+      const wk = getCurrentWeekData();
+      const existing = trId ? (wk.traiteur || []).find(t => t.id === trId) : null;
+      const currentMode = existing
+        ? (existing.targetProductId ? "bread" : (existing.petrinId ? "petrin" : "none"))
+        : "none";
+
+      const breadOpts = state.catalog
+        .filter(p => !p.formula && !p.isText)
+        .map(p => `<option value="${p.id}" ${existing?.targetProductId === p.id ? "selected" : ""}>${escapeHtml(p.name)}</option>`)
+        .join("");
+      const petrinOpts = PETRIN_DEFINITIONS
+        .map(p => `<option value="${p.id}" ${existing?.petrinId === p.id ? "selected" : ""}>${escapeHtml(p.title)}</option>`)
+        .join("");
+
+      const categories = [
+        "Grandes Salades",
+        "Petites Salades (Pot 30cl)",
+        "Les Sandwichs",
+        "Les Toastés",
+        "Burgers",
+        "Snacking",
+        "Paninis",
+        "Plats du Jour & Autres"
+      ];
+      if (existing && !categories.includes(existing.category)) categories.unshift(existing.category);
+
       openModal(`
-        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">+ Ajouter un produit à la Gamme Traiteur</h3>
+        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">${existing ? "✏️ Modifier le produit Traiteur" : "+ Ajouter un produit à la Gamme Traiteur"}</h3>
         <div style="display:flex; flex-direction:column; gap:0.7rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
             <select id="new-tr-cat" class="select">
-              <option>Grandes Salades</option><option>Petites Salades (Pot 30cl)</option><option>Les Sandwichs</option>
-              <option>Les Toastés</option><option>Burgers</option><option>Snacking</option><option>Paninis</option><option>Plats du Jour &amp; Autres</option>
+              ${categories.map(c => `<option ${existing?.category === c ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
             </select>
           </div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Nom du sandwich / produit Traiteur</label><input id="new-tr-name" class="input" placeholder="Ex: Sandwich Montagnard" /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">Nom du sandwich / produit Traiteur</label>
+            <input id="new-tr-name" class="input" value="${escapeHtml(existing?.name || "")}" placeholder="Ex: Sandwich Montagnard" />
+          </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
-            <div><label style="font-size:0.75rem; font-weight:700;">Support / Pain affiché</label><input id="new-tr-bread" class="input" placeholder="Ex: 1/2 Baguette ou Ciappo 180g" /></div>
-            <div><label style="font-size:0.75rem; font-weight:700;">Prix de vente (€)</label><input id="new-tr-price" type="number" step="0.1" value="5.50" class="input" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Support / Pain affiché</label>
+              <input id="new-tr-bread" class="input" value="${escapeHtml(existing?.breadLabel || "")}" placeholder="Ex: 1/2 Baguette ou Ciappo 180g" />
+            </div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Prix de vente (€)</label>
+              <input id="new-tr-price" type="number" step="0.1" value="${existing ? (Number(existing.price) || 0) : 5.50}" class="input" />
+            </div>
           </div>
 
           <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem;">
             <label style="font-size:0.76rem; font-weight:900; color:#0f172a; display:block; margin-bottom:0.35rem;">🔗 Liaison automatique de fabrication :</label>
             <select id="new-tr-link-mode" class="select" onchange="onTraiteurLinkModeChange(this.value)">
-              <option value="none">Aucune liaison pain/pétrie (ex: Salade, Quiche...)</option>
-              <option value="bread">🥖 Option A : Lier à un PAIN de la feuille de prévision</option>
-              <option value="petrin">🥣 Option B : Lier directement à une PÉTRIE (ajout direct au pétrin)</option>
+              <option value="none" ${currentMode === "none" ? "selected" : ""}>Aucune liaison pain/pétrie (ex: Salade, Quiche...)</option>
+              <option value="bread" ${currentMode === "bread" ? "selected" : ""}>🥖 Option A : Lier à un PAIN de la feuille de prévision</option>
+              <option value="petrin" ${currentMode === "petrin" ? "selected" : ""}>🥣 Option B : Lier directement à une PÉTRIE (ajout direct au pétrin)</option>
             </select>
 
-            <div id="tr-link-bread-box" class="hidden" style="margin-top:0.55rem; display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
+            <div id="tr-link-bread-box" class="${currentMode === "bread" ? "" : "hidden"}" style="margin-top:0.55rem; display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
               <div>
                 <label style="font-size:0.73rem; font-weight:700;">Pain cible sur la feuille</label>
                 <select id="new-tr-target" class="select">${breadOpts}</select>
               </div>
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Ratio (0.5 = 1/2 pain)</label>
-                <input id="new-tr-ratio" type="number" step="0.1" value="1" class="input" />
+                <label style="font-size:0.73rem; font-weight:700;">Ratio (0.5 = 1/2 pain, 4 sand = 2 pains)</label>
+                <input id="new-tr-ratio" type="number" step="0.05" value="${existing && existing.ratio > 0 ? existing.ratio : 1}" class="input" />
               </div>
             </div>
 
-            <div id="tr-link-petrin-box" class="hidden" style="margin-top:0.55rem; display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
+            <div id="tr-link-petrin-box" class="${currentMode === "petrin" ? "" : "hidden"}" style="margin-top:0.55rem; display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
               <div>
                 <label style="font-size:0.73rem; font-weight:700;">Pétrin cible</label>
                 <select id="new-tr-petrin" class="select">${petrinOpts}</select>
               </div>
               <div>
                 <label style="font-size:0.73rem; font-weight:700;">Poids pâte unit. (g)</label>
-                <input id="new-tr-petrin-weight" type="number" step="5" value="150" class="input" />
+                <input id="new-tr-petrin-weight" type="number" step="5" value="${existing?.petrinWeight || 150}" class="input" />
               </div>
             </div>
           </div>
 
-          <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.3rem;">
-            <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
-            <button type="button" class="btn btn-emerald" onclick="createTraiteurProduct()">✅ Enregistrer</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-top:0.3rem;">
+            ${existing ? `<button type="button" class="btn btn-danger btn-sm" onclick="deleteTraiteurProduct('${existing.id}')">🗑️ Supprimer</button>` : `<span></span>`}
+            <div style="display:flex; gap:0.5rem;">
+              <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
+              <button type="button" class="btn btn-emerald" onclick="saveTraiteurProductForm('${existing?.id || ""}')">✅ Enregistrer</button>
+            </div>
           </div>
         </div>
       `);
     }
 
-    function createTraiteurProduct() {
+    function saveTraiteurProductForm(existingId) {
       if (!hasPermission("adminManageCatalog")) return;
       const name = (document.getElementById("new-tr-name").value || "").trim();
       if (!name) return;
       const mode = document.getElementById("new-tr-link-mode")?.value || "none";
-      const newObj = {
-        id: "tr-custom-" + Date.now(),
+      const updatedFields = {
         category: document.getElementById("new-tr-cat").value,
         name,
         breadLabel: document.getElementById("new-tr-bread").value || "Standard",
@@ -3636,7 +3684,34 @@
         ratio: mode === "bread" ? (Number(document.getElementById("new-tr-ratio").value) || 0) : 0,
         petrinId: mode === "petrin" ? (document.getElementById("new-tr-petrin").value || "") : "",
         petrinWeight: mode === "petrin" ? (Number(document.getElementById("new-tr-petrin-weight").value) || 150) : 0,
-        price: Number(document.getElementById("new-tr-price").value) || 0,
+        price: Number(document.getElementById("new-tr-price").value) || 0
+      };
+
+      if (existingId) {
+        const def = DEFAULT_TRAITEUR.find(t => t.id === existingId);
+        if (def) Object.assign(def, updatedFields);
+        BOUTIQUES.forEach(b => {
+          const st = readBoutiqueStoreReadOnly(b.name);
+          Object.values(st.weeks || {}).forEach(wk => {
+            const item = (wk.traiteur || []).find(t => t.id === existingId);
+            if (item) Object.assign(item, updatedFields);
+            syncTraiteurToForecast(wk);
+          });
+          safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
+        });
+        loadBoutiqueStore(state.selectedBoutique);
+        recordNetworkActivity("catalog", "Réseau", `Produit Traiteur modifié : ${name}`);
+        saveGlobalConfig();
+        saveCurrentBoutiqueData(true);
+        closeModal();
+        renderAllViews();
+        showToast("Produit Traiteur mis à jour et synchronisé.");
+        return;
+      }
+
+      const newObj = {
+        id: "tr-custom-" + Date.now(),
+        ...updatedFields,
         quantities: [0,0,0,0,0,0,0]
       };
       DEFAULT_TRAITEUR.push(newObj);
@@ -3655,6 +3730,27 @@
       showToast("Produit Traiteur ajouté et raccordé.");
     }
 
+    function deleteTraiteurProduct(trId) {
+      if (!hasPermission("adminManageCatalog")) return;
+      const idx = DEFAULT_TRAITEUR.findIndex(t => t.id === trId);
+      if (idx !== -1) DEFAULT_TRAITEUR.splice(idx, 1);
+      BOUTIQUES.forEach(b => {
+        const st = readBoutiqueStoreReadOnly(b.name);
+        Object.values(st.weeks || {}).forEach(wk => {
+          if (Array.isArray(wk.traiteur)) {
+            wk.traiteur = wk.traiteur.filter(t => t.id !== trId);
+            syncTraiteurToForecast(wk);
+          }
+        });
+        safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
+      });
+      loadBoutiqueStore(state.selectedBoutique);
+      saveCurrentBoutiqueData(true);
+      closeModal();
+      renderAllViews();
+      showToast("Produit Traiteur supprimé.");
+    }
+
     /* ==========================================================================
        11. ONGLET 4 : GAMME PÂTISSERIE CHEZ JULES
        ========================================================================== */
@@ -3662,8 +3758,9 @@
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
       const wk = getCurrentWeekData();
       const canEdit = hasPermission("editPrevision");
+      const canManageCatalog = hasPermission("adminManageCatalog");
 
-      document.getElementById("patisserie-admin-actions").innerHTML = hasPermission("adminManageCatalog")
+      document.getElementById("patisserie-admin-actions").innerHTML = canManageCatalog
         ? `<button type="button" class="btn btn-amber btn-sm" onclick="openAddPatisserieModal()">+ Pâtisserie (Admin)</button>`
         : "";
 
@@ -3684,9 +3781,12 @@
         html += `<tr class="cat-row"><td colspan="${openDays.length + 1}">${escapeHtml(cat)}</td></tr>`;
         items.forEach(pat => {
           const priceTag = hasPermission("viewCa") ? `<span class="price-badge tabular">${formatNum(pat.price, 2)} €</span>` : "";
+          const editBtn = canManageCatalog
+            ? `<button type="button" class="btn btn-white btn-sm" style="margin-left:6px; padding:1px 6px; font-size:0.68rem;" onclick="openEditPatisserieModal('${pat.id}')" title="Modifier cette pâtisserie">✏️</button>`
+            : "";
           const arr = wk.patisserie?.[pat.id] || [0,0,0,0,0,0,0];
           html += `<tr>
-            <td class="sticky-col"><div style="font-weight:700;">${escapeHtml(pat.name)}${priceTag}</div></td>
+            <td class="sticky-col"><div style="font-weight:700;">${escapeHtml(pat.name)}${priceTag}${editBtn}</div></td>
             ${openDays.map(od => {
               const d = od.dayIdx;
               const val = Number(arr[d]) || 0;
@@ -3724,23 +3824,82 @@
 
     function openAddPatisserieModal() {
       if (!hasPermission("adminManageCatalog")) return;
+      openEditPatisserieModal("");
+    }
+
+    function openEditPatisserieModal(patId) {
+      if (!hasPermission("adminManageCatalog")) return;
+      const existing = patId ? state.patisserieCatalog.find(p => p.id === patId) : null;
+      const cats = [
+        "Flans & Crèmes",
+        "Éclairs, Choux & Millefeuilles",
+        "Tartelettes Individuelles",
+        "Entremets & Pâtisseries Individuelles",
+        "Voyage, Crumbles & Desserts",
+        "Macarons & Mignardises",
+        "Grands Formats (4 / 6 / 8 pers)",
+        "Grandes Tartes & Flans Entiers"
+      ];
+      if (existing && !cats.includes(existing.category)) cats.unshift(existing.category);
+
       openModal(`
-        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">+ Ajouter une Pâtisserie</h3>
+        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">${existing ? "✏️ Modifier la Pâtisserie" : "+ Ajouter une Pâtisserie"}</h3>
         <div style="display:flex; flex-direction:column; gap:0.7rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
             <select id="new-pat-cat" class="select">
-              <option>Flans &amp; Crèmes</option><option>Éclairs, Choux &amp; Millefeuilles</option><option>Tartelettes Individuelles</option>
-              <option>Entremets &amp; Pâtisseries Individuelles</option><option>Voyage, Crumbles &amp; Desserts</option><option>Grands Formats (4 / 6 / 8 pers)</option>
+              ${cats.map(c => `<option ${existing?.category === c ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
             </select>
           </div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Nom</label><input id="new-pat-name" class="input" placeholder="Ex: Tartelette Framboises" /></div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Prix (€)</label><input id="new-pat-price" type="number" step="0.1" value="4.20" class="input" /></div>
-          <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
-            <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
-            <button type="button" class="btn btn-amber" onclick="createPatisserieProduct()">Enregistrer</button>
+          <div><label style="font-size:0.75rem; font-weight:700;">Nom</label><input id="new-pat-name" class="input" value="${escapeHtml(existing?.name || "")}" placeholder="Ex: Tartelette Framboises" /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">Prix (€)</label><input id="new-pat-price" type="number" step="0.1" value="${existing ? (Number(existing.price) || 0) : 4.20}" class="input" /></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+            ${existing ? `<button type="button" class="btn btn-danger btn-sm" onclick="deletePatisserieProduct('${existing.id}')">🗑️ Supprimer</button>` : `<span></span>`}
+            <div style="display:flex; gap:0.5rem;">
+              <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
+              <button type="button" class="btn btn-amber" onclick="savePatisserieProductForm('${existing?.id || ""}')">✅ Enregistrer</button>
+            </div>
           </div>
         </div>
       `);
+    }
+
+    function savePatisserieProductForm(existingId) {
+      if (!hasPermission("adminManageCatalog")) return;
+      const name = (document.getElementById("new-pat-name").value || "").trim();
+      if (!name) return;
+      const category = document.getElementById("new-pat-cat").value;
+      const price = Number(document.getElementById("new-pat-price").value) || 0;
+
+      if (existingId) {
+        const existing = state.patisserieCatalog.find(p => p.id === existingId);
+        if (existing) {
+          existing.category = category;
+          existing.name = name;
+          existing.price = price;
+        }
+        recordNetworkActivity("catalog", "Réseau", `Pâtisserie modifiée : ${name}`);
+      } else {
+        state.patisserieCatalog.push({
+          id: "pat-custom-" + Date.now(),
+          category,
+          name,
+          price
+        });
+        recordNetworkActivity("catalog", "Réseau", `Nouvelle pâtisserie ajoutée : ${name}`);
+      }
+      saveGlobalConfig();
+      closeModal();
+      renderPatisserieView();
+      showToast(existingId ? "Pâtisserie mise à jour." : "Pâtisserie ajoutée.");
+    }
+
+    function deletePatisserieProduct(patId) {
+      if (!hasPermission("adminManageCatalog")) return;
+      state.patisserieCatalog = state.patisserieCatalog.filter(p => p.id !== patId);
+      saveGlobalConfig();
+      closeModal();
+      renderPatisserieView();
+      showToast("Pâtisserie supprimée.");
     }
 
     function createPatisserieProduct() {
@@ -4344,7 +4503,8 @@
               <div style="display:flex; align-items:center; gap:0.4rem;">
                 <span style="color:#94a3b8; font-weight:900; font-size:0.95rem; user-select:none;">⋮⋮</span>
                 <div>
-                  <strong>${escapeHtml(p.name)}</strong> <span style="color:#64748b;">(${escapeHtml(p.category)})</span>
+                  <strong>${escapeHtml(p.name)}</strong> <span style="color:#64748b;">(${escapeHtml(p.category)}${p.unitWeight ? ` • ${p.unitWeight}g` : ""}${p.price > 0 ? ` • ${formatNum(p.price, 2)} €` : ""})</span>
+                  ${p.isTraiteurSupport ? `<span class="auto-badge">🔒 Auto Traiteur (verrouillé)</span>` : ""}
                   ${linkedPetrin ? `<span class="support-badge">🥣 ${escapeHtml(linkedPetrin.title)}</span>` : ""}
                   ${p.dormant ? `<span class="dormant-badge">💤 Dormance</span>` : ""}
                 </div>
@@ -4352,6 +4512,7 @@
               <div style="display:flex; gap:0.25rem; flex-shrink:0;">
                 <button type="button" class="btn btn-white btn-sm" onclick="moveCatalogProductStep('${p.id}', -1)" title="Monter">▲</button>
                 <button type="button" class="btn btn-white btn-sm" onclick="moveCatalogProductStep('${p.id}', 1)" title="Descendre">▼</button>
+                ${!p.formula ? `<button type="button" class="btn btn-amber btn-sm" onclick="openEditCatalogProductModal('${p.id}')" title="Modifier toutes les options">✏️ Modifier</button>` : ""}
                 ${!p.formula ? `<button type="button" class="btn btn-white btn-sm" onclick="toggleProductDormant('${p.id}')">${p.dormant ? "✅ Activer" : "💤 Dormance"}</button>` : ""}
                 ${!p.formula ? `<button type="button" class="btn btn-danger btn-sm" onclick="deleteCatalogProduct('${p.id}')">×</button>` : ""}
               </div>
@@ -4477,46 +4638,91 @@
 
     function openAddCatalogProductModal() {
       if (!hasPermission("adminManageCatalog")) return;
-      const petrinOpts = PETRIN_DEFINITIONS.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join("");
+      openEditCatalogProductModal("");
+    }
+
+    function openEditCatalogProductModal(productId) {
+      if (!hasPermission("adminManageCatalog")) return;
+      const existing = productId ? state.catalog.find(p => p.id === productId) : null;
+      const petrinOpts = PETRIN_DEFINITIONS
+        .map(p => `<option value="${p.id}" ${existing?.petrinId === p.id ? "selected" : ""}>${escapeHtml(p.title)}</option>`)
+        .join("");
+
       openModal(`
-        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.8rem;">+ Nouveau Produit Boulangerie / Brioche / Viennoiserie</h3>
+        <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.8rem;">${existing ? "✏️ Modifier le produit" : "+ Nouveau Produit Boulangerie / Brioche / Viennoiserie"}</h3>
         <div style="display:flex; flex-direction:column; gap:0.65rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
-            <select id="np-cat" class="select"><option>Pains</option><option>Brioche</option><option>Viennoiserie</option></select>
+            <select id="np-cat" class="select">
+              ${["Pains", "Brioche", "Viennoiserie"].map(c => `<option ${existing?.category === c ? "selected" : ""}>${c}</option>`).join("")}
+            </select>
           </div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Nom du produit</label><input id="np-name" class="input" placeholder="Ex: Baguette Sésame ou Brioche Feuilletee" /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">Nom du produit</label>
+            <input id="np-name" class="input" value="${escapeHtml(existing?.name || "")}" placeholder="Ex: Baguette Sésame ou Brioche Feuilletee" />
+          </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
-            <div><label style="font-size:0.75rem; font-weight:700;">Poids de pâte unitaire (g)</label><input id="np-weight" type="number" value="350" class="input" /></div>
-            <div><label style="font-size:0.75rem; font-weight:700;">Prix de vente (€)</label><input id="np-price" type="number" step="0.05" value="2.50" class="input" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Poids de pâte unitaire (g)</label>
+              <input id="np-weight" type="number" value="${existing ? (Number(existing.unitWeight) || 0) : 350}" class="input" />
+            </div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Prix de vente (€)</label>
+              <input id="np-price" type="number" step="0.05" value="${existing ? (Number(existing.price) || 0) : 2.50}" class="input" />
+            </div>
           </div>
           <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:9px; padding:0.55rem 0.7rem;">
             <label style="font-size:0.75rem; font-weight:900; color:#92400e; display:block; margin-bottom:0.25rem;">🥣 Lier ce produit à une Pétrie (ajout automatique au pétrin) :</label>
             <select id="np-petrin" class="select">
-              <option value="">-- Aucune pétrie (ex: Viennoiserie en plaquage) --</option>
+              <option value="">-- Pétrie par défaut / Aucune pétrie (ex: Viennoiserie en plaquage) --</option>
               ${petrinOpts}
             </select>
           </div>
-          <label style="font-size:0.78rem; font-weight:700;"><input id="np-support" type="checkbox" /> Pain fabriqué uniquement pour les sandwichs (prix = 0 €)</label>
+          <label style="font-size:0.78rem; font-weight:700; display:flex; align-items:center; gap:0.45rem; background:#eff6ff; border:1px solid #bfdbfe; padding:0.5rem 0.65rem; border-radius:8px; cursor:pointer;">
+            <input id="np-support" type="checkbox" ${existing?.isTraiteurSupport ? "checked" : ""} />
+            <span>🔒 Support Traiteur automatique (non modifiable sur la 1ère page, rempli automatiquement par les sandwichs Traiteur)</span>
+          </label>
           <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
             <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
-            <button type="button" class="btn btn-emerald" onclick="createCatalogProduct()">✅ Ajouter au réseau</button>
+            <button type="button" class="btn btn-emerald" onclick="saveCatalogProductForm('${existing?.id || ""}')">✅ Enregistrer</button>
           </div>
         </div>
       `);
     }
 
-    function createCatalogProduct() {
+    function saveCatalogProductForm(existingId) {
       if (!hasPermission("adminManageCatalog")) return;
       const name = (document.getElementById("np-name").value || "").trim();
       if (!name) return;
       const isSupp = document.getElementById("np-support").checked;
       const petrinId = document.getElementById("np-petrin")?.value || "";
+      const category = document.getElementById("np-cat").value;
+      const unitWeight = Number(document.getElementById("np-weight").value) || 0;
+      const rawPrice = Number(document.getElementById("np-price").value) || 0;
+
+      if (existingId) {
+        const existing = state.catalog.find(p => p.id === existingId);
+        if (existing) {
+          existing.category = category;
+          existing.name = name;
+          existing.unitWeight = unitWeight;
+          existing.isTraiteurSupport = isSupp;
+          existing.price = isSupp ? 0 : rawPrice;
+          existing.petrinId = petrinId;
+        }
+        const wk = getCurrentWeekData();
+        syncTraiteurToForecast(wk);
+        recordNetworkActivity("catalog", "Réseau", `Produit modifié : ${name}`);
+        saveGlobalConfig();
+        saveCurrentBoutiqueData(true);
+        closeModal();
+        renderAllViews();
+        showToast("Produit mis à jour.");
+        return;
+      }
+
       state.catalog.push({
         id: "prod-" + slugify(name) + "-" + Date.now(),
-        category: document.getElementById("np-cat").value,
+        category,
         name,
-        unitWeight: Number(document.getElementById("np-weight").value) || 0,
-        price: isSupp ? 0 : (Number(document.getElementById("np-price").value) || 0),
+        unitWeight,
+        price: isSupp ? 0 : rawPrice,
         isTraiteurSupport: isSupp,
         petrinId
       });
