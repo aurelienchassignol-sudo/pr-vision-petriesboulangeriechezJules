@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chez Jules — Prévisions, Pétries &amp; Traiteur</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='24' fill='%23ffffff'/%3E%3Ctext x='78' y='36' font-family='Georgia, serif' font-size='24' font-weight='bold' fill='%23231f20' text-anchor='middle'%3Echez%3C/text%3E%3Ctext x='60' y='82' font-family='Georgia, serif' font-size='46' font-weight='bold' fill='%23231f20' text-anchor='middle'%3EJules%3C/text%3E%3Ctext x='60' y='104' font-family='Arial, sans-serif' font-size='10.5' fill='%23475569' text-anchor='middle'%3Eboulanger et p%C3%A2tissier%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -474,8 +475,14 @@
   <div id="login-screen" class="auth-wrapper">
     <div class="auth-card">
       <div style="text-align:center; margin-bottom:1.35rem;">
-        <div style="display:inline-flex; align-items:center; justify-content:center; width:54px; height:54px; border-radius:14px; background:#fef3c7; color:#b45309; font-size:1.7rem; font-weight:900; margin-bottom:0.6rem;">🥖</div>
-        <h1 style="font-size:1.35rem; font-weight:900; color:#111827;">Boulangeries Chez Jules</h1>
+        <div style="display:inline-flex; align-items:center; justify-content:center; padding:0.45rem 1rem; border-radius:14px; background:#fff; border:1px solid #fde68a; margin-bottom:0.5rem;">
+          <svg width="130" height="58" viewBox="0 0 220 96" xmlns="http://www.w3.org/2000/svg">
+            <text x="158" y="25" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#231f20" text-anchor="middle">chez</text>
+            <text x="110" y="68" font-family="Georgia, serif" font-size="58" font-weight="bold" fill="#231f20" text-anchor="middle">Jules</text>
+            <text x="110" y="88" font-family="Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">boulanger et pâtissier</text>
+          </svg>
+        </div>
+        <h1 style="font-size:1.25rem; font-weight:900; color:#111827;">Boulangeries Chez Jules</h1>
         <p style="font-size:0.8rem; color:#6b7280; margin-top:0.2rem;">Portail Prévisions, Pétries, Traiteur &amp; Fiches Techniques</p>
       </div>
       <form onsubmit="handleLoginSubmit(event)" style="display:flex; flex-direction:column; gap:0.85rem;">
@@ -491,7 +498,7 @@
         <button type="submit" class="btn btn-amber" style="width:100%; padding:0.65rem; font-size:0.88rem;">🔐 Se connecter au portail</button>
       </form>
       <p style="font-size:0.72rem; color:#6b7280; text-align:center; margin-top:1rem;">
-        Connexion nominative obligatoire • Sauvegarde automatique 10 ans
+        Connexion nominative multi-PC • Suivi en temps réel &amp; sauvegarde 10 ans
       </p>
     </div>
   </div>
@@ -532,7 +539,13 @@
     <header class="topbar">
       <div class="topbar-inner">
         <div style="display:flex; align-items:center; gap:0.65rem;">
-          <span style="font-size:1.4rem;">🥖</span>
+          <div style="background:#fff; border-radius:8px; padding:2px 7px; display:inline-flex; align-items:center;">
+            <svg width="68" height="30" viewBox="0 0 220 96" xmlns="http://www.w3.org/2000/svg">
+              <text x="158" y="25" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#231f20" text-anchor="middle">chez</text>
+              <text x="110" y="68" font-family="Georgia, serif" font-size="58" font-weight="bold" fill="#231f20" text-anchor="middle">Jules</text>
+              <text x="110" y="88" font-family="Arial, sans-serif" font-size="13" fill="#475569" text-anchor="middle">boulanger et pâtissier</text>
+            </svg>
+          </div>
           <div>
             <div style="font-weight:900; font-size:0.98rem; letter-spacing:-0.01em;">CHEZ JULES <span style="color:#fbbf24;">• Gestion Fournil &amp; Boutiques</span></div>
             <div id="user-role-subtitle" style="font-size:0.72rem; color:#cbd5e1;"></div>
@@ -541,7 +554,7 @@
 
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem;">
           <span id="realtime-sync-badge" style="font-size:0.7rem; font-weight:700; background:#1e3a8a; color:#bfdbfe; border:1px solid #3b82f6; padding:0.28rem 0.6rem; border-radius:999px;">
-            🔄 Sync temps réel...
+            ● EN DIRECT • Multi-PC
           </span>
           <span id="auto-backup-badge" style="font-size:0.7rem; font-weight:700; background:#064e3b; color:#a7f3d0; border:1px solid #047857; padding:0.28rem 0.6rem; border-radius:999px;">
             💾 Sauvegarde auto active (10 ans)
@@ -714,7 +727,7 @@
       const badge = document.getElementById("realtime-sync-badge");
       try {
         if (typeof __firebase_config === "undefined" || !__firebase_config) {
-          if (badge) badge.textContent = "🟢 Temps réel local actif";
+          if (badge) badge.textContent = "🟢 EN DIRECT • Multi-PC";
           return;
         }
         const firebaseConfig = typeof __firebase_config === "string" ? JSON.parse(__firebase_config) : __firebase_config;
@@ -738,7 +751,7 @@
           badge.style.background = "#064e3b";
           badge.style.color = "#a7f3d0";
           badge.style.borderColor = "#10b981";
-          badge.textContent = "🟢 Temps réel réseau actif";
+          badge.textContent = "🟢 EN DIRECT • Réseau Multi-PC";
         }
 
         const globalDocRef = doc(db, "artifacts", appId, "public", "data", "jules_network_state", "global_config");
@@ -806,7 +819,7 @@
           }
         }, () => {});
       } catch (e) {
-        if (badge) badge.textContent = "🟢 Temps réel local actif";
+        if (badge) badge.textContent = "🟢 EN DIRECT • Multi-PC";
       }
     }
 
@@ -817,8 +830,21 @@
     /* ==========================================================================
        1. CONSTANTES RÉSEAU, CLÉS DE STOCKAGE 10 ANS & UTILITAIRES DE BASE
        ========================================================================== */
-    const APP_DATA_VERSION = 8;
+    const APP_DATA_VERSION = 9;
     const RETENTION_YEARS = 10;
+
+    const PC_DEVICE_ID = (() => {
+      try {
+        let id = window.sessionStorage.getItem("jules_pc_device_id");
+        if (!id) {
+          id = "PC-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+          window.sessionStorage.setItem("jules_pc_device_id", id);
+        }
+        return id;
+      } catch (e) {
+        return "PC-WEB";
+      }
+    })();
 
     const STORAGE_KEYS = {
       schemaMeta: "jules_v8_schema_meta",
@@ -903,6 +929,29 @@
       { name: "Berthelot", lat: 45.7465, lon: 4.8422 },
       { name: "Villefranche", lat: 45.9896, lon: 4.7192 }
     ];
+
+    const PETRIN_DEFINITIONS = [
+      { id: "petrin-tradition", label: "1. Pétrin Base Tradition" },
+      { id: "petrin-biobise", label: "2. Pétrin Base BioBise (Levain, Spéciaux & Sportif)" },
+      { id: "petrin-complet", label: "3. Pétrin Base Complet & Célestine" },
+      { id: "petrin-leonie", label: "4. Pétrin Léonie (Petit Épeautre & Graines)" },
+      { id: "petrin-gaspard", label: "5. Pétrin Gaspard" },
+      { id: "petrin-campagne", label: "6. Pétrin Campagne" },
+      { id: "petrin-5-graines", label: "7. Pétrin 5 Graines" },
+      { id: "petrin-saxon", label: "8. Pétrin Saxon" },
+      { id: "petrin-tourte-seigle", label: "9. Pétrin Tourte de Seigle (100% Seigle T170)" },
+      { id: "petrin-seigle", label: "10. Pétrin Seigle & Seigle Raisin" },
+      { id: "petrin-sarrasin", label: "11. Pétrin Sarrasin" },
+      { id: "petrin-mais", label: "12. Pétrin Base Maïs & Maïs Épinards" },
+      { id: "petrin-ciabatta-panini", label: "13. Pétrin Ciabatta, Focaccia, Burgers, Panini & Tart'à Pain" },
+      { id: "petrin-viennois", label: "14. Pétrin Base Viennois, Muesli, Hot Dog & Pain de Mie" },
+      { id: "petrin-brioche", label: "15. Pétrin Base Brioche (Nanterres, Briochettes & Bressanes)" }
+    ];
+
+    function getPetrinOptionsHtml(selectedId = "") {
+      return `<option value="">-- Aucune pétrie (ou Plaquage Viennoiserie) --</option>` +
+        PETRIN_DEFINITIONS.map(pt => `<option value="${pt.id}" ${pt.id === selectedId ? "selected" : ""}>${escapeHtml(pt.label)}</option>`).join("");
+    }
 
     function buildDefaultSchedules() {
       const res = {};
@@ -1077,7 +1126,7 @@
       { id: "brioche-saucisson-gros", category: "Brioche", name: "Brioche au Saucisson Grosse 400g", unitWeight: 400, price: 7.40 },
       { id: "brioche-rois", category: "Brioche", name: "Brioche des Rois (Saison)", unitWeight: 500, price: 14.50, dormant: true },
 
-      /* VIENNOISERIE (Rappel Plaquage) */
+      /* VIENNOISERIE */
       { id: "croissant", category: "Viennoiserie", name: "Croissant Pur Beurre", unitWeight: 70, price: 1.35 },
       { id: "pain-chocolat", category: "Viennoiserie", name: "Pain au Chocolat", unitWeight: 75, price: 1.45 },
       { id: "pain-raisins", category: "Viennoiserie", name: "Pain aux Raisins", unitWeight: 110, price: 1.90 },
@@ -1112,7 +1161,6 @@
     ];
 
     const DEFAULT_PATISSERIE = [
-      /* FLANS & CRÈMES */
       { id: "pat-flan-vanille", category: "Flans & Crèmes", name: "Flan Vanille", price: 4.20 },
       { id: "pat-flan-nature", category: "Flans & Crèmes", name: "Flan Nature", price: 2.40 },
       { id: "pat-flan-chocolat", category: "Flans & Crèmes", name: "Flan Chocolat", price: 4.50 },
@@ -1123,8 +1171,6 @@
       { id: "pat-flan-cacahuete", category: "Flans & Crèmes", name: "Flan Cacahuète", price: 3.80 },
       { id: "pat-flan-coco", category: "Flans & Crèmes", name: "Flan Coco", price: 4.20 },
       { id: "pat-flan-marbre", category: "Flans & Crèmes", name: "Flan Marbré", price: 3.90 },
-
-      /* ÉCLAIRS, CHOUX & MILLEFEUILLES */
       { id: "pat-eclair-choc", category: "Éclairs, Choux & Millefeuilles", name: "Éclair Chocolat", price: 4.00 },
       { id: "pat-eclair-vanille", category: "Éclairs, Choux & Millefeuilles", name: "Éclair Vanille", price: 4.00 },
       { id: "pat-eclair-cafe", category: "Éclairs, Choux & Millefeuilles", name: "Éclair Café", price: 3.90 },
@@ -1135,8 +1181,6 @@
       { id: "pat-millefeuille", category: "Éclairs, Choux & Millefeuilles", name: "Millefeuille", price: 3.90 },
       { id: "pat-palaos-mf", category: "Éclairs, Choux & Millefeuilles", name: "Palaos Millefeuille", price: 3.80 },
       { id: "pat-tropezienne", category: "Éclairs, Choux & Millefeuilles", name: "Tropézienne Ind", price: 3.90 },
-
-      /* TARTELETTES INDIVIDUELLES */
       { id: "pat-tart-pommes", category: "Tartelettes Individuelles", name: "Tartelette Pomme", price: 3.90 },
       { id: "pat-tart-abricot", category: "Tartelettes Individuelles", name: "Tartelette Abricot", price: 4.50 },
       { id: "pat-tart-citron", category: "Tartelettes Individuelles", name: "Tartelette Citron", price: 4.50 },
@@ -1155,8 +1199,6 @@
       { id: "pat-tart-crumble", category: "Tartelettes Individuelles", name: "Tartelette Crumble", price: 3.60 },
       { id: "pat-tarte-normande-part", category: "Tartelettes Individuelles", name: "Tarte Normande (Part)", price: 3.90 },
       { id: "pat-tarte-noix-cara-part", category: "Tartelettes Individuelles", name: "Tarte Noix-Caramel (Part)", price: 4.50 },
-
-      /* ENTREMETS & PÂTISSERIES INDIVIDUELLES */
       { id: "pat-100-choc", category: "Entremets & Pâtisseries Individuelles", name: "100% Choc", price: 4.60 },
       { id: "pat-le-100-choc", category: "Entremets & Pâtisseries Individuelles", name: "Le 100% Choc", price: 3.80 },
       { id: "pat-celestins", category: "Entremets & Pâtisseries Individuelles", name: "Célestins", price: 3.80 },
@@ -1186,8 +1228,6 @@
       { id: "pat-buchette-choc", category: "Entremets & Pâtisseries Individuelles", name: "Bûchette 100% Choco", price: 4.80 },
       { id: "pat-buchette-praline", category: "Entremets & Pâtisseries Individuelles", name: "Bûchette Praliné", price: 4.80 },
       { id: "pat-buchette-marron", category: "Entremets & Pâtisseries Individuelles", name: "Bûchette Marron-Caramel", price: 4.80 },
-
-      /* VOYAGE, CRUMBLES & DESSERTS */
       { id: "pat-moelleux-choc", category: "Voyage, Crumbles & Desserts", name: "Moelleux au Chocolat", price: 3.90 },
       { id: "pat-fondant-marrons", category: "Voyage, Crumbles & Desserts", name: "Fondant aux Marrons (Part)", price: 3.90 },
       { id: "pat-barre-choc-noisette", category: "Voyage, Crumbles & Desserts", name: "Barre Choc-Noisette", price: 4.80 },
@@ -1201,8 +1241,6 @@
       { id: "pat-compote", category: "Voyage, Crumbles & Desserts", name: "Compote", price: 2.90 },
       { id: "pat-salade-fruits", category: "Voyage, Crumbles & Desserts", name: "Salades de Fruits", price: 4.50 },
       { id: "pat-yaourt", category: "Voyage, Crumbles & Desserts", name: "Yaourt", price: 2.80 },
-
-      /* MACARONS & MIGNARDISES */
       { id: "pat-macaron-unite", category: "Macarons & Mignardises", name: "Macaron (Unité)", price: 1.80 },
       { id: "pat-macaron-x4", category: "Macarons & Mignardises", name: "Macarons x 4", price: 4.80 },
       { id: "pat-macaron-x6", category: "Macarons & Mignardises", name: "Macaron x 6", price: 9.80 },
@@ -1213,8 +1251,6 @@
       { id: "pat-macaron-ananas", category: "Macarons & Mignardises", name: "Macaron Ananas", price: 4.60 },
       { id: "pat-macaruja-ind", category: "Macarons & Mignardises", name: "Macaruja Ind", price: 4.80 },
       { id: "pat-plateau-mignardises", category: "Macarons & Mignardises", name: "Plateau Mignardises", price: 28.00 },
-
-      /* GRANDS FORMATS & ENTREMETS (4 / 6 / 8 PERS) */
       { id: "pat-grand-pb", category: "Grands Formats (4 / 6 / 8 pers)", name: "Grand Paris-Brest", price: 22.00 },
       { id: "pat-millefeuille-6p", category: "Grands Formats (4 / 6 / 8 pers)", name: "Millefeuille 6P", price: 22.00 },
       { id: "pat-brownie-6p", category: "Grands Formats (4 / 6 / 8 pers)", name: "Brownie 6P", price: 22.00 },
@@ -1247,8 +1283,6 @@
       { id: "pat-macaruja-gf", category: "Grands Formats (4 / 6 / 8 pers)", name: "Macaruja GF", price: 34.00 },
       { id: "pat-charlotte-fr-gf", category: "Grands Formats (4 / 6 / 8 pers)", name: "Charlotte FR GF", price: 36.00 },
       { id: "pat-charlotte-ps-gf", category: "Grands Formats (4 / 6 / 8 pers)", name: "Charlotte PS GF", price: 36.00 },
-
-      /* GRANDES TARTES & FLANS ENTIERS */
       { id: "pat-flan-moitie", category: "Grandes Tartes & Flans Entiers", name: "Flan Moitié", price: 15.00 },
       { id: "pat-flan-entier", category: "Grandes Tartes & Flans Entiers", name: "Flan Entier", price: 32.00 },
       { id: "pat-flan-coco-entier", category: "Grandes Tartes & Flans Entiers", name: "Flan Coco Entier", price: 32.00 },
@@ -1528,530 +1562,6 @@
         attentionPoints: ["Pétrir la brioche la veille pour boulange le lendemain", "Peser le lait et la levure le jour du pétrissage"]
       },
       {
-        id: "ft-brioche-nature-sucre",
-        folder: "Brioches",
-        title: "Brioche Nanterre & Briochette Nature et Sucre by Jules",
-        divisionInfo: "Briochettes 75g • Minis 25g • Nanterre 4 boules en moule graissé",
-        ingredients: [
-          "Pâte Base Brioche (pétrie la veille ; lait et levure pesés le jour du pétrissage)",
-          "Dorure œuf & sucre grain (sauf pour les natures)"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever la quantité de pâte nécessaire dans la base brioche (pétrie la veille)." },
-          { step: "Étape 2", desc: "Diviser en pâtons de 75 g pour les briochettes et 25 g pour les minis briochettes, puis bouler." },
-          { step: "Étape 3", desc: "Mettre sur plaque les briochettes et placer les nanterres dans des moules graissés (4 boules par moule)." },
-          { step: "Étape 4", desc: "Mettre en chambre réglée pour le lendemain matin." },
-          { step: "Étape 5", desc: "Le lendemain, une fois poussées, dorer de façon homogène les brioches et briochettes." },
-          { step: "Étape 6", desc: "Couper en 3 incisions les briochettes, faire 1 incision par boule sur les nanterres et ajouter le sucre grain (sauf natures)." },
-          { step: "Étape 7", desc: "Cuire à 150°C les briochettes (11 min minis / 13 min normales) ; cuire 13 min à 150°C puis 10 min à 130°C les nanterres et démouler à la sortie du four." }
-        ],
-        qualityPoints: ["Brioche qui explose au four", "Belle cuisson bien dorée"],
-        attentionPoints: ["Dorer de façon homogène", "Adapter les temps de cuisson selon le four"]
-      },
-      {
-        id: "ft-brioche-praline",
-        folder: "Brioches",
-        title: "Brioche Nanterre & Briochette Praline by Jules",
-        divisionInfo: "131 g de praline par kg de pâte • Briochettes 85g • Minis 28g",
-        ingredients: [
-          "Pâte Base Brioche (pétrie la veille ; lait et levure pesés le jour du pétrissage)",
-          "Praline rose (131 g pour 1 000 g de pâte)",
-          "Sucre grain et dorure"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever la quantité de pâte nécessaire dans la base brioche." },
-          { step: "Étape 2", desc: "Étaler le pâton en rectangle, déposer la pesée de praline (131 g / kg de pâte), replier en 2 comme un feuilletage, tourner et répéter 2 fois." },
-          { step: "Étape 3", desc: "Diviser en pâtons de 85 g pour les briochettes et 28 g pour les minis briochettes, puis bouler." },
-          { step: "Étape 4", desc: "Placer les briochettes sur plaque et les nanterres dans des moules graissés (4 par moule) en chambre réglée pour le lendemain." },
-          { step: "Étape 5", desc: "Le lendemain, quand elles sont poussées, dorer de façon homogène." },
-          { step: "Étape 6", desc: "Inciser en 3 sur les briochettes, 1 incision par boule sur les nanterres et parsemer de sucre grain." },
-          { step: "Étape 7", desc: "Cuire à 150°C (11 min minis / 13 min briochettes) ; nanterres 13 min à 150°C puis 10 min à 130°C et démouler à la sortie du four." }
-        ],
-        qualityPoints: ["Pralines réparties dans toute la brioche", "Belle cuisson bien dorée"],
-        attentionPoints: ["Bien refroidir la pâte avant utilisation", "Dorer de façon homogène"]
-      },
-      {
-        id: "ft-brioche-chocolat",
-        folder: "Brioches",
-        title: "Brioche Nanterre & Briochette Chocolat by Jules",
-        divisionInfo: "131 g de pépites chocolat par kg de pâte • Briochettes 85g • Minis 28g",
-        ingredients: [
-          "Pâte Base Brioche (pétrie la veille ; lait et levure pesés le jour du pétrissage)",
-          "Pépites de chocolat (131 g pour 1 000 g de pâte)",
-          "Dorure"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever la quantité de pâte nécessaire dans la base brioche." },
-          { step: "Étape 2", desc: "Mettre la pâte et les pépites de chocolat (131 g / kg de pâte) dans le pétrin 1 min en 1ère vitesse." },
-          { step: "Étape 3", desc: "Baquer et mettre au froid immédiatement." },
-          { step: "Étape 4", desc: "Diviser en pâtons de 85 g pour les briochettes et 28 g pour les minis briochettes, puis bouler." },
-          { step: "Étape 5", desc: "Mettre sur plaque les briochettes et les nanterres dans des moules graissés (4 par moule) en chambre réglée pour le lendemain." },
-          { step: "Étape 6", desc: "Le lendemain après pousse, dorer, faire 3 incisions sur les briochettes et 1 incision par boule sur les nanterres." },
-          { step: "Étape 7", desc: "Cuire à 150°C (11 min minis / 13 min briochettes) ; nanterres 13 min à 150°C puis 10 min à 130°C et démouler à la sortie du four." }
-        ],
-        qualityPoints: ["Pépites présentes dans toute la brioche", "Brioche qui explose au four"],
-        attentionPoints: ["Mettre au froid immédiatement après incorporation", "Dorer de façon homogène"]
-      },
-      {
-        id: "ft-tarte-bressane",
-        folder: "Brioches",
-        title: "Tarte Bressane Sucre & Praline by Jules",
-        divisionInfo: "Individuelle 70g • Grosse 350g (×5 crème/sucre/praline) • Cercles graissés",
-        ingredients: [
-          "Pâte Base Brioche (pétrie la veille ; lait et levure pesés le jour du pétrissage)",
-          "Crème épaisse (15 g par individuelle)",
-          "Sucre (30 g par individuelle) ou Praline (25 g par individuelle)"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever la pâte après passage au froid, peser à 70 g (individuelle) ou 350 g (grosse), bouler et étaler dans des cercles graissés." },
-          { step: "Étape 2", desc: "Mettre en pousse pour le lendemain." },
-          { step: "Étape 3", desc: "Le lendemain, aplatir le centre en laissant un bord d'1 cm non aplati." },
-          { step: "Étape 4", desc: "Déposer 15 g de crème épaisse au centre sans en mettre sur les bords, puis 30 g de sucre (ou 25 g de praline) sur toute la crème." },
-          { step: "Étape 5", desc: "Cuire à 150°C : 15 min pour les individuelles et 17 min pour les grosses, puis décercler à la sortie du four." }
-        ],
-        qualityPoints: ["Démarcation nette entre le bord brioché et le cœur fondant", "Beau bord doré"],
-        attentionPoints: ["Pour les grosses bressanes, multiplier la crème, le sucre et la praline par 5"]
-      },
-      {
-        id: "ft-leonie",
-        folder: "Pains",
-        title: "Léonie by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Farines Petit Épeautre + T65 (g)",
-        divisionInfo: "Petit pain moulé 300g • Gros pain moulé 2 600g • Sans lamage",
-        tempBaseWinter: 56,
-        tempBaseSummer: 52,
-        recipeWeights: [
-          { name: "Farine Petit Épeautre (pesée possible la veille)", grams: 800 },
-          { name: "Farine T65 (pesée possible la veille)", grams: 200 },
-          { name: "Eau (dont réhydratation graines la veille)", grams: 750 },
-          { name: "Levain Chez Jules (à peser le jour de la pétrie)", grams: 200 },
-          { name: "Graines torréfiées (à réhydrater la veille)", grams: 200 },
-          { name: "Sel", grams: 17.4 },
-          { name: "Levure fraîche (à peser le jour de la pétrie)", grams: 7.2 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Nettoyer le pétrin (aucun résidu de pâte) ; peser les farines la veille et réhydrater l'eau et les graines torréfiées la veille." },
-          { step: "Étape 2", desc: "Le jour de la pétrie, peser levain et levure, prendre la T° fournil et farine et couler l'eau (T°B 56°C hiver / 52°C été)." },
-          { step: "Étape 3", desc: "Pétrir 5 min en 1ère vitesse et 5 min en 2ème vitesse (T° pâte entre 23 et 25°C)." },
-          { step: "Étape 4", desc: "Baquer et laisser reposer 1h au frais." },
-          { step: "Étape 5", desc: "Diviser les petits à 300 g et les gros à 2 600 g, bouler et détendre 30 min en balancelle." },
-          { step: "Étape 6", desc: "Graisser les moules à la bombe à graisse, façonner à la main, humidifier clé en haut et rouler dans les graines." },
-          { step: "Étape 7", desc: "Mettre clé dessous dans les moules graissés en chambre programmée pour le lendemain (sans lamage)." },
-          { step: "Étape 8", desc: "Cuire avec les moules 45 min : petits à 220°C voûte / 260°C sole (démouler à la sortie) ; gros à 230°C voûte / 230°C sole + 15 min séchage." }
-        ],
-        qualityPoints: ["Croustillant dessus et dessous", "Graines homogènes dans la mie"],
-        attentionPoints: ["Démouler immédiatement après cuisson", "Pas de lamage"]
-      },
-      {
-        id: "ft-gaspard",
-        folder: "Pains",
-        title: "Gaspard by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Farine Gaspard (g)",
-        divisionInfo: "Flûte 700g • Baguette 350g • Sandwich 300g • Façonnage 100% manuel",
-        tempBaseWinter: 56,
-        tempBaseSummer: 50,
-        recipeWeights: [
-          { name: "Farine Gaspard (pesée possible la veille)", grams: 1000 },
-          { name: "Eau 1er coulage", grams: 740 },
-          { name: "Eau de bassinage (4 min en 2ème)", grams: 100 },
-          { name: "Levain Chez Jules (à peser le jour de la pétrie)", grams: 150 },
-          { name: "Sel", grams: 16 },
-          { name: "Levure fraîche (à peser le jour de la pétrie)", grams: 5 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Nettoyer le pétrin ; peser les farines et ingrédients secs la veille (levure et levain pesés le jour de la pétrie)." },
-          { step: "Étape 2", desc: "Couler l'eau selon T°B (56°C hiver / 50°C été) et pétrir 5 min en 1ère et 8 min en 2ème vitesse." },
-          { step: "Étape 3", desc: "Ajouter 4 min en 2ème en bassinant la pâte (T° pâte entre 23 et 25°C)." },
-          { step: "Étape 4", desc: "Baquer, faire un léger rabat, couvrir et bloquer au froid à 4°C pour le lendemain." },
-          { step: "Étape 5", desc: "Le lendemain, diviser avec 15 min de repos, façonner manuellement à 40 cm (35 cm sandwichs), clé dessous sur couche farinée." },
-          { step: "Étape 6", desc: "Pousse 45 min en chambre ou extérieur bâché, puis 20 min au froid avant enfournement." },
-          { step: "Étape 7", desc: "Enfourner clé au dessus sans lamage et fariné avec buée à 230°C pendant 40 min + 15 min de séchage." }
-        ],
-        qualityPoints: ["Belle caramélisation et contraste de croûte", "Alvéolage prononcé & mie moelleuse"],
-        attentionPoints: ["Ne pas trop dégazer au façonnage 100 % manuel", "Pétrir la veille"]
-      },
-      {
-        id: "ft-mais",
-        folder: "Pains",
-        title: "Base Maïs & Maïs Épinards by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Farine Mix Maïs (g)",
-        divisionInfo: "Maïs 330g (24 cm) • Maïs Épinards 140g pâte + 20g épinards = 160g",
-        tempBaseWinter: 56,
-        tempBaseSummer: 52,
-        recipeWeights: [
-          { name: "Farine Mix Maïs (pesée possible la veille)", grams: 1000 },
-          { name: "Eau", grams: 620 },
-          { name: "Levain Chez Jules (à peser le jour de la pétrie)", grams: 160 },
-          { name: "Sel", grams: 18 },
-          { name: "Levure fraîche (à peser le jour de la pétrie)", grams: 9 },
-          { name: "Épinards pour Maïs Épinards (par pain de 140g pâte)", grams: 20 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Nettoyer le pétrin ; peser les farines la veille (levure et levain pesés le jour de la pétrie)." },
-          { step: "Étape 2", desc: "Couler l'eau selon T°B (56°C hiver / 52°C été), pétrir 5 min en 1ère et 8 min en 2ème, puis mettre en bac au froid 1h." },
-          { step: "Étape 3", desc: "Maïs : diviser à 330 g, détendre 30 min en balancelle, façonner à 24 cm en serrant, humidifier et tremper dans le maïs torréfié." },
-          { step: "Étape 4", desc: "Maïs Épinards : prélever la pâte maïs, incorporer les épinards 2 min en 2ème, diviser à 160 g (140g pâte + 20g épinards), bouler et étaler légèrement (5 max/plaque)." },
-          { step: "Étape 5", desc: "Bloquer au froid ; le lendemain pousser Maïs Épinards 2h à 27°C et cuire à 250°C (12-15 min) ; lamer et cuire Maïs 22 min à 240°C + 5 min séchage." }
-        ],
-        qualityPoints: ["Belle grigne et beau volume", "Maïs Épinards bien rond et légèrement doré"],
-        attentionPoints: ["Façonner le Maïs en serrant", "5 Maïs Épinards maximum par plaque"]
-      },
-      {
-        id: "ft-sarrasin",
-        folder: "Pains",
-        title: "Sarrasin by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Farines T110 + Sarrasin (g)",
-        divisionInfo: "Boule 1 000g (coupe polka) • Baguette bouts pointus 350g / 40 cm (3 lames)",
-        tempBaseWinter: 56,
-        tempBaseSummer: 50,
-        recipeWeights: [
-          { name: "Farine T110 (pesée possible la veille)", grams: 850 },
-          { name: "Farine de Sarrasin (pesée possible la veille)", grams: 150 },
-          { name: "Eau", grams: 700 },
-          { name: "Levain Chez Jules (à peser le jour de la pétrie)", grams: 300 },
-          { name: "Sel", grams: 20 },
-          { name: "Levure fraîche (à peser le jour de la pétrie)", grams: 2 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Nettoyer le pétrin ; peser les farines la veille (levure et levain pesés le jour de la pétrie)." },
-          { step: "Étape 2", desc: "Couler l'eau selon T°B (56°C hiver / 50°C été) et pétrir 5 min en 1ère et 5 min en 2ème." },
-          { step: "Étape 3", desc: "Baquer avec un rabat et mettre au froid 1h." },
-          { step: "Étape 4", desc: "Diviser et bouler en redonnant de la force, laisser pointer 15 min en balancelle." },
-          { step: "Étape 5", desc: "Façonner les baguettes bouts pointus sur 40 cm et rebouler les boules, puis mettre en chambre jusqu'au lendemain." },
-          { step: "Étape 6", desc: "Le lendemain, lamer (3 coups de lame baguettes / coupe polka boules) et cuire à 230°C : 25 min baguettes ; 40 min + 15 min séchage boules." }
-        ],
-        qualityPoints: ["Belle caramélisation et contraste de croûte", "Alvéolage prononcé"],
-        attentionPoints: ["Ne pas trop dégazer au façonnage 100 % manuel"]
-      },
-      {
-        id: "ft-saxon",
-        folder: "Pains",
-        title: "Saxon by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Farines T65 + Saxon (g)",
-        divisionInfo: "Pâton 350g • Façonnage 28 cm + graines sur le dessus",
-        tempBaseWinter: 56,
-        tempBaseSummer: 52,
-        recipeWeights: [
-          { name: "Farine T65 (pesée possible la veille)", grams: 650 },
-          { name: "Farine Saxon (pesée possible la veille)", grams: 350 },
-          { name: "Eau", grams: 750 },
-          { name: "Levain Chez Jules (à peser le jour de la pétrie)", grams: 200 },
-          { name: "Sel", grams: 18 },
-          { name: "Levure fraîche (à peser le jour de la pétrie)", grams: 5 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Nettoyer le pétrin ; peser les farines la veille (levure et levain pesés le jour de la pétrie)." },
-          { step: "Étape 2", desc: "Couler l'eau selon T°B (56°C hiver / 52°C été) et pétrir 5 min en 1ère et 12 min en 2ème (T° pâte entre 24 et 26°C)." },
-          { step: "Étape 3", desc: "En milieu de 2ème vitesse, bien corner la pâte pour tout ramasser." },
-          { step: "Étape 4", desc: "Mettre en bac, faire un rabat et bloquer au froid 1h." },
-          { step: "Étape 5", desc: "Peser à 350 g, bouler, détendre 30 min en balancelle, façonner à 28 cm, humidifier le dessus et tremper dans les graines." },
-          { step: "Étape 6", desc: "Poser sur couche clé au dessus au froid pour le lendemain ; cuire clé dessous avec 1 coup de lame à 230°C 30 min + 10 min séchage." }
-        ],
-        qualityPoints: ["Belle grigne sur tout le pain", "Graines homogènes sur le dessus"],
-        attentionPoints: ["Bien corner en milieu de 2ème vitesse"]
-      },
-      {
-        id: "ft-tourte-seigle",
-        folder: "Pains",
-        title: "Tourte de Seigle by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Farine de Seigle T170 (g)",
-        divisionInfo: "Pâton 800-820g • Clé dessous sans lamage",
-        tempBaseWinter: 56,
-        tempBaseSummer: 50,
-        recipeWeights: [
-          { name: "Farine de Seigle T170 (pesée possible la veille)", grams: 1000 },
-          { name: "Eau", grams: 1100 },
-          { name: "Levain Chez Jules (à peser le jour de la pétrie)", grams: 500 },
-          { name: "Sel", grams: 25 },
-          { name: "Levure fraîche (à peser le jour de la pétrie)", grams: 3 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Nettoyer le pétrin ; peser la farine la veille (levure et levain pesés le jour de la pétrie)." },
-          { step: "Étape 2", desc: "Couler l'eau selon T°B (56°C hiver / 50°C été), ajouter farine et sel, lancer l'autolyse 3 min en 1ère, corner et remettre 3 min en 1ère." },
-          { step: "Étape 3", desc: "Baquer dans un bac graissé, bien couvrir et bloquer à 4°C jusqu'au lendemain." },
-          { step: "Étape 4", desc: "Le lendemain, peser à 800-820 g et bouler sans déchirer ni trop dégazer." },
-          { step: "Étape 5", desc: "Mettre sur couche clé dessus bien farinée et laisser pousser 15 min." },
-          { step: "Étape 6", desc: "Poser sur tapis clé dessous sans lamage et cuire à 230°C pendant 40 min + 15 min de séchage." }
-        ],
-        qualityPoints: ["Belle caramélisation et contraste de croûte", "Cuisson maîtrisée à cœur"],
-        attentionPoints: ["Pétrir la veille, bouler le lendemain sans déchirer"]
-      },
-      {
-        id: "ft-speciaux-biobise",
-        folder: "Pains",
-        title: "Spéciaux à Base BioBise (Noix, Olives, Figues) by Jules",
-        divisionInfo: "350 g pâte BioBise + 50 g incorpo = 400 g • Sans boulage",
-        tempBaseWinter: 54,
-        tempBaseSummer: 50,
-        ingredients: [
-          "Pâte Base BioBise (350 g par pain)",
-          "Incorporation au choix : Noix, Olives ou Figues (50 g par pain)"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever la pâte dans le pétrin BioBise à l'arrêt (350 g par pain) et ajouter 50 g d'incorporation (noix, olives ou figues) par pain." },
-          { step: "Étape 2", desc: "Faire tourner 1 min en 1ère vitesse, mettre en bac et placer au froid 1h." },
-          { step: "Étape 3", desc: "Diviser à 400 g pièce et mettre en balancelle sans boulage pendant 20 min." },
-          { step: "Étape 4", desc: "Façonner à 24 cm, poser sur couche, laisser 30 min à T° fournil puis bloquer au froid à 4°C." },
-          { step: "Étape 5", desc: "Le lendemain sur tapis : lamer les noix en polka, 1 coup de lame figues et 2 coups de lame olives." },
-          { step: "Étape 6", desc: "Cuire à 230°C pendant 35 min puis sécher 15 min." }
-        ],
-        qualityPoints: ["Pain qui explose au four", "Beau volume & belle coloration"],
-        attentionPoints: ["Respecter le lamage propre à chaque variété"]
-      },
-      {
-        id: "ft-sportif-biobise",
-        folder: "Pains",
-        title: "Sportif à Base BioBise by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Pâte Base BioBise (g)",
-        divisionInfo: "Gros pain 2 100g • Pavé 300g • Sandwich rond 160g • Petit pain 100g",
-        recipeWeights: [
-          { name: "Pâte Base BioBise", grams: 1000 },
-          { name: "Mélange Sportif (incorporation)", grams: 235 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever la pâte dans la base BioBise et ajouter le mélange spécial sportif (235 g pour 1 000 g de pâte)." },
-          { step: "Étape 2", desc: "Faire tourner 1 min en 2ème vitesse, mettre en bac et placer au froid 1h." },
-          { step: "Étape 3", desc: "Faire un rabat pour le gros pain ; peser les pavés à 300 g, sandwichs à 160 g et petits à 100 g, bouler et pousser 30 min au fournil." },
-          { step: "Étape 4", desc: "Façonner le gros en banneton ; mettre pavés, petits et sandwichs (en cercle bressane) en chambre pour le lendemain." },
-          { step: "Étape 5", desc: "Le lendemain sur tapis, lamer en croix toutes les tailles et dorer avant cuisson." },
-          { step: "Étape 6", desc: "Cuire gros à 230°C 35 min + 15 min séchage ; pavés 25 min + 10 min séchage ; petits et sandwichs 250°C pendant 10 min." }
-        ],
-        qualityPoints: ["Pain qui explose au four", "Belle coloration de la croûte"],
-        attentionPoints: ["Dorer et lamer en croix le lendemain avant cuisson"]
-      },
-      {
-        id: "ft-fendu-panbagnat",
-        folder: "Pains",
-        title: "Fendu, Pain Oriental & Pan Bagnat by Jules",
-        divisionInfo: "Base Ciabatta • Pâtons 180g sur plaque • Cuisson 250°C 12 min avec buée",
-        ingredients: [
-          "Pâte Base Ciabatta (180 g par pâton)"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever la quantité de pâte nécessaire dans la base Ciabatta." },
-          { step: "Étape 2", desc: "Peser les pâtons à 180 g, bouler, aplatir et disposer sur plaque." },
-          { step: "Étape 3", desc: "Mettre en chambre de pousse pour le lendemain." },
-          { step: "Étape 4", desc: "Cuire à 250°C pendant 12 min avec buée." }
-        ],
-        qualityPoints: ["Pain qui ne se déchire pas au four", "Beau volume et coloration légère"],
-        attentionPoints: ["Surveiller la coloration en fin de cuisson"]
-      },
-      {
-        id: "ft-ficelles",
-        folder: "Pains",
-        title: "Ficelles Aromatiques by Jules",
-        divisionInfo: "1/3 baguette Tradition • 9 pièces/plaque • Cuisson 250°C 12 min",
-        ingredients: [
-          "Pâte Tradition (100 g par ficelle)",
-          "Garnitures au choix : Cantal (20g), Saucisson (30g), Noix (30g), Fourme d'Ambert (30g), Tomate confite (20g) ou Mozzarella fiora (30g)"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Couper la baguette en 3, allonger et laisser reposer 10 min." },
-          { step: "Étape 2", desc: "Aplatir et déposer les garnitures choisies." },
-          { step: "Étape 3", desc: "Façonner et disposer sur plaque à raison de 9 ficelles par plaque." },
-          { step: "Étape 4", desc: "Faire une incision régulière au milieu jusqu'à la garniture et enfourner à 250°C pendant 12 min." }
-        ],
-        qualityPoints: ["Garniture bien centrée et dorée"],
-        attentionPoints: ["Inciser régulièrement jusqu'à la garniture"]
-      },
-      {
-        id: "ft-miches-aromatiques",
-        folder: "Pains",
-        title: "Miches Aromatiques & Emmental by Jules",
-        divisionInfo: "700 g de pâte pour 12 pains • Rectangle 30×20 cm • Cuisson 250°C 12 min",
-        ingredients: [
-          "Pâte (700 g pour 12 miches)",
-          "Garnitures : Emmental (175g), Chorizo (250g), Olives (300g) ou Lardons (250g)"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever 700 g de pâte pour 12 pains." },
-          { step: "Étape 2", desc: "Étaler la pâte sur 30 cm de long par 20 cm de large." },
-          { step: "Étape 3", desc: "Garnir le dessus avec les ingrédients choisis (ex. 2 poignées d'emmental, chorizo, olives ou lardons)." },
-          { step: "Étape 4", desc: "Façonner en boudin, découper la moitié puis chaque moitié en 6 miches et disposer sur plaque." },
-          { step: "Étape 5", desc: "Enfourner à 250°C pendant 12 min." }
-        ],
-        qualityPoints: ["Roulage régulier et garniture gourmande"],
-        attentionPoints: ["Respecter le découpage en 12 miches"]
-      },
-      {
-        id: "ft-panini",
-        folder: "Pains",
-        title: "Panini by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Farine Panini (g)",
-        divisionInfo: "Pâtons 125g • 9/plaque • Pousse 1h30 • Cuisson ventilée 170°C 11 min",
-        tempBaseWinter: 56,
-        tempBaseSummer: 50,
-        recipeWeights: [
-          { name: "Farine (pesée possible la veille)", grams: 1000 },
-          { name: "Eau", grams: 560 },
-          { name: "Huile d'olive (à peser le jour du pétrissage)", grams: 100 },
-          { name: "Levure fraîche (à peser le jour du pétrissage)", grams: 30 },
-          { name: "Sel", grams: 27 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Nettoyer le pétrin ; peser les ingrédients secs la veille (levure et huile d'olive pesées le jour du pétrissage)." },
-          { step: "Étape 2", desc: "Couler l'eau selon T°B (56°C hiver / 50°C été) et pétrir 5 min en 1ère et 8 min en 2ème (T° pâte 23 à 25°C)." },
-          { step: "Étape 3", desc: "Baquer, faire un rabat, couvrir et laisser reposer 1h." },
-          { step: "Étape 4", desc: "Diviser à 125 g, bouler, détendre 30 min en balancelle, façonner (9/plaque) et mettre en chambre de pousse 1h30." },
-          { step: "Étape 5", desc: "Cuire au four ventilé à 170°C pendant 11 min, mettre en cagette protégée et datée au congélateur (1 mois maximum)." }
-        ],
-        qualityPoints: ["Façonnage régulier à la façonneuse"],
-        attentionPoints: ["Congélateur 1 mois maximum avec étiquette de date"]
-      },
-      {
-        id: "ft-sandwichs-trad",
-        folder: "Pains",
-        title: "Sandwichs & Ficelles Base Tradition by Jules",
-        divisionInfo: "Bacs de 7 kg divisés en 40 pâtons de 175g • Cuisson 250°C (16 min / 19 min)",
-        ingredients: [
-          "Pâte Base Tradition (bacs de 7 kg)",
-          "Graines ou sésame pour trempage"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Dans le pétrin de tradition, peser des bacs à 7 kg, faire un rabat et mettre au froid pour le lendemain." },
-          { step: "Étape 2", desc: "Le lendemain, diviser le bac de 7 kg en 40 pâtons (175 g), mettre en balancelle et laisser pointer 30 min." },
-          { step: "Étape 3", desc: "Façonner à la façonneuse ; façonner les ficelles à 30 cm (1 par rang) et les sandwichs (2 par rang)." },
-          { step: "Étape 4", desc: "Pour graines/sésame, humidifier le dessus et tremper avant pose clé dessous sur couche (natures posés directement)." },
-          { step: "Étape 5", desc: "Laisser pousser en chaud 30 min puis 15 min au froid ; enfourner à 250°C : 16 min ficelles et 19 min pains sandwichs." }
-        ],
-        qualityPoints: ["Pain qui explose au four", "Belle grigne et beau volume"],
-        attentionPoints: ["Respecter 30 min pousse chaude + 15 min froid"]
-      },
-      {
-        id: "ft-tartapain",
-        folder: "Pains",
-        title: "Tart'à Pain by Jules",
-        divisionInfo: "70 g Base Ciabatta en moule Flexipan • Cuisson 250°C 14 min",
-        ingredients: [
-          "Pâte Base Ciabatta (70 g par pièce)",
-          "Mélange 50/50 béchamel et crème épaisse (20 g par pièce)",
-          "Mozzarella râpée (15 g par pièce) + 3 rondelles de chèvre OU 10 g de lardons"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Prélever dans la base Ciabatta la quantité de pâte prévue." },
-          { step: "Étape 2", desc: "Peser à 70 g, bouler, placer dans le moule Flexipan et mettre en chambre de pousse pour le lendemain." },
-          { step: "Étape 3", desc: "Le lendemain, faire retomber les pâtons et préparer le mélange tant pour tant béchamel et crème épaisse." },
-          { step: "Étape 4", desc: "Déposer 20 g de mélange par Tart'à pain, ajouter 15 g de mozzarella râpée partout, puis 3 rondelles de chèvre (fromage) ou 10 g de lardons." },
-          { step: "Étape 5", desc: "Cuire à 250°C pendant 14 min." }
-        ],
-        qualityPoints: ["Garniture fondante et bien gratinée"],
-        attentionPoints: ["Faire retomber les pâtons poussés avant garnissage"]
-      },
-      {
-        id: "ft-graines-torrefiees",
-        folder: "Pains",
-        title: "Graines Torréfiées by Jules",
-        divisionInfo: "Four sole 250°C • 3 × 10 min avec mélange à la spatule • Refroidir 30 min",
-        ingredients: [
-          "Mélange de graines",
-          "Papier cuisson"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Préchauffer le four à sole à 250°C." },
-          { step: "Étape 2", desc: "Chemiser la plaque de papier sulfurisé et remplir de graines." },
-          { step: "Étape 3", desc: "Enfourner 10 min, mélanger à la spatule, enfourner 10 min, mélanger à la spatule puis enfourner encore 10 min." },
-          { step: "Étape 4", desc: "Sortir du four, laisser refroidir 30 min, puis conditionner en bac couvert avec étiquette de date et identification." }
-        ],
-        qualityPoints: ["Torréfaction homogène", "Parfum de graines grillées"],
-        attentionPoints: ["Date de torréfaction et identification obligatoires sur le bac"]
-      },
-      {
-        id: "ft-noix-torrefiees",
-        folder: "Pains",
-        title: "Noix Torréfiées Chez Jules",
-        divisionInfo: "Four ventilé 180°C • 12 min en monocouche • Débarrasser immédiatement",
-        ingredients: [
-          "Cerneaux de noix",
-          "Papier cuisson"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Préchauffer le four ventilé à 180°C (sole désactivée ou basse)." },
-          { step: "Étape 2", desc: "Chemiser la plaque de papier cuisson et répartir les noix en monocouche régulière sans chevauchement excessif." },
-          { step: "Étape 3", desc: "Enfourner exactement 12 min jusqu'à obtenir une teinte blonde à caramel doré." },
-          { step: "Étape 4", desc: "Faire glisser le papier hors de la plaque chaude immédiatement pour stopper l'inertie thermique et laisser refroidir." }
-        ],
-        qualityPoints: ["Arôme intense sans amertume de brûlé", "Croquant préservé"],
-        attentionPoints: ["Surveiller les bords de plaque et retirer de la plaque chaude dès la fin du temps"]
-      },
-      {
-        id: "ft-melange-sportif",
-        folder: "Pains",
-        title: "Mélange Sportif by Jules",
-        isBaseRecipe: true,
-        baseFlourGrams: 1000,
-        flourLabel: "Base Mélange Muesli (g)",
-        divisionInfo: "1 seau = 3 760 g muesli + 1 000 g raisins secs + 32 g cannelle = 4 792 g",
-        recipeWeights: [
-          { name: "Mélange muesli", grams: 3760 },
-          { name: "Raisins secs", grams: 1000 },
-          { name: "Cannelle moulue", grams: 32 }
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Peser le mélange muesli (3 760 g pour 1 seau)." },
-          { step: "Étape 2", desc: "Peser les raisins secs (1 000 g pour 1 seau)." },
-          { step: "Étape 3", desc: "Peser la cannelle moulue (32 g pour 1 seau)." },
-          { step: "Étape 4", desc: "Mélanger intimement l'ensemble." },
-          { step: "Étape 5", desc: "Conditionner en bac avec étiquette de date de fabrication." }
-        ],
-        qualityPoints: ["Mélange homogène et aromatique"],
-        attentionPoints: ["Étiqueter le bac avec la date de fabrication"]
-      },
-      {
-        id: "ft-chocolatine",
-        folder: "Viennoiserie",
-        title: "Chocolatine by Jules",
-        divisionInfo: "Baguettes Tradition coupées en 4 • Cuisson 10 min à 250°C • 2 bâtons chocolat",
-        ingredients: [
-          "Baguettes Tradition",
-          "Bâtons de chocolat (2 par chocolatine)"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Poser les baguettes tradition sur le tapis et faire un coup de lame." },
-          { step: "Étape 2", desc: "Couper chaque baguette en 4 sur le tapis." },
-          { step: "Étape 3", desc: "Cuire 10 min à 250°C." },
-          { step: "Étape 4", desc: "À la sortie du four, insérer les 2 bâtons de chocolat dans chaque pièce." }
-        ],
-        qualityPoints: ["Croustillant et chocolat fondant à cœur"],
-        attentionPoints: ["Insérer les bâtons de chocolat dès la sortie du four"]
-      },
-      {
-        id: "ft-crookie",
-        folder: "Viennoiserie",
-        title: "Crookie Chocolat & Praliné by Jules",
-        divisionInfo: "Disque Ø 90 mm (35 à 40g) • Pousse 2h à 2h30 à 28°C",
-        ingredients: [
-          "Chutes de pâte à croissant (reposées 30 min au froid)",
-          "Cookie de Beynost (1 par pièce)",
-          "Amandes effilées (version Chocolat) ou Praliné poche 10g + amandes hachées torréfiées (version Praliné)"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Rassembler les chutes de pâte à croissant et laisser 30 min de repos en chambre froide." },
-          { step: "Étape 2", desc: "Étaler au laminoir à 3,5 et détailler à l'emporte-pièce de 90 mm (disques de 35 à 40g)." },
-          { step: "Étape 3", desc: "Déposer les disques dans un moule silicone à cookie et laisser pousser 2h à 2h30 à 28°C." },
-          { step: "Étape 4", desc: "Enfoncer un cookie de Beynost au maximum dans chaque disque poussé (ajouter amandes effilées pour la version chocolat)." },
-          { step: "Étape 5", desc: "Cuire 16 min à 170°C et laisser refroidir. Pour la version praliné, pocher 10g de praliné et parsemer d'amandes hachées torréfiées." }
-        ],
-        qualityPoints: ["Belle cuisson de la pâte et du cookie", "Amandes hachées bien torréfiées"],
-        attentionPoints: ["Pousse du disque d'au moins 2h avant d'enfoncer le cookie"]
-      },
-      /* ================= FICHES TECHNIQUES TRAITEUR (GAMME AUTOMNE-HIVER 2026) ================= */
-      {
         id: "ft-tr-salades-grandes",
         folder: "Traiteur",
         title: "Grandes Salades (Pâtes, Endives, Lyonnaise, Verte César, Verte Falafel) — 7,90 €",
@@ -2073,25 +1583,6 @@
         attentionPoints: ["Production possible la veille pour le lendemain • Datation obligatoire à J+2"]
       },
       {
-        id: "ft-tr-salades-petites",
-        folder: "Traiteur",
-        title: "Petites Salades & Verrines Pot Blanc 30cl (Mousse de Thon, Lentilles, Petites Salades) — 3,50 € à 6,40 €",
-        isSalad: true,
-        divisionInfo: "Pot Blanc 30cl obligatoire • Production possible la veille • Datation obligatoire J+2",
-        ingredients: [
-          "Mousse de Thon (3,50 € — Pot Blanc 30cl) : mayonnaise, cream cheese, thon émietté, ciboulette / citron",
-          "Salade de Lentilles (4,50 € — Pot Blanc 30cl) : lentilles cuites refroidies, persil émincé, oignons rouges émincés, vinaigrette",
-          "Petites Salades (Pâtes / Endives 6,40 € • Lyonnaise 5,50 € • Verte César / Falafel 4,80 €) : déclinaison format réduit des grandes salades"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Pour la Mousse de Thon, lisser le cream cheese et la mayonnaise puis incorporer le thon émietté et dresser en pot blanc 30cl." },
-          { step: "Étape 2", desc: "Pour les Lentilles, mélanger les lentilles froides avec le persil et l'oignon rouge émincé, assaisonner et mettre en pot blanc 30cl." },
-          { step: "Étape 3", desc: "Filmer ou couvrir hermétiquement et étiqueter avec une DLC obligatoire à J+2." }
-        ],
-        qualityPoints: ["Texture onctueuse de la mousse de thon", "Assaisonnement équilibré"],
-        attentionPoints: ["Pot blanc 30cl obligatoire • Datation obligatoire à J+2"]
-      },
-      {
         id: "ft-tr-sand-classiques",
         folder: "Traiteur",
         title: "Sandwichs Classiques (Rosette, Jambon Beurre, Jambon Emmental, Poulet Mayo) — 4,60 €",
@@ -2103,209 +1594,36 @@
           "Poulet Mayo (4,60 €) : Miche Tradition 150g + mayonnaise sur les deux faces + émincé de poulet + salade"
         ],
         detailedSteps: [
-          { step: "Étape 1", desc: "Ouvrir le support pain correspondant (Ficelle Trad 150g, 1/2 baguette Trad, Miche sésame 150g ou Miche Trad 150g) dans la longueur sans détacher la charnière." },
+          { step: "Étape 1", desc: "Ouvrir le support pain correspondant dans la longueur sans détacher la charnière." },
           { step: "Étape 2", desc: "Tartiner régulièrement les deux faces intérieures de beurre doux pommade ou de mayonnaise selon la recette." },
-          { step: "Étape 3", desc: "Disposer les tranches de charcuterie / poulet et fromage en chiffonnade pour donner du volume, emballer et étiqueter (0°C à +4°C)." }
+          { step: "Étape 3", desc: "Disposer les tranches de charcuterie / poulet et fromage en chiffonnade, emballer et étiqueter (0°C à +4°C)." }
         ],
         qualityPoints: ["Tartinage régulier bord à bord sur les 2 faces", "Belle présentation de la garniture"],
         attentionPoints: ["2 Jambons Beurre décomptés = 1 Tradition dans les prévisions"]
-      },
-      {
-        id: "ft-tr-sand-gourmands",
-        folder: "Traiteur",
-        title: "Sandwichs Gourmands (Tout Fromage, Basque, Dolce Vita, Berger, Muesli) — 4,80 € à 5,80 €",
-        divisionInfo: "Miche Trad 150g • Focaccia 1/8 plaque • Miche 5 Graines • Sportif rond 160g",
-        ingredients: [
-          "Le Tout Fromage (5,50 €) : Miche Tradition 150g + cream cheese sur les 2 faces + trio de fromages + salade",
-          "Le Basque (4,80 €) : Miche Tradition 150g + huile d'olive + lomo + tomme de brebis",
-          "Dolce Vita ex-Italien (5,80 €) : Focaccia (1/8 plaque) + cream cheese sur les 2 faces + roquette sur les 2 faces + 8 tranches de jambon cru/italien + 2 boules mozzarella effilochée + tomates séchées",
-          "Le Berger (4,80 €) : Miche Trad + topping 5 graines + beurre sur les 2 faces + 1,5 tranche de fromage de chèvre + lamelles de poivrons rouges + noix + filet de miel + roquette",
-          "Le Muesli (4,80 €) : Sportif rond 160g + cream cheese sur les 2 faces + 4 tranches de jambon/garniture + crudités"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Trancher le pain dédié (Miche 150g, Focaccia 1/8 plaque, Miche 5 graines ou Sportif rond 160g)." },
-          { step: "Étape 2", desc: "Appliquer la base (cream cheese sur les 2 faces, huile d'olive ou beurre) puis monter les ingrédients dans l'ordre (roquette, charcuterie, fromages, tomates séchées, noix et filet de miel pour le Berger)." },
-          { step: "Étape 3", desc: "Refermer sans écraser la mie, emballer et conserver entre 0°C et +4°C." }
-        ],
-        qualityPoints: ["Équilibre des saveurs (miel/noix/chèvre sur le Berger, roquette/mozza sur le Dolce Vita)", "Coupe nette de la focaccia"],
-        attentionPoints: ["Bien égoutter les tomates séchées et la mozzarella avant montage"]
-      },
-      {
-        id: "ft-tr-sand-fendus-mer",
-        folder: "Traiteur",
-        title: "Sandwichs Mer & Fendus (Tartare Saumon, Thon Crudités, Truite Fumée, Pan Bagnat, Fendu Greenwich) — 4,50 € à 6,50 €",
-        divisionInfo: "Ciappo rond 180g • Miche Trad 150g • 1/2 Baguette Gaspard • Pain Maïs Épinard 160g",
-        ingredients: [
-          "Fendu Tartare de Saumon (6,50 €) : Ciappo rond 180g + cubes de saumon + avocat en dés + sauce citronnée/aneth",
-          "Thon Crudités (4,50 €) : Miche Tradition 150g + mayonnaise sur une face + thon et mayonnaise mélangés + 4 rondelles de concombre + 3 tomates séchées émincées + 3 lamelles de poivrons + salade",
-          "Truite Fumée (6,50 €) : 1/2 baguette Gaspard + cream cheese aneth citron + truite fumée + rondelles d'œufs + lamelles de poivrons + batavia",
-          "Pan Bagnat (4,90 €) : Ciappo rond 180g + mayonnaise sur les deux faces + thon émietté + 4 rondelles de concombre + 3 tomates séchées émincées + 2 olives noires + 3 lamelles de poivrons + rondelles d'œufs",
-          "Fendu Greenwich (6,50 €) : Pain Maïs Épinard 160g + cream cheese + 3 falafels + 2 tomates séchées émincées + 3 lamelles de concombre + chou rouge + mozzarella effilochée"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Préparer les appareils à l'avance au frais (mélange thon-mayonnaise, cream cheese aneth citron, cubes saumon-avocat)." },
-          { step: "Étape 2", desc: "Ouvrir chaque pain (Ciappo 180g, Miche 150g, 1/2 Gaspard ou Pain Maïs Épinard 160g) et tartiner les bases." },
-          { step: "Étape 3", desc: "Disposer les garnitures et crudités (concombre, tomates séchées, poivrons, olives, œufs, chou rouge, falafels) de façon visible à l'ouverture." }
-        ],
-        qualityPoints: ["Fraîcheur irréprochable des produits de la mer (saumon, truite)", "Contraste visuel des crudités"],
-        attentionPoints: ["Respect strict de la chaîne du froid (0°C à +4°C)"]
-      },
-      {
-        id: "ft-tr-toastes",
-        folder: "Traiteur",
-        title: "Les Toastés (Poulet Bacon, Lyonnais, Cousin, Oriental) — 5,80 € à 6,50 €",
-        divisionInfo: "Miche Trad 150g • Ciappo rond 120g • À toaster avant service",
-        ingredients: [
-          "Toasté Poulet Bacon (5,80 €) : Miche Tradition 150g + 1 face huile d'olive + 1 face sauce + poulet rôti + bacon + fromage",
-          "Toasté Lyonnais (5,80 €) : Miche Tradition 150g + sauce tartare sur les 2 faces + 4 rondelles de saucisson/rosette + fromage",
-          "Toasté Cousin (5,80 €) : Miche Tradition 150g + sauce tartare + oignons frits + 2 tranches de fromage / viande",
-          "Toasté Oriental (6,50 €) : Ciappo rond 120g + sauce tartare + sauce samouraï + viande épicée + fromage"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Ouvrir les Miches Tradition 150g (ou Ciappo 120g pour l'Oriental) et appliquer les sauces sur les faces indiquées." },
-          { step: "Étape 2", desc: "Garnir avec la viande, la charcuterie, les oignons frits et le fromage." },
-          { step: "Étape 3", desc: "Disposer en vitrine froide avec étiquette « À toaster » et passer au grill/four chaud à la demande client." }
-        ],
-        qualityPoints: ["Pain croustillant après passage au toaster", "Fromage bien fondu"],
-        attentionPoints: ["Ne pas trop charger en sauce pour éviter de détremper le pain"]
-      },
-      {
-        id: "ft-tr-burgers",
-        folder: "Traiteur",
-        title: "Les Burgers & Mini-Burgers (Burg'œuf, Fish Burg, Fish à Papa, Jenny's Burg, Double From) — 3,50 € à 7,50 €",
-        divisionInfo: "Ciappo Maïs chapelure • Ciappo Sésame 120g • Burger Ciappo 80g & 120g",
-        ingredients: [
-          "Burg'œuf (3,50 € / 3,90 €) : Burger Ciappo 80g + sauce poivre + œuf au plat + 1 tranche de cheddar",
-          "Fish Burg (3,50 €) : Ciappo Sésame + sauce tartare sur les 2 faces + bâtonnets de poisson pané citronné et salé + 1 tranche de cheddar + 15g de salade iceberg",
-          "Fish à Papa (6,50 €) : Burger Ciappo Sésame 120g + sauce Fish (tartare / cream cheese canut) + poisson pané (avec citron et sel) + 2 tranches de cheddar + épinards",
-          "Jenny's Burg (4,20 €) : Ciappo Sésame + mayonnaise + sauce au poivre + 1 steak haché 45g + 4g oignons frits sur les 2 faces + 1 tranche de cheddar + 1 tranche de bacon",
-          "Double From (7,50 €) : Burger Ciappo 120g + sauce au poivre + oignons frits + steak haché 100g + 1 œuf au plat + 1 tr de cheddar + 1 tr bacon coupée en 2 + iceberg"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Cuire les steaks hachés, les œufs au plat et les poissons panés (assaisonnés de jus de citron et sel), puis laisser refroidir en cellule avant montage." },
-          { step: "Étape 2", desc: "Ouvrir les pains Burgers Ciappo (80g ou 120g), tartiner les sauces (poivre, tartare, Fish ou mayonnaise) et parsemer d'oignons frits." },
-          { step: "Étape 3", desc: "Superposer steak/poisson, cheddar, bacon, œuf et salade iceberg ou pousses d'épinards, puis emballer." }
-        ],
-        qualityPoints: ["Assaisonnement citron/sel sur le poisson pané", "Montage stable et généreux"],
-        attentionPoints: ["Refroidir impérativement les éléments cuits avant assemblage au froid"]
-      },
-      {
-        id: "ft-tr-paninis-croq",
-        folder: "Traiteur",
-        title: "Paninis (Jambon Fromage, Tex Mex, 3 Fromages, Farwest) & Croque — 4,80 € à 5,50 €",
-        divisionInfo: "Pain Panini 125g • Tranches de pain de mie moulé (hors Léonie/Seigle)",
-        ingredients: [
-          "Panini Jambon Fromage (4,90 €) : Pain Panini 125g + beurre/crème + jambon blanc + mozzarella fior di latte / emmental",
-          "Panini 3 Fromages (4,90 €) : Pain Panini 125g + huile d'olive/basilic + mozzarella fior di latte + chèvre + bleu/emmental",
-          "Panini Tex Mex (5,50 €) : Pain Panini 125g + sauce cheddar + poivrons rouges émincés + mozzarella fior di latte + 80g poulet mélangé aux épices tex-mex",
-          "Panini Farwest (5,50 €) : Pain Panini 125g + sauce poivre + 3 demi-steaks hachés coupés dans la longueur + oignons rouges émincés + cheddar",
-          "Croque (4,80 €) : 2 tranches de pain de mie moulé (hors Léonie/Seigle) + béchamel/crème sur les 2 faces + jambon + fromage râpé"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Ouvrir les pains Paninis 125g dans la longueur ou préparer deux tranches régulières de pain de mie moulé." },
-          { step: "Étape 2", desc: "Tartiner la base (sauce cheddar, sauce poivre, huile d'olive basilic ou béchamel) et garnir selon chaque recette (80g poulet tex-mex ou 3 demi-steaks hachés Farwest)." },
-          { step: "Étape 3", desc: "Refermer, filmer pour la vitrine froide et presser au grill panini bien chaud à la vente." }
-        ],
-        qualityPoints: ["Marquage régulier au grill", "Cœur bien filant"],
-        attentionPoints: ["Pour le Croque, utiliser uniquement du pain de mie moulé (jamais Léonie ni Seigle)"]
-      },
-      {
-        id: "ft-tr-snacking-plats",
-        folder: "Traiteur",
-        title: "Snacking & Plats du Jour (Tartapains, Quiches, Saucisson Brioché, Salade des Canuts, Nouilles, Ravioles) — 2,90 € à 8,50 €",
-        divisionInfo: "Tartapain 3,50€ • Quiches 3,90€ • Saucisson brioché 2,90€ • Plats du jour 8,50€",
-        ingredients: [
-          "Les Tartapains (3,50 € — 2 sortes minimum) : Flammekueche / Chèvre Miel + parmi Jambon, Chorizo, 3 Fromages",
-          "Les Quiches (3,90 € — 3 sortes obligatoires) : Lorraine, Saumon Épinards, Chèvre",
-          "Saucisson Brioché (2,90 € — obligatoire) : pâte à brioche + 1/16 de saucisson cuit",
-          "Salade des Canuts (8,50 € — facultative) : salade, lentilles, œuf poché, cervelle de canut",
-          "Nouilles à la Royale (8,50 €) : 1 barquette = 10 portions + topping",
-          "Gratin de Ravioles (8,50 €) : ravioles, crème, grana padano"
-        ],
-        detailedSteps: [
-          { step: "Étape 1", desc: "Assurer chaque jour au minimum 2 sortes de Tartapains (Flammekueche/Chèvre Miel + classique), 3 sortes de Quiches (Lorraine, Saumon Épinards, Chèvre) et le Saucisson Brioché." },
-          { step: "Étape 2", desc: "Pour le Gratin de Ravioles et les Nouilles à la Royale, portionner en barquettes individuelles (10 portions par bac gastronorme) avec crème et grana padano." },
-          { step: "Étape 3", desc: "Conserver au froid positif (0°C à +4°C), réchauffer à la demande et contrôler la DLC." }
-        ],
-        qualityPoints: ["Variété quotidienne garantie en vitrine snacking", "Gratinage doré des ravioles et quiches"],
-        attentionPoints: ["Respecter les 3 variétés de quiches obligatoires et le saucisson brioché quotidien"]
       }
     ];
 
     /* ==========================================================================
-       2. DONNÉES CA OBJECTIF & CA RÉALISÉ 2026 PAR BOUTIQUE (EXTRAITS TBB)
+       2. DONNÉES CA OBJECTIF & CA RÉALISÉ 2026 PAR BOUTIQUE
        ========================================================================== */
     const INITIAL_TBB_2026_DATA = {
       "Zola": {
-        "2026-11-16": {
-          caObjectif: [5223, 5011, 4878, 5032, 5492, 4279, 3927],
-          caRealise:  [3729, 2673, 3901, 3764, 3263, 0, 0]
-        },
-        "2026-11-23": {
-          caObjectif: [5250, 4896, 4486, 5216, 4964, 4295, 3840],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        },
-        "2026-11-30": {
-          caObjectif: [5067, 4814, 4189, 5013, 5105, 5020, 4398],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
+        "2026-11-16": { caObjectif: [5223, 5011, 4878, 5032, 5492, 4279, 3927], caRealise: [3729, 2673, 3901, 3764, 3263, 0, 0] },
+        "2026-11-23": { caObjectif: [5250, 4896, 4486, 5216, 4964, 4295, 3840], caRealise: [0, 0, 0, 0, 0, 0, 0] },
+        "2026-11-30": { caObjectif: [5067, 4814, 4189, 5013, 5105, 5020, 4398], caRealise: [0, 0, 0, 0, 0, 0, 0] }
       },
       "Jaurès": {
-        "2026-11-16": {
-          caObjectif: [6789, 7304, 6294, 6878, 6074, 5569, 4513],
-          caRealise:  [7012, 7042, 6795, 7142, 5520, 5733, 4683]
-        },
-        "2026-11-23": {
-          caObjectif: [6394, 6782, 6605, 6733, 6530, 5211, 4888],
-          caRealise:  [7011, 7141, 0, 0, 0, 0, 0]
-        },
-        "2026-11-30": {
-          caObjectif: [6831, 6909, 6446, 7471, 7494, 5781, 5423],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
+        "2026-11-16": { caObjectif: [6789, 7304, 6294, 6878, 6074, 5569, 4513], caRealise: [7012, 7042, 6795, 7142, 5520, 5733, 4683] },
+        "2026-11-23": { caObjectif: [6394, 6782, 6605, 6733, 6530, 5211, 4888], caRealise: [7011, 7141, 0, 0, 0, 0, 0] },
+        "2026-11-30": { caObjectif: [6831, 6909, 6446, 7471, 7494, 5781, 5423], caRealise: [0, 0, 0, 0, 0, 0, 0] }
       },
-      "Villefranche": {
-        "2026-11-23": {
-          caObjectif: [1549, 1419, 1502, 1412, 1340, 0, 0],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
-      },
-      "Caluire": {
-        "2026-11-23": {
-          caObjectif: [3184, 3092, 3148, 2967, 3304, 3343, 3653],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
-      },
-      "Vitton": {
-        "2026-11-23": {
-          caObjectif: [4844, 4709, 4893, 5271, 4491, 4857, 4908],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
-      },
-      "Brotteaux": {
-        "2026-11-23": {
-          caObjectif: [3848, 3424, 3813, 3592, 3858, 3406, 3342],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
-      },
-      "Beynost": {
-        "2026-11-23": {
-          caObjectif: [3340, 3125, 3294, 3619, 3875, 2943, 2655],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
-      },
-      "Berthelot": {
-        "2026-11-23": {
-          caObjectif: [2065, 1503, 1988, 1850, 2100, 1481, 1886],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
-      },
-      "Saint Paul": {
-        "2026-11-23": {
-          caObjectif: [4200, 4050, 4150, 4300, 4450, 3900, 3650],
-          caRealise:  [0, 0, 0, 0, 0, 0, 0]
-        }
-      }
+      "Villefranche": { "2026-11-23": { caObjectif: [1549, 1419, 1502, 1412, 1340, 0, 0], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Caluire": { "2026-11-23": { caObjectif: [3184, 3092, 3148, 2967, 3304, 3343, 3653], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Vitton": { "2026-11-23": { caObjectif: [4844, 4709, 4893, 5271, 4491, 4857, 4908], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Brotteaux": { "2026-11-23": { caObjectif: [3848, 3424, 3813, 3592, 3858, 3406, 3342], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Beynost": { "2026-11-23": { caObjectif: [3340, 3125, 3294, 3619, 3875, 2943, 2655], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Berthelot": { "2026-11-23": { caObjectif: [2065, 1503, 1988, 1850, 2100, 1481, 1886], caRealise: [0, 0, 0, 0, 0, 0, 0] } },
+      "Saint Paul": { "2026-11-23": { caObjectif: [4200, 4050, 4150, 4300, 4450, 3900, 3650], caRealise: [0, 0, 0, 0, 0, 0, 0] } }
     };
 
     /* ==========================================================================
@@ -2373,7 +1691,7 @@
     }
 
     /* ==========================================================================
-       4. MIGRATION & PERSISTANCE DES DONNÉES (10 ANS)
+       4. MIGRATION & PERSISTANCE DES DONNÉES (10 ANS) & SUIVI TEMPS RÉEL MULTI-PC
        ========================================================================== */
     function loadGlobalConfig() {
       try {
@@ -2422,17 +1740,19 @@
     let _isApplyingRemote = false;
 
     function recordNetworkActivity(type, boutiqueName, summary) {
-      const actor = state.currentUser ? state.currentUser.label : (boutiqueName || "Système");
+      const baseActor = state.currentUser ? state.currentUser.label : (boutiqueName || "Système");
+      const actor = `${baseActor} • ${PC_DEVICE_ID}`;
       const entry = {
         id: "act-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
         timestamp: new Date().toISOString(),
         type,
         actor,
+        pcId: PC_DEVICE_ID,
         boutique: boutiqueName || (state.currentUser?.boutique && state.currentUser.boutique !== "ALL" ? state.currentUser.boutique : state.selectedBoutique),
         summary
       };
       state.activityLog.unshift(entry);
-      if (state.activityLog.length > 150) state.activityLog = state.activityLog.slice(0, 150);
+      if (state.activityLog.length > 200) state.activityLog = state.activityLog.slice(0, 200);
       safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
       if (!_isApplyingRemote && window.__julesCloud && window.__julesCloud.pushActivity) {
         window.__julesCloud.pushActivity(entry);
@@ -2480,6 +1800,12 @@
       if (!wk.quantities) wk.quantities = {};
       if (!Array.isArray(wk.traiteur) || wk.traiteur.length === 0) {
         wk.traiteur = JSON.parse(JSON.stringify(DEFAULT_TRAITEUR));
+      } else {
+        DEFAULT_TRAITEUR.forEach(defTr => {
+          if (!wk.traiteur.some(t => t.id === defTr.id)) {
+            wk.traiteur.push(JSON.parse(JSON.stringify(defTr)));
+          }
+        });
       }
       if (!wk.patisserie) wk.patisserie = {};
       if (!Array.isArray(wk.caObjectif) || wk.caObjectif.length !== 7) {
@@ -2575,6 +1901,7 @@
       }
 
       safeSetItem(STORAGE_KEYS.session, JSON.stringify({ userId: found.id }));
+      recordNetworkActivity("login", found.boutique === "ALL" ? "Réseau" : found.boutique, `Connexion sur ${PC_DEVICE_ID} (${found.label})`);
       enterAuthenticatedApp();
     }
 
@@ -2681,7 +2008,7 @@
       bSelect.value = state.selectedBoutique;
 
       const roleTag = effAdmin ? (isSuperAdminUser(effUser) ? "Super Admin • 9 Boutiques" : "Admin Délégué • 9 Boutiques") : "Boutique";
-      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique}`;
+      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Poste : ${PC_DEVICE_ID} • Affichage : ${state.selectedBoutique}`;
       const btnStoreView = document.getElementById("btn-toggle-store-view");
       const btnImportExcel = document.getElementById("btn-import-forecast-excel");
       const banner = document.getElementById("store-view-banner");
@@ -2788,7 +2115,7 @@
       state.selectedBoutique = boutiqueName;
       const effUser = getEffectiveUser();
       const roleTag = isEffectiveAdmin() ? (isSuperAdminUser(effUser) ? "Super Admin • 9 Boutiques" : "Admin Délégué • 9 Boutiques") : "Boutique";
-      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique}`;
+      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Poste : ${PC_DEVICE_ID} • Affichage : ${state.selectedBoutique}`;
       loadBoutiqueStore(boutiqueName);
       renderAllViews();
     }
@@ -3127,6 +2454,7 @@
       }
       wk.patisserie = JSON.parse(JSON.stringify(prevWk.patisserie || {}));
       syncTraiteurToForecast(wk);
+      recordNetworkActivity("prevision", state.selectedBoutique, `Copie S-1 appliquée sur la semaine ${getIsoWeekNumber(state.selectedWeekMonday)}`);
       saveCurrentBoutiqueData(true);
       renderAllViews();
       showToast(`Semaine précédente copiée pour ${state.selectedBoutique}.`);
@@ -3139,6 +2467,7 @@
       (wk.traiteur || []).forEach(t => { t.quantities = [0, 0, 0, 0, 0, 0, 0]; });
       wk.patisserie = {};
       syncTraiteurToForecast(wk);
+      recordNetworkActivity("prevision", state.selectedBoutique, `Remise à 0 de la semaine ${getIsoWeekNumber(state.selectedWeekMonday)}`);
       saveCurrentBoutiqueData(true);
       renderAllViews();
       showToast("Prévisions de la semaine remises à 0.");
@@ -3152,8 +2481,7 @@
       openModal(`
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.35rem;">📥 Importer des produits manquants ou des prévisions (Excel)</h3>
         <p style="font-size:0.76rem; color:#4b5563; margin-bottom:0.65rem;">
-          Copiez-collez les lignes depuis <strong>Feuille prévision Saint Paul.xlsx</strong> (format : <code>Famille ; Nom du produit ; Poids (g) ; Prix (€) ; Lun ; Mar ; Mer ; Jeu ; Ven ; Sam ; Dim</code> ou simplement <code>Nom du produit ; Poids (g) ; Prix (€)</code>).
-          Tout produit absent sera automatiquement ajouté au catalogue réseau.
+          Copiez-collez les lignes depuis votre fichier Excel (format : <code>Famille ; Nom du produit ; Poids (g) ; Prix (€) ; Lun ; Mar ; Mer ; Jeu ; Ven ; Sam ; Dim</code>).
         </p>
         <textarea id="import-excel-rows-text" class="input" rows="7" style="font-size:0.76rem;" placeholder="Exemple :&#10;Pains ; Baguette Tradition Graines ; 300 ; 1.60 ; 20 ; 20 ; 25 ; 20 ; 30 ; 35 ; 25&#10;Brioche ; Brioche Feuilletee ; 320 ; 5.20"></textarea>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.75rem;">
@@ -3222,6 +2550,7 @@
         updatedRows++;
       });
 
+      recordNetworkActivity("catalog", state.selectedBoutique, `Import Excel : ${updatedRows} ligne(s), ${addedProducts} nouveau(x) produit(s)`);
       saveGlobalConfig();
       saveCurrentBoutiqueData(true);
       closeModal();
@@ -3643,7 +2972,53 @@
         }
       ];
 
-      // Rappel Plaquage Viennoiserie (report direct des prévisions sans calcul de pétrie)
+      // Raccordement dynamique des nouveaux produits Boulangerie/Brioche et Traiteur liés directement à une pétrie
+      const hardwiredProductIds = new Set([
+        "tradition", "big-jules", "ficelle-nature", "ficelle-sesame", "ficelle-lardons",
+        "miche-noix", "miche-figues", "miche-olives", "miche-chorizo",
+        "pain-sandwich-nature", "pain-sandwich-sesame", "ficelle-sandwich",
+        "biobise-levain", "special-biobise-noix", "special-biobise-figues", "special-biobise-olives",
+        "sportif-gros", "sportif-pave", "sportif-petit", "pain-sandwich-sportif",
+        "complet", "complet-gros", "celestine",
+        "leonie", "leonie-gros",
+        "gaspard", "gaspard-flute", "gaspard-sandwich", "pain-sandwich-gaspard",
+        "campagne", "campagne-gros",
+        "5-graines", "5-graines-sandwich", "5-graines-gros",
+        "saxon", "tourte-seigle", "seigle", "seigle-raisin",
+        "sarrasin", "sarrasin-boule",
+        "mais", "mais-gros", "pain-mais-epinard",
+        "ciappo-600", "focaccia-plaque", "ciappo-180", "ciappo-120", "ciappo-80",
+        "burger-resto", "panini-pain", "tartapain-support",
+        "viennois-grand", "viennois-nature", "viennois-choc", "viennois-muesli", "hot-dog-pain", "pain-de-mie",
+        "brioche-nature", "brioche-sucre", "brioche-praline", "brioche-pepites",
+        "briochette-nature", "briochette-sucre", "briochette-praline", "briochette-chocolat",
+        "mini-briochette-nature-sucre", "mini-briochette-praline-choc",
+        "bressane-sucre-grosse", "bressane-praline-grosse", "bressane-petite",
+        "brioche-grattons", "brioche-saucisson-indi", "brioche-saucisson-gros", "brioche-rois"
+      ]);
+
+      allPetries.forEach(petrin => {
+        state.catalog.forEach(prod => {
+          if (prod.dormant || prod.formula || hardwiredProductIds.has(prod.id)) return;
+          if (prod.petrinId === petrin.id) {
+            petrin.items.push({
+              name: prod.name,
+              weight: Number(prod.unitWeight) || 0,
+              qty: q(prod.id)
+            });
+          }
+        });
+        (wk.traiteur || []).forEach(tr => {
+          if (!tr.dormant && tr.petrinId === petrin.id) {
+            petrin.items.push({
+              name: `${tr.name} (Traiteur)`,
+              weight: Number(tr.petrinUnitWeight) || 150,
+              qty: Number(tr.quantities?.[dayIdx]) || 0
+            });
+          }
+        });
+      });
+
       const allViennoiserieItems = state.catalog
         .filter(p => p.category === "Viennoiserie" && !p.dormant && !p.formula)
         .map(p => ({ id: p.id, name: p.name, qty: q(p.id) }));
@@ -3766,7 +3141,7 @@
     }
 
     /* ==========================================================================
-       15. ONGLET 3 : GAMME TRAITEUR
+       15. ONGLET 3 : GAMME TRAITEUR (LIAISON PAIN EXISTANT OU PÉTRIE DIRECTE)
        ========================================================================== */
     function renderTraiteurView(openDays) {
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
@@ -3792,7 +3167,11 @@
         html += `<tr class="cat-row"><td colspan="${openDays.length + 1}">${escapeHtml(cat)}</td></tr>`;
         items.forEach(tr => {
           const priceBadge = hasPermission("viewCa") ? `<span class="price-badge tabular">${formatNum(tr.price, 2)} €</span>` : "";
-          const syncTag = tr.targetProductId ? `<span class="auto-badge">🔗 ${escapeHtml(tr.breadLabel)}</span>` : `<span class="weight-badge">${escapeHtml(tr.breadLabel)}</span>`;
+          const syncTag = tr.targetProductId
+            ? `<span class="auto-badge">🔗 ${escapeHtml(tr.breadLabel)}</span>`
+            : (tr.petrinId
+              ? `<span class="auto-badge" style="background:#fef3c7; color:#92400e;">🥣 Pétrie directe (${tr.petrinUnitWeight || 0}g)</span>`
+              : `<span class="weight-badge">${escapeHtml(tr.breadLabel)}</span>`);
           html += `<tr>
             <td class="sticky-col">
               <div style="font-weight:700; color:#111827;">${escapeHtml(tr.name)}${priceBadge}${syncTag}</div>
@@ -3826,7 +3205,7 @@
 
     function openAddTraiteurModal() {
       if (!hasPermission("adminManageCatalog")) return;
-      const breadOpts = state.catalog.filter(p => !p.formula && !p.isText).map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+      const breadOpts = state.catalog.filter(p => !p.formula && !p.isText).map(p => `<option value="${p.id}">${escapeHtml(p.name)} (${p.unitWeight || 0}g)</option>`).join("");
       openModal(`
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">+ Ajouter un produit à la Gamme Traiteur</h3>
         <div style="display:flex; flex-direction:column; gap:0.7rem;">
@@ -3837,15 +3216,43 @@
             </select>
           </div>
           <div><label style="font-size:0.75rem; font-weight:700;">Nom du produit</label><input id="new-tr-name" class="input" placeholder="Ex: Sandwich Montagnard" /></div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Support / Pain affiché</label><input id="new-tr-bread" class="input" placeholder="Ex: Miche Tradition 150g" /></div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Synchroniser automatiquement vers un pain (optionnel)</label>
-            <select id="new-tr-target" class="select"><option value="">-- Aucun pain lié --</option>${breadOpts}</select>
-          </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
-            <div><label style="font-size:0.75rem; font-weight:700;">Ratio pain (ex: 0.5 pour 1/2 baguette)</label><input id="new-tr-ratio" type="number" step="0.1" value="1" class="input" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Support / Pain affiché</label><input id="new-tr-bread" class="input" placeholder="Ex: Miche Tradition 150g" /></div>
             <div><label style="font-size:0.75rem; font-weight:700;">Prix de vente (€)</label><input id="new-tr-price" type="number" step="0.1" value="5.50" class="input" /></div>
           </div>
-          <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.5rem;">
+
+          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem;">
+            <div style="font-size:0.76rem; font-weight:900; color:#0f172a; margin-bottom:0.4rem;">🔗 Liaison Boulangerie (au choix : Pain existant OU Pétrie) :</div>
+            <select id="new-tr-link-mode" class="select" style="margin-bottom:0.55rem;" onchange="onTraiteurLinkModeChange(this.value)">
+              <option value="none">-- Aucune liaison fournil (ex: Salade) --</option>
+              <option value="bread" selected>🥖 Lier à un PAIN existant de la feuille de prévision</option>
+              <option value="petrin">🥣 Lier directement à une PÉTRIE (ajout direct au pétrin)</option>
+            </select>
+
+            <div id="new-tr-bread-box" style="display:flex; flex-direction:column; gap:0.45rem;">
+              <div>
+                <label style="font-size:0.73rem; font-weight:700;">Pain lié sur la feuille de prévision</label>
+                <select id="new-tr-target" class="select"><option value="">-- Choisir un pain --</option>${breadOpts}</select>
+              </div>
+              <div>
+                <label style="font-size:0.73rem; font-weight:700;">Nombre de pains par sandwich (ex: 0.5 si 2 sandwichs = 1 pain, ou 1)</label>
+                <input id="new-tr-ratio" type="number" step="0.05" value="1" class="input" />
+              </div>
+            </div>
+
+            <div id="new-tr-petrin-box" class="hidden" style="display:flex; flex-direction:column; gap:0.45rem;">
+              <div>
+                <label style="font-size:0.73rem; font-weight:700;">Pétrie de destination</label>
+                <select id="new-tr-petrin-id" class="select">${getPetrinOptionsHtml("petrin-tradition")}</select>
+              </div>
+              <div>
+                <label style="font-size:0.73rem; font-weight:700;">Poids de pâte du support pain par sandwich (en grammes)</label>
+                <input id="new-tr-petrin-weight" type="number" min="10" step="5" value="150" class="input" />
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.4rem;">
             <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
             <button type="button" class="btn btn-emerald" onclick="createTraiteurProduct()">Enregistrer</button>
           </div>
@@ -3853,27 +3260,55 @@
       `);
     }
 
+    function onTraiteurLinkModeChange(mode) {
+      const bBox = document.getElementById("new-tr-bread-box");
+      const pBox = document.getElementById("new-tr-petrin-box");
+      if (bBox) bBox.classList.toggle("hidden", mode !== "bread");
+      if (pBox) pBox.classList.toggle("hidden", mode !== "petrin");
+    }
+
     function createTraiteurProduct() {
       if (!hasPermission("adminManageCatalog")) return;
       const name = (document.getElementById("new-tr-name").value || "").trim();
       if (!name) return;
+      const linkMode = document.getElementById("new-tr-link-mode")?.value || "none";
+      const targetProductId = linkMode === "bread" ? (document.getElementById("new-tr-target").value || "") : "";
+      const ratio = linkMode === "bread" ? (Number(document.getElementById("new-tr-ratio").value) || 0) : 0;
+      const petrinId = linkMode === "petrin" ? (document.getElementById("new-tr-petrin-id").value || "") : "";
+      const petrinUnitWeight = linkMode === "petrin" ? (Number(document.getElementById("new-tr-petrin-weight").value) || 150) : 0;
+
       const newObj = {
         id: "tr-custom-" + Date.now(),
         category: document.getElementById("new-tr-cat").value,
         name,
-        breadLabel: document.getElementById("new-tr-bread").value || "Standard",
-        targetProductId: document.getElementById("new-tr-target").value || "",
-        ratio: Number(document.getElementById("new-tr-ratio").value) || 0,
+        breadLabel: document.getElementById("new-tr-bread").value || (petrinId ? "Lié pétrie" : "Standard"),
+        targetProductId,
+        ratio,
+        petrinId,
+        petrinUnitWeight,
         price: Number(document.getElementById("new-tr-price").value) || 0,
         quantities: [0,0,0,0,0,0,0]
       };
       DEFAULT_TRAITEUR.push(newObj);
+      BOUTIQUES.forEach(b => {
+        const st = readBoutiqueStoreReadOnly(b.name);
+        Object.values(st.weeks || {}).forEach(wk => {
+          if (Array.isArray(wk.traiteur) && !wk.traiteur.some(t => t.id === newObj.id)) {
+            wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
+          }
+        });
+        safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
+      });
       const wk = getCurrentWeekData();
-      wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
+      if (!wk.traiteur.some(t => t.id === newObj.id)) {
+        wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
+      }
+      syncTraiteurToForecast(wk);
+      recordNetworkActivity("catalog", state.selectedBoutique, `Nouveau produit Traiteur ajouté : ${name}${petrinId ? " (lié à " + petrinId + ")" : (targetProductId ? " (lié à " + targetProductId + ")" : "")}`);
       saveCurrentBoutiqueData(true);
       closeModal();
       renderTraiteurView();
-      showToast("Produit Traiteur ajouté.");
+      showToast("Produit Traiteur ajouté et raccordé.");
     }
 
     /* ==========================================================================
@@ -3937,7 +3372,7 @@
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">+ Ajouter une Pâtisserie</h3>
         <div style="display:flex; flex-direction:column; gap:0.7rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
-            <select id="new-pat-cat" class="select"><option>Entremets &amp; Tartes</option><option>Choux &amp; Classiques</option><option>Gâteaux de Voyage</option></select>
+            <select id="new-pat-cat" class="select"><option>Flans &amp; Crèmes</option><option>Éclairs, Choux &amp; Millefeuilles</option><option>Tartelettes Individuelles</option><option>Entremets &amp; Pâtisseries Individuelles</option><option>Voyage, Crumbles &amp; Desserts</option><option>Grands Formats (4 / 6 / 8 pers)</option><option>Grandes Tartes &amp; Flans Entiers</option></select>
           </div>
           <div><label style="font-size:0.75rem; font-weight:700;">Nom</label><input id="new-pat-name" class="input" placeholder="Ex: Tartelette Framboises" /></div>
           <div><label style="font-size:0.75rem; font-weight:700;">Prix (€)</label><input id="new-pat-price" type="number" step="0.1" value="4.20" class="input" /></div>
@@ -3959,6 +3394,7 @@
         name,
         price: Number(document.getElementById("new-pat-price").value) || 0
       });
+      recordNetworkActivity("catalog", "Réseau", `Nouvelle pâtisserie ajoutée : "${name}"`);
       saveGlobalConfig();
       closeModal();
       renderPatisserieView();
@@ -3966,7 +3402,7 @@
     }
 
     /* ==========================================================================
-       17. ONGLET 5 : FICHES TECHNIQUES (OUTILS D'ÉDITION & TEMPÉRATURE DE BASE)
+       17. ONGLET 5 : FICHES TECHNIQUES
        ========================================================================== */
     function selectTechSheetFolder(folder) {
       state.selectedTechSheetFolder = folder;
@@ -4257,6 +3693,7 @@
           const sheet = state.techSheets.find(s => s.id === sheetId);
           if (sheet) {
             sheet.photoUrl = compressedUrl;
+            recordNetworkActivity("techsheet", "Réseau", `Photo ajoutée sur la fiche "${sheet.title}"`);
             saveGlobalConfig();
             renderTechSheetsView();
             showToast("Photo du produit enregistrée !");
@@ -4299,6 +3736,7 @@
         state.techSheets.unshift(obj);
       }
       state.selectedTechSheetId = obj.id;
+      recordNetworkActivity("techsheet", "Réseau", `${existingId ? "Fiche technique modifiée" : "Nouvelle fiche technique"} : "${title}"`);
       saveGlobalConfig();
       closeModal();
       renderTechSheetsView();
@@ -4307,15 +3745,17 @@
 
     function deleteTechSheet(id) {
       if (!hasPermission("editTechSheets")) return;
+      const target = state.techSheets.find(s => s.id === id);
       state.techSheets = state.techSheets.filter(s => s.id !== id);
       state.selectedTechSheetId = null;
+      recordNetworkActivity("techsheet", "Réseau", `Fiche technique supprimée : "${target ? target.title : id}"`);
       saveGlobalConfig();
       renderTechSheetsView();
       showToast("Fiche technique supprimée.");
     }
 
     /* ==========================================================================
-       18. ONGLET 6 : ADMINISTRATION RÉSEAU (9 BOUTIQUES, DROITS, TARIFS, DRAG & DROP, GÉNÉRATEUR HTML)
+       18. ONGLET 6 : ADMINISTRATION RÉSEAU
        ========================================================================== */
     function renderAdminView() {
       if (!hasAdminTabAccess()) return;
@@ -4385,27 +3825,29 @@
         </div>
         ` : ""}
 
-        <!-- 1bis. Journal en temps réel des modifications & changements de mot de passe des magasins -->
+        <!-- 1bis. Journal en direct multi-PC de tous les changements effectués sur le site -->
         <div class="card" style="margin-top:1rem; border-color:#bfdbfe; background:#eff6ff;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.55rem;">
             <div>
-              <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Temps Réel — Modifications des Magasins &amp; Mots de Passe</h3>
-              <p style="font-size:0.75rem; color:#1d4ed8;">Mise à jour instantanée dès qu'une boutique change son mot de passe ou modifie ses prévisions, le Traiteur, la Pâtisserie ou son CA réalisé.</p>
+              <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Direct Multi-PC — Tous les Changements Réseau</h3>
+              <p style="font-size:0.75rem; color:#1d4ed8;">Mise à jour instantanée dès que quiconque (sur n'importe quel PC) se connecte, change son mot de passe, modifie une prévision, le Traiteur, la Pâtisserie, un tarif, une fiche ou imprime.</p>
             </div>
             <span style="font-size:0.72rem; font-weight:800; background:#dbeafe; color:#1e40af; padding:3px 9px; border-radius:999px;">
-              ${state.activityLog.length} événement(s) récent(s)
+              ${state.activityLog.length} événement(s) en direct
             </span>
           </div>
-          <div style="max-height:230px; overflow-y:auto; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:0.45rem 0.65rem;">
+          <div style="max-height:240px; overflow-y:auto; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:0.45rem 0.65rem;">
             ${state.activityLog.length === 0 ? `
-              <div style="font-size:0.78rem; color:#64748b; padding:0.5rem;">Aucune modification enregistrée pour le moment. Toutes les actions des magasins apparaîtront ici instantanément.</div>
-            ` : state.activityLog.slice(0, 40).map(ev => {
+              <div style="font-size:0.78rem; color:#64748b; padding:0.5rem;">Aucune modification enregistrée pour le moment. Toutes les actions effectuées apparaîtront ici instantanément.</div>
+            ` : state.activityLog.slice(0, 50).map(ev => {
               const dt = ev.timestamp ? new Date(ev.timestamp) : new Date();
               const timeStr = dt.toLocaleDateString("fr-FR") + " " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
               const badgeStyle = ev.type === "password"
                 ? "background:#fef3c7; color:#92400e; border:1px solid #f59e0b;"
-                : "background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;";
-              const icon = ev.type === "password" ? "🔑" : (ev.type === "ca" ? "💶" : "📝");
+                : (ev.type === "print"
+                  ? "background:#e0e7ff; color:#3730a3; border:1px solid #818cf8;"
+                  : "background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;");
+              const icon = ev.type === "password" ? "🔑" : (ev.type === "ca" ? "💶" : (ev.type === "print" ? "🖨️" : (ev.type === "login" ? "🟢" : "📝")));
               return `
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.4rem; padding:0.36rem 0.25rem; border-bottom:1px solid #f1f5f9; font-size:0.77rem;">
                   <div>
@@ -4420,7 +3862,7 @@
           </div>
         </div>
 
-        <!-- 2. Jours d'ouverture par boutique (hebdomadaires & dates exceptionnelles) -->
+        <!-- 2. Jours d'ouverture par boutique -->
         ${canSchedules ? `
         <div class="card" style="margin-top:1rem;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">🗓️ Jours d'Ouverture par Boutique (9 Magasins)</h3>
@@ -4461,7 +3903,7 @@
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.65rem;">
             <div>
               <h3 style="font-size:1rem; font-weight:900; color:#111827;">📦 Gestion de la Gamme Boulangerie / Viennoiserie &amp; Ordre</h3>
-              <p style="font-size:0.75rem; color:#4b5563;">Ajoutez, mettez en dormance ou réordonnez les produits visibles sur les feuilles de prévision.</p>
+              <p style="font-size:0.75rem; color:#4b5563;">Ajoutez un pain, brioche ou viennoiserie (avec liaison directe à une pétrie), mettez en dormance ou réordonnez la feuille.</p>
             </div>
             <div style="display:flex; gap:0.4rem;">
               <button type="button" class="btn btn-white btn-sm" onclick="openImportForecastProductsModal()">📥 Importer Excel</button>
@@ -4507,6 +3949,7 @@
                 <span style="color:#94a3b8; font-weight:900; font-size:0.95rem; user-select:none;">⋮⋮</span>
                 <div>
                   <strong>${escapeHtml(p.name)}</strong> <span style="color:#64748b;">(${escapeHtml(p.category)})</span>
+                  ${p.petrinId ? `<span class="support-badge">🥣 ${escapeHtml(p.petrinId)}</span>` : ""}
                   ${p.dormant ? `<span class="dormant-badge">💤 Dormance</span>` : ""}
                 </div>
               </div>
@@ -4536,7 +3979,7 @@
     }
 
     window.__getCurrentActorName = function () {
-      return state.currentUser ? state.currentUser.label : state.selectedBoutique;
+      return state.currentUser ? `${state.currentUser.label} (${PC_DEVICE_ID})` : `${state.selectedBoutique} (${PC_DEVICE_ID})`;
     };
 
     window.__applyRemoteGlobalConfig = function (data) {
@@ -4612,10 +4055,10 @@
       try {
         const prevTopId = state.activityLog[0]?.id;
         logs.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
-        state.activityLog = logs.slice(0, 150);
+        state.activityLog = logs.slice(0, 200);
         safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
         const newest = state.activityLog[0];
-        if (newest && newest.id !== prevTopId && isEffectiveAdmin() && state.currentUser && newest.actor !== state.currentUser.label) {
+        if (newest && newest.id !== prevTopId && state.currentUser && newest.pcId !== PC_DEVICE_ID) {
           showToast(`📡 ${newest.boutique} : ${newest.summary}`);
           if (state.activeTab === "admin") renderAdminView();
         }
@@ -4692,6 +4135,7 @@
       const p = state.catalog.find(x => x.id === productId);
       if (!p) return;
       p.dormant = !p.dormant;
+      recordNetworkActivity("catalog", "Réseau", `${p.name} : ${p.dormant ? "mis en dormance" : "réactivé"}`);
       saveGlobalConfig();
       renderAdminView();
       showToast(`${p.name} : ${p.dormant ? "mis en dormance" : "réactivé"}.`);
@@ -4699,7 +4143,9 @@
 
     function deleteCatalogProduct(productId) {
       if (!hasPermission("adminManageCatalog")) return;
+      const target = state.catalog.find(x => x.id === productId);
       state.catalog = state.catalog.filter(x => x.id !== productId);
+      recordNetworkActivity("catalog", "Réseau", `Produit supprimé du catalogue : ${target ? target.name : productId}`);
       saveGlobalConfig();
       renderAdminView();
       showToast("Produit supprimé du catalogue.");
@@ -4711,12 +4157,21 @@
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.8rem;">+ Nouveau Produit Boulangerie / Viennoiserie</h3>
         <div style="display:flex; flex-direction:column; gap:0.65rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
-            <select id="np-cat" class="select"><option>Pains</option><option>Brioche</option><option>Viennoiserie</option></select>
+            <select id="np-cat" class="select" onchange="onNewCatalogCategoryChange(this.value)">
+              <option value="Pains">Pains</option>
+              <option value="Brioche">Brioche</option>
+              <option value="Viennoiserie">Viennoiserie</option>
+            </select>
           </div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Nom</label><input id="np-name" class="input" /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">Nom du produit</label><input id="np-name" class="input" placeholder="Ex: Baguette Sésame / Brioche Feuilletée..." /></div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
-            <div><label style="font-size:0.75rem; font-weight:700;">Poids unitaire (g)</label><input id="np-weight" type="number" value="350" class="input" /></div>
+            <div><label style="font-size:0.75rem; font-weight:700;">Poids de pâte unitaire (g)</label><input id="np-weight" type="number" value="350" class="input" /></div>
             <div><label style="font-size:0.75rem; font-weight:700;">Prix de vente (€)</label><input id="np-price" type="number" step="0.05" value="2.50" class="input" /></div>
+          </div>
+          <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:9px; padding:0.6rem 0.7rem;">
+            <label style="font-size:0.75rem; font-weight:800; color:#92400e; display:block; margin-bottom:0.3rem;">🥣 Lier à une Pétrie (pour calcul automatique du pétrin) :</label>
+            <select id="np-petrin-id" class="select">${getPetrinOptionsHtml("petrin-tradition")}</select>
+            <small style="display:block; font-size:0.69rem; color:#78350f; margin-top:3px;">Si vous choisissez une pétrie, le poids de pâte et les ingrédients s'ajouteront automatiquement au pétrin sélectionné.</small>
           </div>
           <label style="font-size:0.78rem; font-weight:700;"><input id="np-support" type="checkbox" /> Pain fabriqué uniquement pour les sandwichs (prix = 0 €)</label>
           <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
@@ -4727,26 +4182,37 @@
       `);
     }
 
+    function onNewCatalogCategoryChange(cat) {
+      const sel = document.getElementById("np-petrin-id");
+      if (!sel) return;
+      if (cat === "Brioche") sel.value = "petrin-brioche";
+      else if (cat === "Viennoiserie") sel.value = "";
+      else sel.value = "petrin-tradition";
+    }
+
     function createCatalogProduct() {
       if (!hasPermission("adminManageCatalog")) return;
       const name = (document.getElementById("np-name").value || "").trim();
       if (!name) return;
       const isSupp = document.getElementById("np-support").checked;
+      const petrinId = document.getElementById("np-petrin-id")?.value || "";
       state.catalog.push({
         id: "prod-" + slugify(name) + "-" + Date.now(),
         category: document.getElementById("np-cat").value,
         name,
         unitWeight: Number(document.getElementById("np-weight").value) || 0,
         price: isSupp ? 0 : (Number(document.getElementById("np-price").value) || 0),
-        isTraiteurSupport: isSupp
+        isTraiteurSupport: isSupp,
+        petrinId
       });
+      recordNetworkActivity("catalog", "Réseau", `Nouveau produit ajouté au catalogue : "${name}"${petrinId ? " (lié à " + petrinId + ")" : ""}`);
       saveGlobalConfig();
       closeModal();
       renderAdminView();
-      showToast("Produit ajouté.");
+      showToast("Produit ajouté et raccordé à sa pétrie.");
     }
 
-    /* Modale Tarifs (Admin exclusif) */
+    /* Modale Tarifs */
     function openPricesManagerModal() {
       if (!hasPermission("adminManagePricesCa")) return;
       const wk = getCurrentWeekData();
@@ -4785,7 +4251,11 @@
 
     function updateCatalogPrice(id, val) {
       const p = state.catalog.find(x => x.id === id);
-      if (p) { p.price = Math.max(0, Number(val) || 0); saveGlobalConfig(); }
+      if (p) {
+        p.price = Math.max(0, Number(val) || 0);
+        recordNetworkActivity("ca", "Réseau", `Tarif modifié : ${p.name} → ${formatNum(p.price, 2)} €`);
+        saveGlobalConfig();
+      }
     }
     function updateTraiteurPrice(id, val) {
       const price = Math.max(0, Number(val) || 0);
@@ -4799,14 +4269,19 @@
         });
         safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
       });
+      recordNetworkActivity("ca", "Réseau", `Tarif Traiteur modifié : ${def ? def.name : id} → ${formatNum(price, 2)} €`);
       loadBoutiqueStore(state.selectedBoutique);
     }
     function updatePatisseriePrice(id, val) {
       const p = state.patisserieCatalog.find(x => x.id === id);
-      if (p) { p.price = Math.max(0, Number(val) || 0); saveGlobalConfig(); }
+      if (p) {
+        p.price = Math.max(0, Number(val) || 0);
+        recordNetworkActivity("ca", "Réseau", `Tarif Pâtisserie modifié : ${p.name} → ${formatNum(p.price, 2)} €`);
+        saveGlobalConfig();
+      }
     }
 
-    /* Modale Admin : Saisie & Import Excel/SharePoint CA Objectif & CA Réalisé par boutique */
+    /* Modale Admin : CA Objectif & CA Réalisé */
     function openAdminCaObjectivesModal() {
       if (!hasPermission("adminManagePricesCa")) return;
       const isoMonday = state.selectedWeekMonday;
@@ -4845,14 +4320,13 @@
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.35rem;">🎯 CA Objectif &amp; CA Réalisé par Boutique — Semaine ${wkNum} (${formatShortFrDate(isoMonday)})</h3>
         <p style="font-size:0.76rem; color:#4b5563; margin-bottom:0.65rem;">
           Ligne du haut (bordure orange) = <strong>CA Objectif (€)</strong> • Ligne du bas (bordure verte) = <strong>CA Réalisé (€)</strong>.
-          <br/>Code couleur automatique sur la Feuille de Prévision : <strong style="color:#b91c1c;">Rouge</strong> si CA prévisionnel &lt; CA objectif • <strong style="color:#c2410c;">Orange</strong> si CA prévisionnel &gt; +8 % • <strong style="color:#065f46;">Vert</strong> entre 100 % et +8 %.
         </p>
 
         <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.6rem 0.75rem; margin-bottom:0.75rem;">
           <div style="font-size:0.76rem; font-weight:800; color:#1e293b; margin-bottom:0.3rem;">📋 Import rapide par copier-coller depuis Excel / SharePoint :</div>
-          <textarea id="paste-ca-sharepoint" class="input" rows="3" style="font-size:0.75rem;" placeholder="Collez ici les lignes copiées depuis votre fichier Excel (ex: Boutique [Tab] CA Objectif [Tab] CA Réalisé, soit pour le jour sélectionné soit les 7 jours)..."></textarea>
+          <textarea id="paste-ca-sharepoint" class="input" rows="3" style="font-size:0.75rem;" placeholder="Collez ici les lignes copiées depuis votre fichier Excel (ex: Boutique [Tab] CA Objectif [Tab] CA Réalisé)..."></textarea>
           <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.5rem; margin-top:0.4rem;">
-            <span style="font-size:0.71rem; color:#64748b;">Format accepté : <code>Boutique ; CA Objectif ; CA Réalisé</code> (appliqué à ${DAY_NAMES[state.selectedDayIdx]}) ou 7 colonnes par semaine.</span>
+            <span style="font-size:0.71rem; color:#64748b;">Format : <code>Boutique ; CA Objectif ; CA Réalisé</code></span>
             <button type="button" class="btn btn-amber btn-sm" onclick="importPastedCaFromExcel()">📥 Appliquer les chiffres collés</button>
           </div>
         </div>
@@ -4895,6 +4369,9 @@
       if (!Array.isArray(wk.caRealise) || wk.caRealise.length !== 7) wk.caRealise = [0,0,0,0,0,0,0];
       wk[field][dayIdx] = Math.max(0, Number(val) || 0);
       safeSetItem(boutiqueStorageKey(boutiqueName), JSON.stringify(st));
+      if (window.__julesCloud && window.__julesCloud.pushBoutique) {
+        window.__julesCloud.pushBoutique(boutiqueName, st);
+      }
       if (boutiqueName === state.selectedBoutique) {
         loadBoutiqueStore(boutiqueName);
       }
@@ -4944,7 +4421,7 @@
         openAdminCaObjectivesModal();
         showToast(`${updatedCount} boutique(s) mise(s) à jour depuis votre copier-coller !`);
       } else {
-        showToast("Aucune boutique reconnue. Vérifiez que le nom du magasin est en 1ère colonne.");
+        showToast("Aucune boutique reconnue.");
       }
     }
 
@@ -5021,6 +4498,7 @@
           if (k.startsWith("admin")) u.permissions[k] = false;
         });
       }
+      recordNetworkActivity("users", "Réseau", `Rôle modifié pour ${u.label} → ${u.role}`);
       saveGlobalConfig();
       openUserPermissionsModal(userId);
     }
@@ -5031,9 +4509,11 @@
       if (!u || isSuperAdminUser(u)) return;
       if (preset === "all_admin") {
         u.role = "admin";
+        u.boutique = "ALL";
         u.permissions = { ...ADMIN_PERMISSIONS };
       } else if (preset === "prod_manager") {
         u.role = "admin";
+        u.boutique = "ALL";
         u.permissions = {
           ...ADMIN_PERMISSIONS,
           adminManageUsers: false,
@@ -5054,6 +4534,7 @@
       u.permissions[permKey] = checked;
       if (permKey.startsWith("admin") && checked) {
         u.role = "admin";
+        u.boutique = "ALL";
       }
       saveGlobalConfig();
     }
@@ -5065,6 +4546,7 @@
       u.password = "Jules2026!";
       u.mustChangePassword = true;
       u.passwordChangedAt = null;
+      recordNetworkActivity("password", u.boutique === "ALL" ? "Réseau" : u.boutique, `Réinitialisation mot de passe pour ${u.label}`);
       saveGlobalConfig();
       renderAdminView();
       showToast(`Mot de passe réinitialisé à Jules2026! pour ${u.label}.`);
@@ -5075,6 +4557,7 @@
       const u = state.users.find(x => x.id === userId);
       if (!u || isSuperAdminUser(u) || !u.id.startsWith("usr-custom-")) return;
       state.users = state.users.filter(x => x.id !== userId);
+      recordNetworkActivity("users", "Réseau", `Compte supprimé : ${u.label}`);
       saveGlobalConfig();
       renderAdminView();
       showToast(`Compte "${u.label}" supprimé.`);
@@ -5172,6 +4655,7 @@
         passwordChangedAt: null,
         permissions: perms
       });
+      recordNetworkActivity("users", "Réseau", `Nouvel accès créé : ${label} (${role === "admin" ? "Admin 9 boutiques" : "Boutique"})`);
       saveGlobalConfig();
       closeModal();
       renderAdminView();
@@ -5222,6 +4706,7 @@
       const set = new Set(sc.weeklyDays || []);
       if (checked) set.add(dayIdx); else set.delete(dayIdx);
       sc.weeklyDays = [...set].sort();
+      recordNetworkActivity("schedule", bName, `Jours d'ouverture modifiés pour ${bName}`);
       saveGlobalConfig();
     }
 
@@ -5350,12 +4835,8 @@
       showToast("Fichier index.html généré et téléchargé (données 10 ans préservées) !");
     }
 
-    function scheduleCloudPush() {
-      // Point d'extension synchronisation cloud silencieuse
-    }
-
     /* ==========================================================================
-       20. IMPRESSION & GÉNÉRATION PDF (PÉTRIES, TRAITEUR, PÂTISSERIE SÉPARÉS OU ENSEMBLE)
+       20. IMPRESSION & GÉNÉRATION PDF (3 FEUILLES A4 MAX POUR PÉTRIES)
        ========================================================================== */
     function openPrintPdfModal() {
       const dayName = DAY_NAMES[state.selectedDayIdx] || "Jour";
@@ -5415,7 +4896,6 @@
       const wkNum = getIsoWeekNumber(state.selectedWeekMonday);
       const sections = [];
 
-      // 1. SECTION PÉTRIES & VIENNOISERIE (MISE EN PAGE OPTIMISÉE SUR 2 PAGES A4)
       if (includePetries) {
         const prevHide = state.hideZeroPetries;
         state.hideZeroPetries = hideZeros;
@@ -5425,7 +4905,6 @@
         state.hideZeroPetries = prevHide;
         if (state.activeTab === "petries") renderPetriesView();
 
-        // Supprimer la case à cocher interactive et récupérer la grille de pétrins pour la répartir sur 2 A4
         const headerCard = tmpWrapper.querySelector(".card");
         if (headerCard) {
           const toggleLabel = headerCard.querySelector("label");
@@ -5494,7 +4973,6 @@
         `);
       }
 
-      // 2. SECTION TRAITEUR
       if (includeTraiteur) {
         const trRows = (wk.traiteur || [])
           .filter(t => !t.dormant)
@@ -5538,7 +5016,6 @@
         `);
       }
 
-      // 3. SECTION PÂTISSERIE
       if (includePatisserie) {
         const patRows = state.patisserieCatalog
           .filter(p => !p.dormant)
@@ -5579,9 +5056,7 @@
         `);
       }
 
-      if (sections.length === 0) {
-        return null;
-      }
+      if (sections.length === 0) return null;
 
       return `
         <div style="border-bottom:2px solid #111827; padding-bottom:0.6rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
@@ -5603,15 +5078,16 @@
         showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
         return;
       }
+      const dayName = DAY_NAMES[state.selectedDayIdx] || "Jour";
+      const dateStr = formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx));
+      recordNetworkActivity("print", state.selectedBoutique, `Impression / PDF lancé pour ${dayName} ${dateStr}`);
       closeModal();
 
-      // Injection dans la feuille d'impression intégrée (fonctionne même si les popups sont bloquées)
       const dedicatedEl = document.getElementById("dedicated-print-sheet");
       if (dedicatedEl) {
         dedicatedEl.innerHTML = bodyHtml;
       }
 
-      // Tentative d'ouverture dans un onglet d'impression propre avec bouton "Enregistrer en PDF"
       let printWin = null;
       try {
         printWin = window.open("", "_blank", "width=1024,height=800");
@@ -5646,7 +5122,6 @@
 </html>`);
         printWin.document.close();
       } else {
-        // Fallback direct sur la page courante si les popups sont bloquées par le navigateur/iframe
         document.body.classList.add("print-bundle-mode");
         setTimeout(() => {
           try {
@@ -5687,7 +5162,7 @@
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      showToast("Fiche téléchargée (ouvrez-la dans votre navigateur pour imprimer ou sauver en PDF).");
+      showToast("Fiche téléchargée.");
     }
 
     function openHistoryModal() {
