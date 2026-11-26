@@ -720,14 +720,17 @@
       appId: typeof __app_id !== "undefined" ? __app_id : "chez-jules-reseau-2026",
       pushGlobal: null,
       pushBoutique: null,
-      pushActivity: null
+      pushActivity: null,
+      pendingGlobal: null,
+      pendingBoutiques: {},
+      pendingActivities: []
     };
 
     async function initRealtimeCloud() {
       const badge = document.getElementById("realtime-sync-badge");
       try {
         if (typeof __firebase_config === "undefined" || !__firebase_config) {
-          if (badge) badge.textContent = "🟢 EN DIRECT • Multi-PC";
+          if (badge) badge.textContent = "🟢 EN DIRECT • Multi-PC (Local)";
           return;
         }
         const firebaseConfig = typeof __firebase_config === "string" ? JSON.parse(__firebase_config) : __firebase_config;
@@ -745,14 +748,6 @@
         if (!auth.currentUser) return;
         window.__julesCloud.db = db;
         window.__julesCloud.auth = auth;
-        window.__julesCloud.ready = true;
-
-        if (badge) {
-          badge.style.background = "#064e3b";
-          badge.style.color = "#a7f3d0";
-          badge.style.borderColor = "#10b981";
-          badge.textContent = "🟢 EN DIRECT • Réseau Multi-PC";
-        }
 
         const globalDocRef = doc(db, "artifacts", appId, "public", "data", "jules_network_state", "global_config");
         const boutiquesColRef = collection(db, "artifacts", appId, "public", "data", "jules_boutiques_live");
@@ -766,7 +761,9 @@
               updatedAt: new Date().toISOString(),
               updatedBy: window.__getCurrentActorName ? window.__getCurrentActorName() : "Réseau"
             });
-          } catch (err) {}
+          } catch (err) {
+            console.error("Sync global error:", err);
+          }
         };
 
         window.__julesCloud.pushBoutique = async (boutiqueName, storeObj) => {
@@ -779,7 +776,9 @@
               updatedAt: new Date().toISOString(),
               updatedBy: window.__getCurrentActorName ? window.__getCurrentActorName() : boutiqueName
             });
-          } catch (err) {}
+          } catch (err) {
+            console.error("Sync boutique error:", err);
+          }
         };
 
         window.__julesCloud.pushActivity = async (entry) => {
@@ -787,11 +786,50 @@
           try {
             const actDocRef = doc(db, "artifacts", appId, "public", "data", "jules_activity_log", entry.id);
             await setDoc(actDocRef, entry);
-          } catch (err) {}
+          } catch (err) {
+            console.error("Sync activity error:", err);
+          }
         };
 
+        window.__julesCloud.ready = true;
+
+        if (badge) {
+          badge.style.background = "#064e3b";
+          badge.style.color = "#a7f3d0";
+          badge.style.borderColor = "#10b981";
+          badge.textContent = "🟢 EN DIRECT • Cloud Multi-PC Actif";
+        }
+
+        // Vider la file d'attente des modifications faites avant la fin de la connexion Cloud
+        if (window.__julesCloud.pendingGlobal) {
+          const pg = window.__julesCloud.pendingGlobal;
+          window.__julesCloud.pendingGlobal = null;
+          await window.__julesCloud.pushGlobal(pg);
+        }
+        const pendingBKeys = Object.keys(window.__julesCloud.pendingBoutiques);
+        for (const bKey of pendingBKeys) {
+          const stObj = window.__julesCloud.pendingBoutiques[bKey];
+          delete window.__julesCloud.pendingBoutiques[bKey];
+          await window.__julesCloud.pushBoutique(bKey, stObj);
+        }
+        if (window.__julesCloud.pendingActivities.length > 0) {
+          const acts = [...window.__julesCloud.pendingActivities];
+          window.__julesCloud.pendingActivities = [];
+          for (const act of acts) {
+            await window.__julesCloud.pushActivity(act);
+          }
+        }
+
+        let initialGlobalChecked = false;
         onSnapshot(globalDocRef, (snap) => {
-          if (!snap.exists()) return;
+          if (!snap.exists()) {
+            if (!initialGlobalChecked && window.__seedInitialGlobalCloud) {
+              initialGlobalChecked = true;
+              window.__seedInitialGlobalCloud();
+            }
+            return;
+          }
+          initialGlobalChecked = true;
           const data = snap.data();
           if (window.__applyRemoteGlobalConfig) {
             window.__applyRemoteGlobalConfig(data);
@@ -1754,8 +1792,12 @@
       state.activityLog.unshift(entry);
       if (state.activityLog.length > 200) state.activityLog = state.activityLog.slice(0, 200);
       safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
-      if (!_isApplyingRemote && window.__julesCloud && window.__julesCloud.pushActivity) {
-        window.__julesCloud.pushActivity(entry);
+      if (!_isApplyingRemote && window.__julesCloud) {
+        if (window.__julesCloud.ready && window.__julesCloud.pushActivity) {
+          window.__julesCloud.pushActivity(entry);
+        } else {
+          window.__julesCloud.pendingActivities.push(entry);
+        }
       }
     }
 
@@ -1772,14 +1814,66 @@
         migratedAt: new Date().toISOString()
       }));
       runFullAutoBackup(true);
-      if (!skipCloudPush && !_isApplyingRemote && window.__julesCloud && window.__julesCloud.pushGlobal) {
-        window.__julesCloud.pushGlobal({
+      if (!skipCloudPush && !_isApplyingRemote && window.__julesCloud) {
+        const payload = {
           usersJson: JSON.stringify(state.users),
           catalogJson: JSON.stringify(state.catalog),
           patisserieCatalogJson: JSON.stringify(state.patisserieCatalog),
           schedulesJson: JSON.stringify(state.schedules),
           techSheetsJson: JSON.stringify(state.techSheets)
-        });
+        };
+        if (window.__julesCloud.ready && window.__julesCloud.pushGlobal) {
+          window.__julesCloud.pushGlobal(payload);
+        } else {
+          window.__julesCloud.pendingGlobal = payload;
+        }
+      }
+    }
+
+    function migrateAndPersistAllData() {
+      loadGlobalConfig();
+      BOUTIQUES.forEach(b => {
+        const key = boutiqueStorageKey(b.name);
+        if (!safeGetItem(key)) {
+          const initialWeeks = {};
+          const tbbShop = INITIAL_TBB_2026_DATA[b.name] || {};
+          Object.entries(tbbShop).forEach(([mondayIso, obj]) => {
+            initialWeeks[mondayIso] = {
+              quantities: {},
+              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
+              patisserie: {},
+              caObjectif: [...(obj.caObjectif || [0,0,0,0,0,0,0])],
+              caRealise: [...(obj.caRealise || [0,0,0,0,0,0,0])],
+              autoSyncTraiteur: true
+            };
+          });
+          safeSetItem(key, JSON.stringify({ boutique: b.name, weeks: initialWeeks }));
+        }
+      });
+      saveGlobalConfig(true);
+    }
+
+    function readBoutiqueStoreReadOnly(boutiqueName) {
+      try {
+        const raw = safeGetItem(boutiqueStorageKey(boutiqueName));
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && typeof parsed === "object" && parsed.weeks) return parsed;
+      } catch (e) {}
+      return { boutique: boutiqueName, weeks: {} };
+    }
+
+    function loadBoutiqueStore(boutiqueName) {
+      state.storeData = readBoutiqueStoreReadOnly(boutiqueName);
+      if (!state.storeData.weeks) state.storeData.weeks = {};
+    }
+
+    function saveCurrentBoutiqueData(triggerBackup = true) {
+      if (!state.selectedBoutique || !state.storeData) return;
+      state.storeData.boutique = state.selectedBoutique;
+      safeSetItem(boutiqueStorageKey(state.selectedBoutique), JSON.stringify(state.storeData));
+      if (triggerBackup) {
+        runFullAutoBackup(true);
+        scheduleCloudPush();
       }
     }
 
@@ -1800,12 +1894,6 @@
       if (!wk.quantities) wk.quantities = {};
       if (!Array.isArray(wk.traiteur) || wk.traiteur.length === 0) {
         wk.traiteur = JSON.parse(JSON.stringify(DEFAULT_TRAITEUR));
-      } else {
-        DEFAULT_TRAITEUR.forEach(defTr => {
-          if (!wk.traiteur.some(t => t.id === defTr.id)) {
-            wk.traiteur.push(JSON.parse(JSON.stringify(defTr)));
-          }
-        });
       }
       if (!wk.patisserie) wk.patisserie = {};
       if (!Array.isArray(wk.caObjectif) || wk.caObjectif.length !== 7) {
@@ -1900,8 +1988,8 @@
         return;
       }
 
+      recordNetworkActivity("login", found.boutique === "ALL" ? "Réseau" : found.boutique, `Connexion de ${found.label}`);
       safeSetItem(STORAGE_KEYS.session, JSON.stringify({ userId: found.id }));
-      recordNetworkActivity("login", found.boutique === "ALL" ? "Réseau" : found.boutique, `Connexion sur ${PC_DEVICE_ID} (${found.label})`);
       enterAuthenticatedApp();
     }
 
@@ -1933,54 +2021,7 @@
       safeSetItem(STORAGE_KEYS.session, JSON.stringify({ userId: state.currentUser.id }));
       document.getElementById("force-pwd-screen").classList.add("hidden");
       enterAuthenticatedApp();
-      showToast("Mot de passe enregistré et transmis en temps réel aux administrateurs !");
-    }
-
-    function migrateAndPersistAllData() {
-      loadGlobalConfig();
-      BOUTIQUES.forEach(b => {
-        const key = boutiqueStorageKey(b.name);
-        if (!safeGetItem(key)) {
-          const initialWeeks = {};
-          const tbbShop = INITIAL_TBB_2026_DATA[b.name] || {};
-          Object.entries(tbbShop).forEach(([mondayIso, obj]) => {
-            initialWeeks[mondayIso] = {
-              quantities: {},
-              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
-              patisserie: {},
-              caObjectif: [...(obj.caObjectif || [0,0,0,0,0,0,0])],
-              caRealise: [...(obj.caRealise || [0,0,0,0,0,0,0])],
-              autoSyncTraiteur: true
-            };
-          });
-          safeSetItem(key, JSON.stringify({ boutique: b.name, weeks: initialWeeks }));
-        }
-      });
-      saveGlobalConfig(true);
-    }
-
-    function readBoutiqueStoreReadOnly(boutiqueName) {
-      try {
-        const raw = safeGetItem(boutiqueStorageKey(boutiqueName));
-        const parsed = raw ? JSON.parse(raw) : null;
-        if (parsed && typeof parsed === "object" && parsed.weeks) return parsed;
-      } catch (e) {}
-      return { boutique: boutiqueName, weeks: {} };
-    }
-
-    function loadBoutiqueStore(boutiqueName) {
-      state.storeData = readBoutiqueStoreReadOnly(boutiqueName);
-      if (!state.storeData.weeks) state.storeData.weeks = {};
-    }
-
-    function saveCurrentBoutiqueData(triggerBackup = true) {
-      if (!state.selectedBoutique || !state.storeData) return;
-      state.storeData.boutique = state.selectedBoutique;
-      safeSetItem(boutiqueStorageKey(state.selectedBoutique), JSON.stringify(state.storeData));
-      if (triggerBackup) {
-        runFullAutoBackup(true);
-        scheduleCloudPush();
-      }
+      showToast("Mot de passe enregistré et transmis en temps réel !");
     }
 
     function enterAuthenticatedApp() {
@@ -1991,10 +2032,9 @@
       const effUser = getEffectiveUser();
       const isRealAdmin = state.currentUser && state.currentUser.role === "admin";
       const effAdmin = isEffectiveAdmin();
-      const canSwitchBoutiques = effAdmin;
 
       const bSelect = document.getElementById("boutique-select");
-      if (canSwitchBoutiques) {
+      if (effAdmin) {
         bSelect.innerHTML = BOUTIQUES.map(b => `<option value="${escapeHtml(b.name)}">${escapeHtml(b.name)}</option>`).join("");
         bSelect.disabled = false;
         if (!BOUTIQUES.some(b => b.name === state.selectedBoutique)) {
@@ -2008,7 +2048,7 @@
       bSelect.value = state.selectedBoutique;
 
       const roleTag = effAdmin ? (isSuperAdminUser(effUser) ? "Super Admin • 9 Boutiques" : "Admin Délégué • 9 Boutiques") : "Boutique";
-      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Poste : ${PC_DEVICE_ID} • Affichage : ${state.selectedBoutique}`;
+      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique} • ${PC_DEVICE_ID}`;
       const btnStoreView = document.getElementById("btn-toggle-store-view");
       const btnImportExcel = document.getElementById("btn-import-forecast-excel");
       const banner = document.getElementById("store-view-banner");
@@ -2019,7 +2059,7 @@
         btnStoreView.classList.remove("hidden");
         if (state.impersonatedUser) {
           banner.classList.remove("hidden");
-          document.getElementById("store-view-banner-text").textContent = `👁️ Mode Aperçu Utilisateur actif : vous voyez l'interface exacte de "${state.impersonatedUser.label}" (${state.impersonatedUser.role === "admin" ? "Admin • Toutes boutiques" : state.impersonatedUser.boutique})`;
+          document.getElementById("store-view-banner-text").textContent = `👁️ Mode Aperçu Utilisateur actif : "${state.impersonatedUser.label}" (${state.impersonatedUser.role === "admin" ? "Admin • Toutes boutiques" : state.impersonatedUser.boutique})`;
         } else {
           banner.classList.add("hidden");
         }
@@ -2057,9 +2097,7 @@
       }
       const targetUser = state.users.find(u => u.role === "boutique" && u.boutique === state.selectedBoutique)
         || state.users.find(u => u.role === "boutique");
-      if (targetUser) {
-        impersonateUser(targetUser.id);
-      }
+      if (targetUser) impersonateUser(targetUser.id);
     }
 
     function impersonateUser(userId) {
@@ -2067,9 +2105,7 @@
       const u = state.users.find(x => x.id === userId);
       if (!u) return;
       state.impersonatedUser = u;
-      if (u.boutique && u.boutique !== "ALL") {
-        state.selectedBoutique = u.boutique;
-      }
+      if (u.boutique && u.boutique !== "ALL") state.selectedBoutique = u.boutique;
       enterAuthenticatedApp();
       showToast(`Aperçu activé : ${u.label}`);
     }
@@ -2091,7 +2127,7 @@
     }
 
     /* ==========================================================================
-       6. NAVIGATION ONGLETS, SEMAINES & JOURS OUVRÉS PAR BOUTIQUE
+       6. NAVIGATION ONGLETS, SEMAINES & JOURS OUVRÉS
        ========================================================================== */
     function switchTab(tabName) {
       state.activeTab = tabName;
@@ -2115,7 +2151,7 @@
       state.selectedBoutique = boutiqueName;
       const effUser = getEffectiveUser();
       const roleTag = isEffectiveAdmin() ? (isSuperAdminUser(effUser) ? "Super Admin • 9 Boutiques" : "Admin Délégué • 9 Boutiques") : "Boutique";
-      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Poste : ${PC_DEVICE_ID} • Affichage : ${state.selectedBoutique}`;
+      document.getElementById("user-role-subtitle").textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique} • ${PC_DEVICE_ID}`;
       loadBoutiqueStore(boutiqueName);
       renderAllViews();
     }
@@ -2209,7 +2245,7 @@
     }
 
     /* ==========================================================================
-       7. ONGLET 1 : FEUILLE DE PRÉVISION & CALCUL DU CA (ROUGE / ORANGE / VERT)
+       7. ONGLET 1 : FEUILLE DE PRÉVISION & CALCUL DU CA
        ========================================================================== */
     function computeDailyCa(wk, dayIdx) {
       let total = 0;
@@ -2454,7 +2490,7 @@
       }
       wk.patisserie = JSON.parse(JSON.stringify(prevWk.patisserie || {}));
       syncTraiteurToForecast(wk);
-      recordNetworkActivity("prevision", state.selectedBoutique, `Copie S-1 appliquée sur la semaine ${getIsoWeekNumber(state.selectedWeekMonday)}`);
+      recordNetworkActivity("prevision", state.selectedBoutique, `Copie de la semaine S-1 (${formatShortFrDate(prevIso)})`);
       saveCurrentBoutiqueData(true);
       renderAllViews();
       showToast(`Semaine précédente copiée pour ${state.selectedBoutique}.`);
@@ -2467,26 +2503,23 @@
       (wk.traiteur || []).forEach(t => { t.quantities = [0, 0, 0, 0, 0, 0, 0]; });
       wk.patisserie = {};
       syncTraiteurToForecast(wk);
-      recordNetworkActivity("prevision", state.selectedBoutique, `Remise à 0 de la semaine ${getIsoWeekNumber(state.selectedWeekMonday)}`);
+      recordNetworkActivity("prevision", state.selectedBoutique, `Remise à 0 de la semaine ${formatShortFrDate(state.selectedWeekMonday)}`);
       saveCurrentBoutiqueData(true);
       renderAllViews();
       showToast("Prévisions de la semaine remises à 0.");
     }
 
     function openImportForecastProductsModal() {
-      if (!hasPermission("adminManageCatalog")) {
-        showToast("Action réservée aux administrateurs autorisés à gérer la gamme.");
-        return;
-      }
+      if (!hasPermission("adminManageCatalog")) return;
       openModal(`
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.35rem;">📥 Importer des produits manquants ou des prévisions (Excel)</h3>
         <p style="font-size:0.76rem; color:#4b5563; margin-bottom:0.65rem;">
-          Copiez-collez les lignes depuis votre fichier Excel (format : <code>Famille ; Nom du produit ; Poids (g) ; Prix (€) ; Lun ; Mar ; Mer ; Jeu ; Ven ; Sam ; Dim</code>).
+          Format : <code>Famille ; Nom du produit ; Poids (g) ; Prix (€) ; Lun ; Mar ; Mer ; Jeu ; Ven ; Sam ; Dim</code>
         </p>
-        <textarea id="import-excel-rows-text" class="input" rows="7" style="font-size:0.76rem;" placeholder="Exemple :&#10;Pains ; Baguette Tradition Graines ; 300 ; 1.60 ; 20 ; 20 ; 25 ; 20 ; 30 ; 35 ; 25&#10;Brioche ; Brioche Feuilletee ; 320 ; 5.20"></textarea>
+        <textarea id="import-excel-rows-text" class="input" rows="7" style="font-size:0.76rem;" placeholder="Pains ; Baguette Tradition Graines ; 300 ; 1.60 ; 20 ; 20 ; 25 ; 20 ; 30 ; 35 ; 25"></textarea>
         <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.75rem;">
           <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
-          <button type="button" class="btn btn-emerald" onclick="processImportedExcelRows()">✅ Importer &amp; Ajouter au catalogue</button>
+          <button type="button" class="btn btn-emerald" onclick="processImportedExcelRows()">✅ Importer</button>
         </div>
       `);
     }
@@ -2498,16 +2531,13 @@
       const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const wk = getCurrentWeekData();
       let addedProducts = 0;
-      let updatedRows = 0;
 
       lines.forEach(line => {
         const cols = line.split(/\t|;/).map(c => c.trim());
         if (!cols.length || !cols[0]) return;
-
         let cat = "Pains";
         let name = cols[0];
         let offset = 1;
-
         const firstLow = slugify(cols[0]);
         if (["pains", "pain", "brioche", "brioches", "viennoiserie", "viennoiseries"].includes(firstLow) && cols[1]) {
           if (firstLow.startsWith("brioche")) cat = "Brioche";
@@ -2516,12 +2546,9 @@
           name = cols[1];
           offset = 2;
         }
-
         if (!name || slugify(name) === "produit" || slugify(name) === "total") return;
-
         const weight = parseFloat((cols[offset] || "0").replace(",", ".")) || 0;
         const price = parseFloat((cols[offset + 1] || "0").replace(/[€\s]/g, "").replace(",", ".")) || 0;
-
         let prod = state.catalog.find(p => slugify(p.name) === slugify(name));
         if (!prod) {
           prod = {
@@ -2529,35 +2556,31 @@
             category: cat,
             name,
             unitWeight: weight || 300,
-            price: price || 0
+            price: price || 0,
+            petrinId: cat === "Brioche" ? "petrin-brioche" : (cat === "Pains" ? "petrin-tradition" : "")
           };
           state.catalog.push(prod);
           addedProducts++;
-        } else {
-          if (weight > 0) prod.unitWeight = weight;
-          if (price > 0) prod.price = price;
         }
-
         const dayVals = cols.slice(offset + 2, offset + 9);
         if (dayVals.length > 0 && !prod.formula && !prod.isTraiteurSupport) {
           if (!wk.quantities[prod.id]) wk.quantities[prod.id] = [0, 0, 0, 0, 0, 0, 0];
           dayVals.forEach((v, idx) => {
-            if (idx < 7 && v !== "") {
-              wk.quantities[prod.id][idx] = Math.max(0, Math.round(parseFloat(v.replace(",", ".")) || 0));
-            }
+            if (idx < 7 && v !== "") wk.quantities[prod.id][idx] = Math.max(0, Math.round(parseFloat(v.replace(",", ".")) || 0));
           });
         }
-        updatedRows++;
       });
 
-      recordNetworkActivity("catalog", state.selectedBoutique, `Import Excel : ${updatedRows} ligne(s), ${addedProducts} nouveau(x) produit(s)`);
       saveGlobalConfig();
       saveCurrentBoutiqueData(true);
       closeModal();
       renderAllViews();
-      showToast(`${updatedRows} ligne(s) traitée(s) (${addedProducts} nouveau(x) produit(s) ajouté(s)).`);
+      showToast(`${addedProducts} nouveau(x) produit(s) importé(s).`);
     }
 
+    /* ==========================================================================
+       8. ONGLET 2 : PÉTRIES JOURNALIÈRES (AVEC PRODUITS & SANDWICHS LIÉS AUX PÉTRIES)
+       ========================================================================== */
     function toggleHideZeroPetries(checked) {
       state.hideZeroPetries = !!checked;
       renderPetriesView();
@@ -2580,6 +2603,25 @@
 
       const michesTotal = ["miche-noix", "miche-figues", "miche-olives", "miche-chorizo"].reduce((s, id) => s + q(id), 0);
 
+      const getCustomItemsForPetrin = (petrinId) => {
+        const extras = [];
+        state.catalog.forEach(p => {
+          if (!p.dormant && p.petrinId === petrinId) {
+            extras.push({ name: p.name, weight: Number(p.unitWeight) || 0, qty: q(p.id) });
+          }
+        });
+        (wk.traiteur || []).forEach(tr => {
+          if (!tr.dormant && tr.petrinId === petrinId && !tr.targetProductId) {
+            extras.push({
+              name: `${tr.name} (Traiteur)`,
+              weight: Number(tr.doughWeightGrams) || 150,
+              qty: Number(tr.quantities?.[dayIdx]) || 0
+            });
+          }
+        });
+        return extras;
+      };
+
       const allPetries = [
         {
           id: "petrin-tradition",
@@ -2596,7 +2638,8 @@
             { name: "Miches Aromatiques (Noix, Figues, Olives, Chorizo)", weight: 60, qty: michesTotal },
             { name: "Pain Sandwich Trad Nature", weight: 175, qty: q("pain-sandwich-nature") },
             { name: "Pain Sandwich Trad Sésame", weight: 175, qty: q("pain-sandwich-sesame") },
-            { name: "Ficelle Sandwich", weight: 150, qty: q("ficelle-sandwich") }
+            { name: "Ficelle Sandwich", weight: 150, qty: q("ficelle-sandwich") },
+            ...getCustomItemsForPetrin("petrin-tradition")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 1745.6);
@@ -2624,7 +2667,8 @@
             { name: "Sportif Gros Pain (2100g)", weight: 2100, qty: q("sportif-gros") },
             { name: "Sportif Pavé (300g)", weight: 300, qty: q("sportif-pave") },
             { name: "Sportif Petit Pain (100g)", weight: 100, qty: q("sportif-petit") },
-            { name: "Pain Sandwich Sportif (160g)", weight: 160, qty: q("pain-sandwich-sportif") }
+            { name: "Pain Sandwich Sportif (160g)", weight: 160, qty: q("pain-sandwich-sportif") },
+            ...getCustomItemsForPetrin("petrin-biobise")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2011);
@@ -2650,7 +2694,8 @@
           items: [
             { name: "Pain Complet (350g)", weight: 350, qty: q("complet") },
             { name: "Pain Complet Gros (700g)", weight: 700, qty: q("complet-gros") },
-            { name: "Célestine (600g)", weight: 600, qty: q("celestine") }
+            { name: "Célestine (600g)", weight: 600, qty: q("celestine") },
+            ...getCustomItemsForPetrin("petrin-complet")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2050);
@@ -2671,7 +2716,8 @@
           bg: "#ecfdf5",
           items: [
             { name: "Léonie Petit (300g)", weight: 300, qty: q("leonie") },
-            { name: "Léonie Gros Pain (2600g)", weight: 2600, qty: q("leonie-gros") }
+            { name: "Léonie Gros Pain (2600g)", weight: 2600, qty: q("leonie-gros") },
+            ...getCustomItemsForPetrin("petrin-leonie")
           ],
           computeIngredients: (totalPateG) => {
             const factor = totalPateG / 6010;
@@ -2696,7 +2742,8 @@
             { name: "Gaspard Baguette (350g)", weight: 350, qty: q("gaspard") },
             { name: "Gaspard Flûte (700g)", weight: 700, qty: q("gaspard-flute") },
             { name: "Gaspard Sandwich (300g)", weight: 300, qty: q("gaspard-sandwich") },
-            { name: "1/2 Gaspard Sandwich (300g)", weight: 300, qty: q("pain-sandwich-gaspard") }
+            { name: "1/2 Gaspard Sandwich (300g)", weight: 300, qty: q("pain-sandwich-gaspard") },
+            ...getCustomItemsForPetrin("petrin-gaspard")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2011);
@@ -2718,7 +2765,8 @@
           bg: "#fef3c7",
           items: [
             { name: "Pain Campagne (330g)", weight: 330, qty: q("campagne") },
-            { name: "Pain Campagne Gros (3200g)", weight: 3200, qty: q("campagne-gros") }
+            { name: "Pain Campagne Gros (3200g)", weight: 3200, qty: q("campagne-gros") },
+            ...getCustomItemsForPetrin("petrin-campagne")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2439);
@@ -2741,7 +2789,8 @@
           items: [
             { name: "Pain 5 Graines (350g)", weight: 350, qty: q("5-graines") },
             { name: "5 Graines Sandwich (175g)", weight: 175, qty: q("5-graines-sandwich") },
-            { name: "5 Graines Gros Pain (3200g)", weight: 3200, qty: q("5-graines-gros") }
+            { name: "5 Graines Gros Pain (3200g)", weight: 3200, qty: q("5-graines-gros") },
+            ...getCustomItemsForPetrin("petrin-5-graines")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2353);
@@ -2762,7 +2811,8 @@
           color: "#78350f",
           bg: "#fef3c7",
           items: [
-            { name: "Pain Saxon (350g)", weight: 350, qty: q("saxon") }
+            { name: "Pain Saxon (350g)", weight: 350, qty: q("saxon") },
+            ...getCustomItemsForPetrin("petrin-saxon")
           ],
           computeIngredients: (totalPateG) => {
             const farineTot = totalPateG * (1000 / 1973);
@@ -2783,7 +2833,8 @@
           color: "#78350f",
           bg: "#fef3c7",
           items: [
-            { name: "Tourte de Seigle (820g)", weight: 820, qty: q("tourte-seigle") }
+            { name: "Tourte de Seigle (820g)", weight: 820, qty: q("tourte-seigle") },
+            ...getCustomItemsForPetrin("petrin-tourte-seigle")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2628);
@@ -2804,7 +2855,8 @@
           bg: "#fef3c7",
           items: [
             { name: "Pain Seigle (420g)", weight: 420, qty: q("seigle") },
-            { name: "Pain Seigle Raisin (420g)", weight: 420, qty: q("seigle-raisin") }
+            { name: "Pain Seigle Raisin (420g)", weight: 420, qty: q("seigle-raisin") },
+            ...getCustomItemsForPetrin("petrin-seigle")
           ],
           computeIngredients: (totalPateG) => {
             const farineTot = totalPateG * (1000 / 2250);
@@ -2828,7 +2880,8 @@
           bg: "#fffbeb",
           items: [
             { name: "Pain Sarrasin (350g)", weight: 350, qty: q("sarrasin") },
-            { name: "Sarrasin Boule (1000g)", weight: 1000, qty: q("sarrasin-boule") }
+            { name: "Sarrasin Boule (1000g)", weight: 1000, qty: q("sarrasin-boule") },
+            ...getCustomItemsForPetrin("petrin-sarrasin")
           ],
           computeIngredients: (totalPateG) => {
             const farineTot = totalPateG * (1000 / 2022);
@@ -2851,7 +2904,8 @@
           items: [
             { name: "Pain Maïs (330g)", weight: 330, qty: q("mais") },
             { name: "Pain Maïs Gros (660g)", weight: 660, qty: q("mais-gros") },
-            { name: "Pain Maïs Épinards (140g pâte + 20g épinards)", weight: 140, qty: q("pain-mais-epinard") }
+            { name: "Pain Maïs Épinards (140g pâte + 20g épinards)", weight: 140, qty: q("pain-mais-epinard") },
+            ...getCustomItemsForPetrin("petrin-mais")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 1807);
@@ -2881,7 +2935,8 @@
             { name: "Mini Burger Ciappo 80g / Petit Burg'", weight: 80, qty: q("ciappo-80") },
             { name: "Pain Burger Resto (110g)", weight: 110, qty: q("burger-resto") },
             { name: "Pain Panini (125g)", weight: 125, qty: q("panini-pain") },
-            { name: "Support Tart'à Pain (70g)", weight: 70, qty: q("tartapain-support") }
+            { name: "Support Tart'à Pain (70g)", weight: 70, qty: q("tartapain-support") },
+            ...getCustomItemsForPetrin("petrin-ciabatta-panini")
           ],
           computeIngredients: (totalPateG) => {
             const pateTrad = totalPateG * (1000 / 1050);
@@ -2903,7 +2958,8 @@
             { name: "Pain Viennois Chocolat (140g)", weight: 140, qty: q("viennois-choc") },
             { name: "Viennois Muesli (125g)", weight: 125, qty: q("viennois-muesli") },
             { name: "Pain Hot Dog (110g)", weight: 110, qty: q("hot-dog-pain") },
-            { name: "Pain de Mie Moulé (300g)", weight: 300, qty: q("pain-de-mie") }
+            { name: "Pain de Mie Moulé (300g)", weight: 300, qty: q("pain-de-mie") },
+            ...getCustomItemsForPetrin("petrin-viennois")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 1820);
@@ -2945,7 +3001,8 @@
             { name: "Brioche aux Grattons 400g", weight: 400, qty: q("brioche-grattons") },
             { name: "Brioche au Saucisson Indi 60g", weight: 60, qty: q("brioche-saucisson-indi") },
             { name: "Brioche au Saucisson Grosse 400g", weight: 400, qty: q("brioche-saucisson-gros") },
-            { name: "Brioche des Rois (Saison)", weight: 500, qty: q("brioche-rois") }
+            { name: "Brioche des Rois (Saison)", weight: 500, qty: q("brioche-rois") },
+            ...getCustomItemsForPetrin("petrin-brioche")
           ],
           computeIngredients: (totalPateG) => {
             const farineTot = totalPateG * (1000 / 2350);
@@ -2972,55 +3029,8 @@
         }
       ];
 
-      // Raccordement dynamique des nouveaux produits Boulangerie/Brioche et Traiteur liés directement à une pétrie
-      const hardwiredProductIds = new Set([
-        "tradition", "big-jules", "ficelle-nature", "ficelle-sesame", "ficelle-lardons",
-        "miche-noix", "miche-figues", "miche-olives", "miche-chorizo",
-        "pain-sandwich-nature", "pain-sandwich-sesame", "ficelle-sandwich",
-        "biobise-levain", "special-biobise-noix", "special-biobise-figues", "special-biobise-olives",
-        "sportif-gros", "sportif-pave", "sportif-petit", "pain-sandwich-sportif",
-        "complet", "complet-gros", "celestine",
-        "leonie", "leonie-gros",
-        "gaspard", "gaspard-flute", "gaspard-sandwich", "pain-sandwich-gaspard",
-        "campagne", "campagne-gros",
-        "5-graines", "5-graines-sandwich", "5-graines-gros",
-        "saxon", "tourte-seigle", "seigle", "seigle-raisin",
-        "sarrasin", "sarrasin-boule",
-        "mais", "mais-gros", "pain-mais-epinard",
-        "ciappo-600", "focaccia-plaque", "ciappo-180", "ciappo-120", "ciappo-80",
-        "burger-resto", "panini-pain", "tartapain-support",
-        "viennois-grand", "viennois-nature", "viennois-choc", "viennois-muesli", "hot-dog-pain", "pain-de-mie",
-        "brioche-nature", "brioche-sucre", "brioche-praline", "brioche-pepites",
-        "briochette-nature", "briochette-sucre", "briochette-praline", "briochette-chocolat",
-        "mini-briochette-nature-sucre", "mini-briochette-praline-choc",
-        "bressane-sucre-grosse", "bressane-praline-grosse", "bressane-petite",
-        "brioche-grattons", "brioche-saucisson-indi", "brioche-saucisson-gros", "brioche-rois"
-      ]);
-
-      allPetries.forEach(petrin => {
-        state.catalog.forEach(prod => {
-          if (prod.dormant || prod.formula || hardwiredProductIds.has(prod.id)) return;
-          if (prod.petrinId === petrin.id) {
-            petrin.items.push({
-              name: prod.name,
-              weight: Number(prod.unitWeight) || 0,
-              qty: q(prod.id)
-            });
-          }
-        });
-        (wk.traiteur || []).forEach(tr => {
-          if (!tr.dormant && tr.petrinId === petrin.id) {
-            petrin.items.push({
-              name: `${tr.name} (Traiteur)`,
-              weight: Number(tr.petrinUnitWeight) || 150,
-              qty: Number(tr.quantities?.[dayIdx]) || 0
-            });
-          }
-        });
-      });
-
       const allViennoiserieItems = state.catalog
-        .filter(p => p.category === "Viennoiserie" && !p.dormant && !p.formula)
+        .filter(p => p.category === "Viennoiserie" && !p.dormant && !p.formula && !p.petrinId)
         .map(p => ({ id: p.id, name: p.name, qty: q(p.id) }));
       const visibleViennoiserieItems = hideZeros ? allViennoiserieItems.filter(v => v.qty > 0) : allViennoiserieItems;
       const totalViennoiseriePieces = allViennoiserieItems.reduce((s, v) => s + v.qty, 0);
@@ -3141,7 +3151,7 @@
     }
 
     /* ==========================================================================
-       15. ONGLET 3 : GAMME TRAITEUR (LIAISON PAIN EXISTANT OU PÉTRIE DIRECTE)
+       9. ONGLET 3 : GAMME TRAITEUR (LIAISON PAIN OU PÉTRIE)
        ========================================================================== */
     function renderTraiteurView(openDays) {
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
@@ -3168,9 +3178,9 @@
         items.forEach(tr => {
           const priceBadge = hasPermission("viewCa") ? `<span class="price-badge tabular">${formatNum(tr.price, 2)} €</span>` : "";
           const syncTag = tr.targetProductId
-            ? `<span class="auto-badge">🔗 ${escapeHtml(tr.breadLabel)}</span>`
+            ? `<span class="auto-badge">🔗 Pain : ${escapeHtml(tr.breadLabel)}</span>`
             : (tr.petrinId
-              ? `<span class="auto-badge" style="background:#fef3c7; color:#92400e;">🥣 Pétrie directe (${tr.petrinUnitWeight || 0}g)</span>`
+              ? `<span class="support-badge">🥣 Pétrie : ${escapeHtml(tr.breadLabel)} (${tr.doughWeightGrams || 150}g)</span>`
               : `<span class="weight-badge">${escapeHtml(tr.breadLabel)}</span>`);
           html += `<tr>
             <td class="sticky-col">
@@ -3203,16 +3213,24 @@
       renderTraiteurView();
     }
 
+    function onNewTraiteurLinkModeChange(mode) {
+      const painBox = document.getElementById("new-tr-pain-box");
+      const petrinBox = document.getElementById("new-tr-petrin-box");
+      if (painBox) painBox.classList.toggle("hidden", mode !== "pain");
+      if (petrinBox) petrinBox.classList.toggle("hidden", mode !== "petrin");
+    }
+
     function openAddTraiteurModal() {
       if (!hasPermission("adminManageCatalog")) return;
-      const breadOpts = state.catalog.filter(p => !p.formula && !p.isText).map(p => `<option value="${p.id}">${escapeHtml(p.name)} (${p.unitWeight || 0}g)</option>`).join("");
+      const breadOpts = state.catalog.filter(p => !p.formula && !p.isText).map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
       openModal(`
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">+ Ajouter un produit à la Gamme Traiteur</h3>
         <div style="display:flex; flex-direction:column; gap:0.7rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
             <select id="new-tr-cat" class="select">
-              <option>Grandes Salades</option><option>Petites Salades (Pot 30cl)</option><option>Les Sandwichs</option>
-              <option>Les Toastés</option><option>Burgers</option><option>Snacking</option><option>Paninis</option><option>Plats du Jour &amp; Autres</option>
+              <option>Les Sandwichs</option><option>Les Toastés</option><option>Burgers</option>
+              <option>Paninis</option><option>Snacking</option><option>Grandes Salades</option>
+              <option>Petites Salades (Pot 30cl)</option><option>Plats du Jour &amp; Autres</option>
             </select>
           </div>
           <div><label style="font-size:0.75rem; font-weight:700;">Nom du produit</label><input id="new-tr-name" class="input" placeholder="Ex: Sandwich Montagnard" /></div>
@@ -3222,37 +3240,37 @@
           </div>
 
           <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem;">
-            <div style="font-size:0.76rem; font-weight:900; color:#0f172a; margin-bottom:0.4rem;">🔗 Liaison Boulangerie (au choix : Pain existant OU Pétrie) :</div>
-            <select id="new-tr-link-mode" class="select" style="margin-bottom:0.55rem;" onchange="onTraiteurLinkModeChange(this.value)">
-              <option value="none">-- Aucune liaison fournil (ex: Salade) --</option>
-              <option value="bread" selected>🥖 Lier à un PAIN existant de la feuille de prévision</option>
+            <label style="font-size:0.76rem; font-weight:800; color:#0f172a; display:block; margin-bottom:0.35rem;">🔗 Liaison automatique du support pain :</label>
+            <select id="new-tr-link-mode" class="select" onchange="onNewTraiteurLinkModeChange(this.value)">
+              <option value="pain">🥖 Lier à un PAIN existant de la feuille de prévision</option>
               <option value="petrin">🥣 Lier directement à une PÉTRIE (ajout direct au pétrin)</option>
+              <option value="none">-- Aucun lien pain / pétrie (ex: Salade, Quiche) --</option>
             </select>
 
-            <div id="new-tr-bread-box" style="display:flex; flex-direction:column; gap:0.45rem;">
+            <div id="new-tr-pain-box" style="margin-top:0.55rem; display:flex; flex-direction:column; gap:0.45rem;">
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Pain lié sur la feuille de prévision</label>
-                <select id="new-tr-target" class="select"><option value="">-- Choisir un pain --</option>${breadOpts}</select>
+                <label style="font-size:0.73rem; font-weight:700;">Pain cible sur la feuille de prévision :</label>
+                <select id="new-tr-target" class="select">${breadOpts}</select>
               </div>
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Nombre de pains par sandwich (ex: 0.5 si 2 sandwichs = 1 pain, ou 1)</label>
-                <input id="new-tr-ratio" type="number" step="0.05" value="1" class="input" />
+                <label style="font-size:0.73rem; font-weight:700;">Ratio pain (ex: 0.5 pour 1/2 pain, 1 pour 1 pain entier) :</label>
+                <input id="new-tr-ratio" type="number" step="0.1" value="1" class="input" />
               </div>
             </div>
 
-            <div id="new-tr-petrin-box" class="hidden" style="display:flex; flex-direction:column; gap:0.45rem;">
+            <div id="new-tr-petrin-box" class="hidden" style="margin-top:0.55rem; display:flex; flex-direction:column; gap:0.45rem;">
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Pétrie de destination</label>
+                <label style="font-size:0.73rem; font-weight:700;">Pétrie cible (s'ajoute directement au pétrin) :</label>
                 <select id="new-tr-petrin-id" class="select">${getPetrinOptionsHtml("petrin-tradition")}</select>
               </div>
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Poids de pâte du support pain par sandwich (en grammes)</label>
-                <input id="new-tr-petrin-weight" type="number" min="10" step="5" value="150" class="input" />
+                <label style="font-size:0.73rem; font-weight:700;">Poids de pâte unitaire du support (en grammes) :</label>
+                <input id="new-tr-dough-weight" type="number" min="10" step="5" value="150" class="input" />
               </div>
             </div>
           </div>
 
-          <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.4rem;">
+          <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:0.35rem;">
             <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
             <button type="button" class="btn btn-emerald" onclick="createTraiteurProduct()">Enregistrer</button>
           </div>
@@ -3260,59 +3278,36 @@
       `);
     }
 
-    function onTraiteurLinkModeChange(mode) {
-      const bBox = document.getElementById("new-tr-bread-box");
-      const pBox = document.getElementById("new-tr-petrin-box");
-      if (bBox) bBox.classList.toggle("hidden", mode !== "bread");
-      if (pBox) pBox.classList.toggle("hidden", mode !== "petrin");
-    }
-
     function createTraiteurProduct() {
       if (!hasPermission("adminManageCatalog")) return;
       const name = (document.getElementById("new-tr-name").value || "").trim();
       if (!name) return;
-      const linkMode = document.getElementById("new-tr-link-mode")?.value || "none";
-      const targetProductId = linkMode === "bread" ? (document.getElementById("new-tr-target").value || "") : "";
-      const ratio = linkMode === "bread" ? (Number(document.getElementById("new-tr-ratio").value) || 0) : 0;
-      const petrinId = linkMode === "petrin" ? (document.getElementById("new-tr-petrin-id").value || "") : "";
-      const petrinUnitWeight = linkMode === "petrin" ? (Number(document.getElementById("new-tr-petrin-weight").value) || 150) : 0;
-
+      const mode = document.getElementById("new-tr-link-mode")?.value || "none";
       const newObj = {
         id: "tr-custom-" + Date.now(),
         category: document.getElementById("new-tr-cat").value,
         name,
-        breadLabel: document.getElementById("new-tr-bread").value || (petrinId ? "Lié pétrie" : "Standard"),
-        targetProductId,
-        ratio,
-        petrinId,
-        petrinUnitWeight,
+        breadLabel: document.getElementById("new-tr-bread").value || "Standard",
+        targetProductId: mode === "pain" ? (document.getElementById("new-tr-target").value || "") : "",
+        ratio: mode === "pain" ? (Number(document.getElementById("new-tr-ratio").value) || 0) : 0,
+        petrinId: mode === "petrin" ? (document.getElementById("new-tr-petrin-id").value || "") : "",
+        doughWeightGrams: mode === "petrin" ? (Number(document.getElementById("new-tr-dough-weight").value) || 150) : 0,
         price: Number(document.getElementById("new-tr-price").value) || 0,
         quantities: [0,0,0,0,0,0,0]
       };
       DEFAULT_TRAITEUR.push(newObj);
-      BOUTIQUES.forEach(b => {
-        const st = readBoutiqueStoreReadOnly(b.name);
-        Object.values(st.weeks || {}).forEach(wk => {
-          if (Array.isArray(wk.traiteur) && !wk.traiteur.some(t => t.id === newObj.id)) {
-            wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
-          }
-        });
-        safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
-      });
       const wk = getCurrentWeekData();
-      if (!wk.traiteur.some(t => t.id === newObj.id)) {
-        wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
-      }
+      wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
       syncTraiteurToForecast(wk);
-      recordNetworkActivity("catalog", state.selectedBoutique, `Nouveau produit Traiteur ajouté : ${name}${petrinId ? " (lié à " + petrinId + ")" : (targetProductId ? " (lié à " + targetProductId + ")" : "")}`);
+      recordNetworkActivity("catalog", "Réseau", `Nouveau produit Traiteur ajouté : "${name}"`);
       saveCurrentBoutiqueData(true);
       closeModal();
       renderTraiteurView();
-      showToast("Produit Traiteur ajouté et raccordé.");
+      showToast("Produit Traiteur ajouté.");
     }
 
     /* ==========================================================================
-       16. ONGLET 4 : GAMME PÂTISSERIE CHEZ JULES
+       10. ONGLET 4 : GAMME PÂTISSERIE
        ========================================================================== */
     function renderPatisserieView(openDays) {
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
@@ -3372,7 +3367,16 @@
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">+ Ajouter une Pâtisserie</h3>
         <div style="display:flex; flex-direction:column; gap:0.7rem;">
           <div><label style="font-size:0.75rem; font-weight:700;">Famille</label>
-            <select id="new-pat-cat" class="select"><option>Flans &amp; Crèmes</option><option>Éclairs, Choux &amp; Millefeuilles</option><option>Tartelettes Individuelles</option><option>Entremets &amp; Pâtisseries Individuelles</option><option>Voyage, Crumbles &amp; Desserts</option><option>Grands Formats (4 / 6 / 8 pers)</option><option>Grandes Tartes &amp; Flans Entiers</option></select>
+            <select id="new-pat-cat" class="select">
+              <option>Flans &amp; Crèmes</option>
+              <option>Éclairs, Choux &amp; Millefeuilles</option>
+              <option>Tartelettes Individuelles</option>
+              <option>Entremets &amp; Pâtisseries Individuelles</option>
+              <option>Voyage, Crumbles &amp; Desserts</option>
+              <option>Macarons &amp; Mignardises</option>
+              <option>Grands Formats (4 / 6 / 8 pers)</option>
+              <option>Grandes Tartes &amp; Flans Entiers</option>
+            </select>
           </div>
           <div><label style="font-size:0.75rem; font-weight:700;">Nom</label><input id="new-pat-name" class="input" placeholder="Ex: Tartelette Framboises" /></div>
           <div><label style="font-size:0.75rem; font-weight:700;">Prix (€)</label><input id="new-pat-price" type="number" step="0.1" value="4.20" class="input" /></div>
@@ -3402,7 +3406,7 @@
     }
 
     /* ==========================================================================
-       17. ONGLET 5 : FICHES TECHNIQUES
+       11. ONGLET 5 : FICHES TECHNIQUES
        ========================================================================== */
     function selectTechSheetFolder(folder) {
       state.selectedTechSheetFolder = folder;
@@ -3656,16 +3660,16 @@
             </select>
           </div>
           <div><label style="font-size:0.75rem; font-weight:700;">Titre de la fiche</label><input id="ts-title" class="input" value="${escapeHtml(existing?.title || "")}" /></div>
-          <div><label style="font-size:0.75rem; font-weight:700;">URL Photo du produit (ou utilisez le bouton 📷 Photo produit sur la fiche)</label><input id="ts-photo" class="input" value="${escapeHtml(existing?.photoUrl || "")}" placeholder="https://..." /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">URL Photo du produit</label><input id="ts-photo" class="input" value="${escapeHtml(existing?.photoUrl || "")}" placeholder="https://..." /></div>
           <div id="ts-temp-row" class="${folder === "Traiteur" || folder === "Pâtisserie" ? "hidden" : ""}" style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
             <div><label style="font-size:0.75rem; font-weight:700;">T° Base Hiver (°C)</label><input id="ts-tbw" type="number" class="input" value="${existing?.tempBaseWinter || 56}" /></div>
             <div><label style="font-size:0.75rem; font-weight:700;">T° Base Été (°C)</label><input id="ts-tbs" type="number" class="input" value="${existing?.tempBaseSummer || 52}" /></div>
           </div>
-          <div><label style="font-size:0.75rem; font-weight:700;">Support / Pain (Traiteur)</label><input id="ts-support" class="input" value="${escapeHtml(existing?.divisionInfo || existing?.support || "")}" /></div>
+          <div><label style="font-size:0.75rem; font-weight:700;">Support / Division</label><input id="ts-support" class="input" value="${escapeHtml(existing?.divisionInfo || existing?.support || "")}" /></div>
           <div><label style="font-size:0.75rem; font-weight:700;">Ingrédients / Mini-recettes (1 par ligne)</label><textarea id="ts-ing" class="input" rows="5">${escapeHtml((existing?.ingredients || []).join("\n"))}</textarea></div>
           <div><label style="font-size:0.75rem; font-weight:700;">Étapes de fabrication / montage</label><textarea id="ts-steps" class="input" rows="4">${escapeHtml(existing?.steps || (existing?.detailedSteps || []).map(x => `${x.step} : ${x.desc}`).join("\n"))}</textarea></div>
           <label style="font-size:0.78rem; font-weight:700; display:flex; align-items:center; gap:0.4rem;">
-            <input id="ts-salad" type="checkbox" ${existing?.isSalad ? "checked" : ""} /> Salade (affiche la mention : production la veille possible • datation à J+2)
+            <input id="ts-salad" type="checkbox" ${existing?.isSalad ? "checked" : ""} /> Salade (production la veille possible • datation à J+2)
           </label>
           <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
             <button type="button" class="btn btn-white" onclick="closeModal()">Annuler</button>
@@ -3693,7 +3697,7 @@
           const sheet = state.techSheets.find(s => s.id === sheetId);
           if (sheet) {
             sheet.photoUrl = compressedUrl;
-            recordNetworkActivity("techsheet", "Réseau", `Photo ajoutée sur la fiche "${sheet.title}"`);
+            recordNetworkActivity("fiche", "Réseau", `Photo mise à jour sur la fiche "${sheet.title}"`);
             saveGlobalConfig();
             renderTechSheetsView();
             showToast("Photo du produit enregistrée !");
@@ -3736,7 +3740,7 @@
         state.techSheets.unshift(obj);
       }
       state.selectedTechSheetId = obj.id;
-      recordNetworkActivity("techsheet", "Réseau", `${existingId ? "Fiche technique modifiée" : "Nouvelle fiche technique"} : "${title}"`);
+      recordNetworkActivity("fiche", "Réseau", `Fiche technique enregistrée : "${title}"`);
       saveGlobalConfig();
       closeModal();
       renderTechSheetsView();
@@ -3748,14 +3752,14 @@
       const target = state.techSheets.find(s => s.id === id);
       state.techSheets = state.techSheets.filter(s => s.id !== id);
       state.selectedTechSheetId = null;
-      recordNetworkActivity("techsheet", "Réseau", `Fiche technique supprimée : "${target ? target.title : id}"`);
+      recordNetworkActivity("fiche", "Réseau", `Fiche technique supprimée : "${target ? target.title : id}"`);
       saveGlobalConfig();
       renderTechSheetsView();
       showToast("Fiche technique supprimée.");
     }
 
     /* ==========================================================================
-       18. ONGLET 6 : ADMINISTRATION RÉSEAU
+       12. ONGLET 6 : ADMINISTRATION RÉSEAU
        ========================================================================== */
     function renderAdminView() {
       if (!hasAdminTabAccess()) return;
@@ -3767,7 +3771,6 @@
       const canExport = hasPermission("adminExportHtml");
 
       container.innerHTML = `
-        <!-- 1. Accès Boutiques, Comptes Admin Délégués & Droits personnalisés -->
         ${canUsers ? `
         <div class="card">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
@@ -3825,29 +3828,28 @@
         </div>
         ` : ""}
 
-        <!-- 1bis. Journal en direct multi-PC de tous les changements effectués sur le site -->
         <div class="card" style="margin-top:1rem; border-color:#bfdbfe; background:#eff6ff;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.55rem;">
             <div>
-              <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Direct Multi-PC — Tous les Changements Réseau</h3>
-              <p style="font-size:0.75rem; color:#1d4ed8;">Mise à jour instantanée dès que quiconque (sur n'importe quel PC) se connecte, change son mot de passe, modifie une prévision, le Traiteur, la Pâtisserie, un tarif, une fiche ou imprime.</p>
+              <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Temps Réel Multi-PC — Tous les Changements en Direct</h3>
+              <p style="font-size:0.75rem; color:#1d4ed8;">Mise à jour instantanée dès qu'un utilisateur sur n'importe quel PC change son mot de passe, modifie une prévision, le Traiteur, la Pâtisserie, le CA ou imprime.</p>
             </div>
             <span style="font-size:0.72rem; font-weight:800; background:#dbeafe; color:#1e40af; padding:3px 9px; border-radius:999px;">
               ${state.activityLog.length} événement(s) en direct
             </span>
           </div>
-          <div style="max-height:240px; overflow-y:auto; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:0.45rem 0.65rem;">
+          <div style="max-height:260px; overflow-y:auto; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:0.45rem 0.65rem;">
             ${state.activityLog.length === 0 ? `
-              <div style="font-size:0.78rem; color:#64748b; padding:0.5rem;">Aucune modification enregistrée pour le moment. Toutes les actions effectuées apparaîtront ici instantanément.</div>
-            ` : state.activityLog.slice(0, 50).map(ev => {
+              <div style="font-size:0.78rem; color:#64748b; padding:0.5rem;">Aucune modification enregistrée pour le moment. Toutes les actions effectuées sur n'importe quel PC apparaîtront ici en direct.</div>
+            ` : state.activityLog.slice(0, 60).map(ev => {
               const dt = ev.timestamp ? new Date(ev.timestamp) : new Date();
               const timeStr = dt.toLocaleDateString("fr-FR") + " " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
               const badgeStyle = ev.type === "password"
                 ? "background:#fef3c7; color:#92400e; border:1px solid #f59e0b;"
                 : (ev.type === "print"
-                  ? "background:#e0e7ff; color:#3730a3; border:1px solid #818cf8;"
+                  ? "background:#dbeafe; color:#1e40af; border:1px solid #93c5fd;"
                   : "background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;");
-              const icon = ev.type === "password" ? "🔑" : (ev.type === "ca" ? "💶" : (ev.type === "print" ? "🖨️" : (ev.type === "login" ? "🟢" : "📝")));
+              const icon = ev.type === "password" ? "🔑" : (ev.type === "ca" ? "💶" : (ev.type === "print" ? "🖨️" : (ev.type === "login" ? "🔐" : "📝")));
               return `
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.4rem; padding:0.36rem 0.25rem; border-bottom:1px solid #f1f5f9; font-size:0.77rem;">
                   <div>
@@ -3862,12 +3864,10 @@
           </div>
         </div>
 
-        <!-- 2. Jours d'ouverture par boutique -->
         ${canSchedules ? `
         <div class="card" style="margin-top:1rem;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">🗓️ Jours d'Ouverture par Boutique (9 Magasins)</h3>
-          <p style="font-size:0.75rem; color:#4b5563; margin-bottom:0.65rem;">Configurez les jours habituels d'ouverture et les ouvertures/fermetures exceptionnelles pour chaque boutique.</p>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:0.55rem;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:0.55rem; margin-top:0.5rem;">
             ${BOUTIQUES.map(b => {
               const sc = state.schedules[b.name] || { weeklyDays: [0,1,2,3,4,5,6] };
               const daysTxt = (sc.weeklyDays || []).map(i => DAY_SHORT[i]).join(", ") || "Fermé";
@@ -3885,25 +3885,22 @@
         </div>
         ` : ""}
 
-        <!-- 3. Tarifs & CA Objectif / Réalisé -->
         ${canPricesCa ? `
         <div class="card" style="margin-top:1rem;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">💶 Tarifs Réseau &amp; CA Objectif / Réalisé</h3>
-          <p style="font-size:0.75rem; color:#4b5563; margin-bottom:0.65rem;">Modifiez les prix de vente (€) des gammes ou importez/saisissez le CA Objectif et Réalisé des 9 boutiques.</p>
-          <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.45rem;">
             <button type="button" class="btn btn-amber btn-sm" onclick="openPricesManagerModal()">💶 Modifier les Tarifs (€)</button>
             <button type="button" class="btn btn-emerald btn-sm" onclick="openAdminCaObjectivesModal()">🎯 CA Objectif &amp; CA Réalisé (9 Boutiques)</button>
           </div>
         </div>
         ` : ""}
 
-        <!-- 4. Gestion du Catalogue Produits & Ordre d'affichage -->
         ${canCatalog ? `
         <div class="card" style="margin-top:1rem;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.65rem;">
             <div>
               <h3 style="font-size:1rem; font-weight:900; color:#111827;">📦 Gestion de la Gamme Boulangerie / Viennoiserie &amp; Ordre</h3>
-              <p style="font-size:0.75rem; color:#4b5563;">Ajoutez un pain, brioche ou viennoiserie (avec liaison directe à une pétrie), mettez en dormance ou réordonnez la feuille.</p>
+              <p style="font-size:0.75rem; color:#4b5563;">Ajoutez un produit (lié à une pétrie ou au plaquage), mettez en dormance ou réordonnez les produits.</p>
             </div>
             <div style="display:flex; gap:0.4rem;">
               <button type="button" class="btn btn-white btn-sm" onclick="openImportForecastProductsModal()">📥 Importer Excel</button>
@@ -3914,7 +3911,6 @@
         </div>
         ` : ""}
 
-        <!-- 5. Sauvegarde 10 ans & Générateur index.html -->
         ${canExport ? `
         <div class="card" style="margin-top:1rem; background:#f8fafc; border-color:#cbd5e1;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">💾 Sauvegarde Réseau 10 ans &amp; Export index.html</h3>
@@ -3933,12 +3929,11 @@
 
       const prodListEl = document.getElementById("admin-catalog-order-list");
       if (prodListEl) {
-        const filteredProds = state.catalog;
         prodListEl.innerHTML = `
           <div style="font-size:0.73rem; color:#475569; background:#f8fafc; border:1px solid #e2e8f0; border-radius:7px; padding:0.38rem 0.55rem; margin-bottom:0.4rem; font-weight:700;">
             ↕️ Glissez-déposez les produits (icône <strong>⋮⋮</strong>) pour les placer dans l'ordre exact souhaité sur les feuilles de prévision.
           </div>
-          ${filteredProds.map(p => `
+          ${state.catalog.map(p => `
             <div draggable="true" data-drag-pid="${p.id}"
               ondragstart="onAdminProdDragStart(event, '${p.id}')"
               ondragover="onAdminProdDragOver(event)"
@@ -3967,15 +3962,15 @@
       refreshAdminHtmlPanel();
     }
 
-    let _cloudPushTimer = null;
     function scheduleCloudPush() {
-      if (_isApplyingRemote) return;
-      clearTimeout(_cloudPushTimer);
-      _cloudPushTimer = setTimeout(() => {
-        if (window.__julesCloud && window.__julesCloud.pushBoutique && state.selectedBoutique) {
+      if (_isApplyingRemote || !state.selectedBoutique) return;
+      if (window.__julesCloud) {
+        if (window.__julesCloud.ready && window.__julesCloud.pushBoutique) {
           window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
+        } else {
+          window.__julesCloud.pendingBoutiques[state.selectedBoutique] = JSON.parse(JSON.stringify(state.storeData));
         }
-      }, 250);
+      }
     }
 
     window.__getCurrentActorName = function () {
@@ -4059,7 +4054,7 @@
         safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
         const newest = state.activityLog[0];
         if (newest && newest.id !== prevTopId && state.currentUser && newest.pcId !== PC_DEVICE_ID) {
-          showToast(`📡 ${newest.boutique} : ${newest.summary}`);
+          showToast(`📡 EN DIRECT [${newest.boutique}] : ${newest.summary}`);
           if (state.activeTab === "admin") renderAdminView();
         }
       } catch (e) {} finally {
