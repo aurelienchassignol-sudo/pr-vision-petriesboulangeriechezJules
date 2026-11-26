@@ -2138,8 +2138,13 @@
     function getTraiteurAutoSupplementForDay(wk, productId, dayIdx) {
       let rawSum = 0;
       (wk.traiteur || []).forEach(tr => {
-        if (tr.targetProductId === productId && tr.ratio > 0) {
+        if (!tr.dormant && tr.targetProductId === productId && tr.ratio > 0) {
           rawSum += (Number(tr.quantities?.[dayIdx]) || 0) * tr.ratio;
+        }
+      });
+      state.patisserieCatalog.forEach(pat => {
+        if (!pat.dormant && pat.targetProductId === productId && pat.ratio > 0) {
+          rawSum += (Number(wk.patisserie?.[pat.id]?.[dayIdx]) || 0) * pat.ratio;
         }
       });
       return Math.ceil(rawSum);
@@ -2600,9 +2605,7 @@
       state.catalog.forEach(p => {
         if (p.dormant || p.formula || p.isText || p.isTraiteurSupport) return;
         const baseQty = Number(wk.quantities?.[p.id]?.[dayIdx]) || 0;
-        const extraTraiteur = (p.id === "tradition" || p.id === "gaspard-sandwich")
-          ? getTraiteurAutoSupplementForDay(wk, p.id, dayIdx)
-          : 0;
+        const extraTraiteur = getTraiteurAutoSupplementForDay(wk, p.id, dayIdx);
         total += (baseQty + extraTraiteur) * (Number(p.price) || 0);
       });
       (wk.traiteur || []).forEach(tr => {
@@ -2754,7 +2757,10 @@
           const rowClass = isFormula ? "calc-row" : (isSupport ? "auto-traiteur-row" : "");
           const weightTag = p.unitWeight ? `<span class="weight-badge">${p.unitWeight}g</span>` : "";
           const priceTag = (showPrice && p.price > 0) ? `<span class="price-badge tabular">${formatNum(p.price, 2)} €</span>` : "";
-          const autoTag = isSupport ? `<span class="auto-badge">Auto Traiteur</span>` : "";
+          const autoTag = isSupport ? `<span class="auto-badge">🔒 Auto Traiteur</span>` : "";
+          const editCatalogBtn = (!isFormula && hasPermission("adminManageCatalog"))
+            ? `<button type="button" class="btn btn-white btn-sm" style="margin-left:5px; padding:1px 6px; font-size:0.68rem;" onclick="openEditCatalogProductModal('${p.id}')" title="Modifier ce produit">✏️</button>`
+            : "";
 
           let rowTotal = 0;
 
@@ -2783,9 +2789,7 @@
             }
 
             const val = Number(wk.quantities?.[p.id]?.[d]) || 0;
-            const autoSupp = (p.id === "tradition" || p.id === "gaspard-sandwich")
-              ? getTraiteurAutoSupplementForDay(wk, p.id, d)
-              : 0;
+            const autoSupp = getTraiteurAutoSupplementForDay(wk, p.id, d);
             rowTotal += val + autoSupp;
 
             return `<td style="text-align:center; ${d === state.selectedDayIdx ? "background:#fffbeb;" : ""}">
@@ -2796,14 +2800,14 @@
                   onchange="onForecastQtyChange('${p.id}', ${d}, this.value)" />
                 <span class="stat-side"><small>S-1</small>${s1Val}</span>
               </div>
-              ${autoSupp > 0 ? `<div style="font-size:0.65rem; font-weight:800; color:#059669; margin-top:2px;">+${autoSupp} Tr = ${val + autoSupp}</div>` : ""}
+              ${autoSupp > 0 ? `<div style="font-size:0.65rem; font-weight:800; color:#059669; margin-top:2px;">+${autoSupp} Auto = ${val + autoSupp}</div>` : ""}
             </td>`;
           }).join("");
 
           html += `
             <tr class="${rowClass}">
               <td class="sticky-col">
-                <span style="font-weight:700; color:#111827;">${escapeHtml(p.name)}</span>${weightTag}${priceTag}${autoTag}
+                <span style="font-weight:700; color:#111827;">${escapeHtml(p.name)}</span>${weightTag}${priceTag}${autoTag}${editCatalogBtn}
               </td>
               ${cellsHtml}
               <td class="tabular" style="text-align:center; font-weight:900; color:#0f172a;">${rowTotal}</td>
@@ -2945,10 +2949,9 @@
 
       const q = (pid) => {
         const base = Number(wk.quantities?.[pid]?.[dayIdx]) || 0;
-        if (pid === "tradition" || pid === "gaspard-sandwich") {
-          return base + getTraiteurAutoSupplementForDay(wk, pid, dayIdx);
-        }
-        return base;
+        const prod = state.catalog.find(x => x.id === pid);
+        if (prod && prod.isTraiteurSupport) return base;
+        return base + getTraiteurAutoSupplementForDay(wk, pid, dayIdx);
       };
 
       const michesTotal = ["miche-noix", "miche-figues", "miche-olives", "miche-chorizo"].reduce((s, id) => s + q(id), 0);
@@ -3588,10 +3591,12 @@
       const currentMode = existing
         ? (existing.targetProductId ? "bread" : (existing.petrinId ? "petrin" : "none"))
         : "none";
+      const targetProd = existing?.targetProductId ? state.catalog.find(p => p.id === existing.targetProductId) : null;
+      const currentBreadBehavior = targetProd?.isTraiteurSupport ? "lock" : "add";
 
       const breadOpts = state.catalog
         .filter(p => !p.formula && !p.isText)
-        .map(p => `<option value="${p.id}" ${existing?.targetProductId === p.id ? "selected" : ""}>${escapeHtml(p.name)}</option>`)
+        .map(p => `<option value="${p.id}" ${existing?.targetProductId === p.id ? "selected" : ""}>${escapeHtml(p.name)} (${escapeHtml(p.category)})</option>`)
         .join("");
       const petrinOpts = PETRIN_DEFINITIONS
         .map(p => `<option value="${p.id}" ${existing?.petrinId === p.id ? "selected" : ""}>${escapeHtml(p.title)}</option>`)
@@ -3630,21 +3635,30 @@
           </div>
 
           <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem;">
-            <label style="font-size:0.76rem; font-weight:900; color:#0f172a; display:block; margin-bottom:0.35rem;">🔗 Liaison automatique de fabrication :</label>
+            <label style="font-size:0.76rem; font-weight:900; color:#0f172a; display:block; margin-bottom:0.35rem;">🔗 Liaison avec la Feuille de Prévision ou une Pétrie :</label>
             <select id="new-tr-link-mode" class="select" onchange="onTraiteurLinkModeChange(this.value)">
               <option value="none" ${currentMode === "none" ? "selected" : ""}>Aucune liaison pain/pétrie (ex: Salade, Quiche...)</option>
-              <option value="bread" ${currentMode === "bread" ? "selected" : ""}>🥖 Option A : Lier à un PAIN de la feuille de prévision</option>
+              <option value="bread" ${currentMode === "bread" ? "selected" : ""}>🥖 Option A : Lier à un produit de la Feuille de Prévision (Pain, Brioche, Viennoiserie)</option>
               <option value="petrin" ${currentMode === "petrin" ? "selected" : ""}>🥣 Option B : Lier directement à une PÉTRIE (ajout direct au pétrin)</option>
             </select>
 
-            <div id="tr-link-bread-box" class="${currentMode === "bread" ? "" : "hidden"}" style="margin-top:0.55rem; display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
-              <div>
-                <label style="font-size:0.73rem; font-weight:700;">Pain cible sur la feuille</label>
-                <select id="new-tr-target" class="select">${breadOpts}</select>
+            <div id="tr-link-bread-box" class="${currentMode === "bread" ? "" : "hidden"}" style="margin-top:0.55rem; display:flex; flex-direction:column; gap:0.5rem;">
+              <div style="display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
+                <div>
+                  <label style="font-size:0.73rem; font-weight:700;">Produit cible dans les prévisions</label>
+                  <select id="new-tr-target" class="select">${breadOpts}</select>
+                </div>
+                <div>
+                  <label style="font-size:0.73rem; font-weight:700;">Ratio (0.5 = 1/2 pain, 1 = 1 pain)</label>
+                  <input id="new-tr-ratio" type="number" step="0.05" value="${existing && existing.ratio > 0 ? existing.ratio : 1}" class="input" />
+                </div>
               </div>
               <div>
-                <label style="font-size:0.73rem; font-weight:700;">Ratio (0.5 = 1/2 pain, 4 sand = 2 pains)</label>
-                <input id="new-tr-ratio" type="number" step="0.05" value="${existing && existing.ratio > 0 ? existing.ratio : 1}" class="input" />
+                <label style="font-size:0.73rem; font-weight:800; color:#1e40af; display:block; margin-bottom:0.2rem;">Comportement sur la Feuille de Prévision :</label>
+                <select id="new-tr-bread-behavior" class="select">
+                  <option value="lock" ${currentBreadBehavior === "lock" ? "selected" : ""}>🔒 Bloquer le pain sur la 1ère page avec remplissage automatique (100% piloté par Traiteur)</option>
+                  <option value="add" ${currentBreadBehavior === "add" ? "selected" : ""}>➕ Laisser le pain modifiable et ajouter automatiquement le besoin Traiteur en plus</option>
+                </select>
               </div>
             </div>
 
@@ -3676,11 +3690,22 @@
       const name = (document.getElementById("new-tr-name").value || "").trim();
       if (!name) return;
       const mode = document.getElementById("new-tr-link-mode")?.value || "none";
+      const targetProductId = mode === "bread" ? (document.getElementById("new-tr-target").value || "") : "";
+      const breadBehavior = document.getElementById("new-tr-bread-behavior")?.value || "lock";
+
+      if (mode === "bread" && targetProductId) {
+        const targetProd = state.catalog.find(p => p.id === targetProductId);
+        if (targetProd) {
+          targetProd.isTraiteurSupport = (breadBehavior === "lock");
+          if (targetProd.isTraiteurSupport) targetProd.price = 0;
+        }
+      }
+
       const updatedFields = {
         category: document.getElementById("new-tr-cat").value,
         name,
         breadLabel: document.getElementById("new-tr-bread").value || "Standard",
-        targetProductId: mode === "bread" ? (document.getElementById("new-tr-target").value || "") : "",
+        targetProductId,
         ratio: mode === "bread" ? (Number(document.getElementById("new-tr-ratio").value) || 0) : 0,
         petrinId: mode === "petrin" ? (document.getElementById("new-tr-petrin").value || "") : "",
         petrinWeight: mode === "petrin" ? (Number(document.getElementById("new-tr-petrin-weight").value) || 150) : 0,
@@ -3718,7 +3743,10 @@
       BOUTIQUES.forEach(b => {
         const st = readBoutiqueStoreReadOnly(b.name);
         Object.values(st.weeks || {}).forEach(wk => {
-          if (Array.isArray(wk.traiteur)) wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
+          if (Array.isArray(wk.traiteur)) {
+            wk.traiteur.push(JSON.parse(JSON.stringify(newObj)));
+            syncTraiteurToForecast(wk);
+          }
         });
         safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
       });
@@ -3726,7 +3754,7 @@
       recordNetworkActivity("catalog", "Réseau", `Nouveau produit Traiteur ajouté : ${name}`);
       saveGlobalConfig();
       closeModal();
-      renderTraiteurView();
+      renderAllViews();
       showToast("Produit Traiteur ajouté et raccordé.");
     }
 
@@ -3781,12 +3809,14 @@
         html += `<tr class="cat-row"><td colspan="${openDays.length + 1}">${escapeHtml(cat)}</td></tr>`;
         items.forEach(pat => {
           const priceTag = hasPermission("viewCa") ? `<span class="price-badge tabular">${formatNum(pat.price, 2)} €</span>` : "";
+          const linkedProd = pat.targetProductId ? state.catalog.find(p => p.id === pat.targetProductId) : null;
+          const linkBadge = linkedProd ? `<span class="auto-badge">🔗 ${escapeHtml(linkedProd.name)} (×${pat.ratio || 1})</span>` : "";
           const editBtn = canManageCatalog
             ? `<button type="button" class="btn btn-white btn-sm" style="margin-left:6px; padding:1px 6px; font-size:0.68rem;" onclick="openEditPatisserieModal('${pat.id}')" title="Modifier cette pâtisserie">✏️</button>`
             : "";
           const arr = wk.patisserie?.[pat.id] || [0,0,0,0,0,0,0];
           html += `<tr>
-            <td class="sticky-col"><div style="font-weight:700;">${escapeHtml(pat.name)}${priceTag}${editBtn}</div></td>
+            <td class="sticky-col"><div style="font-weight:700;">${escapeHtml(pat.name)}${priceTag}${linkBadge}${editBtn}</div></td>
             ${openDays.map(od => {
               const d = od.dayIdx;
               const val = Number(arr[d]) || 0;
@@ -3841,6 +3871,12 @@
         "Grandes Tartes & Flans Entiers"
       ];
       if (existing && !cats.includes(existing.category)) cats.unshift(existing.category);
+      const targetProd = existing?.targetProductId ? state.catalog.find(p => p.id === existing.targetProductId) : null;
+      const currentBehavior = targetProd?.isTraiteurSupport ? "lock" : "add";
+      const breadOpts = state.catalog
+        .filter(p => !p.formula && !p.isText)
+        .map(p => `<option value="${p.id}" ${existing?.targetProductId === p.id ? "selected" : ""}>${escapeHtml(p.name)} (${escapeHtml(p.category)})</option>`)
+        .join("");
 
       openModal(`
         <h3 style="font-size:1.05rem; font-weight:900; margin-bottom:0.85rem;">${existing ? "✏️ Modifier la Pâtisserie" : "+ Ajouter une Pâtisserie"}</h3>
@@ -3852,6 +3888,28 @@
           </div>
           <div><label style="font-size:0.75rem; font-weight:700;">Nom</label><input id="new-pat-name" class="input" value="${escapeHtml(existing?.name || "")}" placeholder="Ex: Tartelette Framboises" /></div>
           <div><label style="font-size:0.75rem; font-weight:700;">Prix (€)</label><input id="new-pat-price" type="number" step="0.1" value="${existing ? (Number(existing.price) || 0) : 4.20}" class="input" /></div>
+
+          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem;">
+            <label style="font-size:0.75rem; font-weight:900; color:#0f172a; display:block; margin-bottom:0.3rem;">🔗 Lier à un produit de la Feuille de Prévision (optionnel) :</label>
+            <div style="display:grid; grid-template-columns:2fr 1fr; gap:0.5rem;">
+              <div>
+                <select id="new-pat-target" class="select" onchange="document.getElementById('pat-link-opts').classList.toggle('hidden', !this.value)">
+                  <option value="">-- Aucune liaison --</option>
+                  ${breadOpts}
+                </select>
+              </div>
+              <div>
+                <input id="new-pat-ratio" type="number" step="0.05" value="${existing && existing.ratio > 0 ? existing.ratio : 1}" class="input" placeholder="Ratio (ex: 1)" />
+              </div>
+            </div>
+            <div id="pat-link-opts" class="${existing?.targetProductId ? "" : "hidden"}" style="margin-top:0.45rem;">
+              <select id="new-pat-behavior" class="select">
+                <option value="add" ${currentBehavior === "add" ? "selected" : ""}>➕ Ajouter automatiquement aux prévisions du produit lié</option>
+                <option value="lock" ${currentBehavior === "lock" ? "selected" : ""}>🔒 Bloquer le produit lié avec remplissage automatique</option>
+              </select>
+            </div>
+          </div>
+
           <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
             ${existing ? `<button type="button" class="btn btn-danger btn-sm" onclick="deletePatisserieProduct('${existing.id}')">🗑️ Supprimer</button>` : `<span></span>`}
             <div style="display:flex; gap:0.5rem;">
@@ -3869,6 +3927,17 @@
       if (!name) return;
       const category = document.getElementById("new-pat-cat").value;
       const price = Number(document.getElementById("new-pat-price").value) || 0;
+      const targetProductId = document.getElementById("new-pat-target")?.value || "";
+      const ratio = targetProductId ? (Number(document.getElementById("new-pat-ratio")?.value) || 1) : 0;
+      const behavior = document.getElementById("new-pat-behavior")?.value || "add";
+
+      if (targetProductId) {
+        const targetProd = state.catalog.find(p => p.id === targetProductId);
+        if (targetProd) {
+          targetProd.isTraiteurSupport = (behavior === "lock");
+          if (targetProd.isTraiteurSupport) targetProd.price = 0;
+        }
+      }
 
       if (existingId) {
         const existing = state.patisserieCatalog.find(p => p.id === existingId);
@@ -3876,6 +3945,8 @@
           existing.category = category;
           existing.name = name;
           existing.price = price;
+          existing.targetProductId = targetProductId;
+          existing.ratio = ratio;
         }
         recordNetworkActivity("catalog", "Réseau", `Pâtisserie modifiée : ${name}`);
       } else {
@@ -3883,13 +3954,18 @@
           id: "pat-custom-" + Date.now(),
           category,
           name,
-          price
+          price,
+          targetProductId,
+          ratio
         });
         recordNetworkActivity("catalog", "Réseau", `Nouvelle pâtisserie ajoutée : ${name}`);
       }
+      const wk = getCurrentWeekData();
+      syncTraiteurToForecast(wk);
       saveGlobalConfig();
+      saveCurrentBoutiqueData(true);
       closeModal();
-      renderPatisserieView();
+      renderAllViews();
       showToast(existingId ? "Pâtisserie mise à jour." : "Pâtisserie ajoutée.");
     }
 
