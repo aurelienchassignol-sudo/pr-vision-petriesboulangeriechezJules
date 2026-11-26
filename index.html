@@ -1627,7 +1627,14 @@
     let _isApplyingRemote = false;
     let _localBroadcastChannel = null;
     let _sseEventSource = null;
+    let _lastPollTimestamp = Math.floor(Date.now() / 1000) - 600;
     const _processedPacketIds = new Set();
+
+    function normalizeBoutiqueName(rawName) {
+      const targetSlug = slugify(rawName);
+      const found = BOUTIQUES.find(b => slugify(b.name) === targetSlug);
+      return found ? found.name : rawName;
+    }
 
     function getActiveNetworkChannel() {
       const urlParam = new URLSearchParams(window.location.search).get("reseau");
@@ -1663,13 +1670,66 @@
         if (_localBroadcastChannel) _localBroadcastChannel.postMessage(fullPacket);
       } catch (e) {}
 
-      // 2. Relai réseau HTTP temps réel multi-PC (ntfy.sh JSON pub/sub)
+      // 2. Relai réseau HTTP temps réel multi-PC (paquets compacts < 3 Ko)
       try {
-        fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}`, {
-          method: "POST",
-          body: JSON.stringify(fullPacket)
-        }).catch(() => {});
+        const serialized = JSON.stringify(fullPacket);
+        if (serialized.length <= 3800) {
+          fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}`, {
+            method: "POST",
+            body: serialized
+          }).catch(() => {});
+        }
       } catch (e) {}
+    }
+
+    function buildCompactWeekPatch(boutiqueName, mondayIso, wk) {
+      const qCompact = {};
+      Object.entries(wk.quantities || {}).forEach(([pid, arr]) => {
+        if (Array.isArray(arr) && arr.some(v => Number(v) > 0)) {
+          qCompact[pid] = arr.map(v => Number(v) || 0);
+        }
+      });
+      const trCompact = {};
+      (wk.traiteur || []).forEach(tr => {
+        if (Array.isArray(tr.quantities) && tr.quantities.some(v => Number(v) > 0)) {
+          trCompact[tr.id] = tr.quantities.map(v => Number(v) || 0);
+        }
+      });
+      const patCompact = {};
+      Object.entries(wk.patisserie || {}).forEach(([pid, arr]) => {
+        if (Array.isArray(arr) && arr.some(v => Number(v) > 0)) {
+          patCompact[pid] = arr.map(v => Number(v) || 0);
+        }
+      });
+      return {
+        kind: "week_patch",
+        boutique: boutiqueName,
+        mondayIso,
+        quantities: qCompact,
+        traiteur: trCompact,
+        patisserie: patCompact,
+        caObjectif: Array.isArray(wk.caObjectif) ? wk.caObjectif : [0,0,0,0,0,0,0],
+        caRealise: Array.isArray(wk.caRealise) ? wk.caRealise : [0,0,0,0,0,0,0]
+      };
+    }
+
+    function pollMissedNetworkPackets(sinceParam) {
+      const ch = getActiveNetworkChannel();
+      const since = sinceParam || Math.max(1, _lastPollTimestamp - 5);
+      fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/json?poll=1&since=${since}`)
+        .then(r => r.text())
+        .then(txt => {
+          _lastPollTimestamp = Math.floor(Date.now() / 1000);
+          txt.split(/\r?\n/).filter(Boolean).forEach(line => {
+            try {
+              const env = JSON.parse(line);
+              if (env && env.message) {
+                window.__processIncomingNetworkPacket(JSON.parse(env.message));
+              }
+            } catch (e) {}
+          });
+        })
+        .catch(() => {});
     }
 
     function initUniversalMultiPcSync() {
@@ -1686,11 +1746,11 @@
         }
       } catch (e) {}
 
-      // Flux SSE temps réel multi-PC + récupération des derniers messages
+      // Flux SSE temps réel multi-PC
       const connectStream = () => {
         try {
           if (_sseEventSource) _sseEventSource.close();
-          _sseEventSource = new EventSource(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/sse?since=30m`);
+          _sseEventSource = new EventSource(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/sse?since=2h`);
           _sseEventSource.onopen = () => {
             if (badge) {
               badge.style.background = "#064e3b";
@@ -1720,31 +1780,21 @@
       };
 
       connectStream();
+      pollMissedNetworkPackets("2h");
 
-      // Demander l'état le plus récent aux autres PC connectés
+      // Filet de sécurité toutes les 4 secondes pour ne jamais rater une saisie
+      setInterval(() => {
+        pollMissedNetworkPackets();
+      }, 4000);
+
       setTimeout(() => {
         broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
       }, 900);
     }
 
     function forceManualSyncNow() {
-      const ch = getActiveNetworkChannel();
       showToast("Synchronisation multi-PC en cours...");
-      // Récupérer les derniers messages via HTTP JSON
-      fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/json?poll=1&since=2h`)
-        .then(r => r.text())
-        .then(txt => {
-          txt.split(/\r?\n/).filter(Boolean).forEach(line => {
-            try {
-              const env = JSON.parse(line);
-              if (env && env.message) {
-                window.__processIncomingNetworkPacket(JSON.parse(env.message));
-              }
-            } catch (e) {}
-          });
-        })
-        .catch(() => {});
-
+      pollMissedNetworkPackets("12h");
       broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
       if (state.currentUser) {
         if (isEffectiveAdmin()) {
@@ -1756,35 +1806,51 @@
       showToast("✅ Synchronisation multi-PC actualisée !");
     }
 
+    function ensureBoutiqueWeekObject(st, mondayIso, boutiqueName) {
+      st.weeks = st.weeks || {};
+      if (!st.weeks[mondayIso]) {
+        const tbb = INITIAL_TBB_2026_DATA[boutiqueName]?.[mondayIso];
+        st.weeks[mondayIso] = {
+          quantities: {},
+          traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
+          patisserie: {},
+          caObjectif: tbb ? [...tbb.caObjectif] : [0,0,0,0,0,0,0],
+          caRealise: tbb ? [...tbb.caRealise] : [0,0,0,0,0,0,0],
+          autoSyncTraiteur: true
+        };
+      }
+      const wk = st.weeks[mondayIso];
+      if (!wk.quantities) wk.quantities = {};
+      if (!Array.isArray(wk.traiteur) || wk.traiteur.length === 0) {
+        wk.traiteur = JSON.parse(JSON.stringify(DEFAULT_TRAITEUR));
+      }
+      if (!wk.patisserie) wk.patisserie = {};
+      if (!Array.isArray(wk.caObjectif) || wk.caObjectif.length !== 7) wk.caObjectif = [0,0,0,0,0,0,0];
+      if (!Array.isArray(wk.caRealise) || wk.caRealise.length !== 7) wk.caRealise = [0,0,0,0,0,0,0];
+      return wk;
+    }
+
     window.__processIncomingNetworkPacket = function (pkt) {
       if (!pkt || !pkt.pktId) return;
       if (pkt.senderDevice === DEVICE_ID || _processedPacketIds.has(pkt.pktId)) return;
       _processedPacketIds.add(pkt.pktId);
-      if (_processedPacketIds.size > 600) {
+      if (_processedPacketIds.size > 1000) {
         const first = _processedPacketIds.values().next().value;
         _processedPacketIds.delete(first);
       }
 
       if (pkt.kind === "sync_ping") {
-        // Si ce poste a des données locales ou est Admin, il partage l'état actuel
         if (state.currentUser) {
           if (isEffectiveAdmin()) {
             broadcastNetworkPacket({
-              kind: "global_state",
-              users: state.users,
-              catalog: state.catalog,
-              patisserieCatalog: state.patisserieCatalog,
-              schedules: state.schedules,
-              techSheets: state.techSheets
+              kind: "users_sync",
+              users: state.users
             });
           }
           if (state.selectedBoutique && state.storeData?.weeks?.[state.selectedWeekMonday]) {
-            broadcastNetworkPacket({
-              kind: "week_delta",
-              boutique: state.selectedBoutique,
-              mondayIso: state.selectedWeekMonday,
-              weekData: state.storeData.weeks[state.selectedWeekMonday]
-            });
+            broadcastNetworkPacket(
+              buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, state.storeData.weeks[state.selectedWeekMonday])
+            );
           }
         }
         return;
@@ -1792,9 +1858,19 @@
 
       _isApplyingRemote = true;
       try {
-        if (pkt.kind === "global_state") {
+        if (pkt.kind === "users_sync" && Array.isArray(pkt.users) && pkt.users.length) {
+          state.users = pkt.users;
+          state.users.forEach(u => { u.mustChangePassword = false; });
+          safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
+          if (state.currentUser) {
+            const me = state.users.find(u => u.id === state.currentUser.id);
+            if (me) state.currentUser = me;
+            if (state.activeTab === "admin") renderAdminView();
+          }
+        } else if (pkt.kind === "global_state") {
           if (Array.isArray(pkt.users) && pkt.users.length) {
             state.users = pkt.users;
+            state.users.forEach(u => { u.mustChangePassword = false; });
             safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
             if (state.currentUser) {
               const me = state.users.find(u => u.id === state.currentUser.id);
@@ -1818,48 +1894,51 @@
             safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
           }
           if (state.currentUser) renderAllViews();
-        } else if (pkt.kind === "week_delta" && pkt.boutique && pkt.mondayIso && pkt.weekData) {
-          const st = readBoutiqueStoreReadOnly(pkt.boutique);
-          st.weeks = st.weeks || {};
-          st.weeks[pkt.mondayIso] = pkt.weekData;
-          safeSetItem(boutiqueStorageKey(pkt.boutique), JSON.stringify(st));
-          if (state.selectedBoutique === pkt.boutique) {
+        } else if (pkt.kind === "week_patch" && pkt.boutique && pkt.mondayIso) {
+          const bName = normalizeBoutiqueName(pkt.boutique);
+          const st = readBoutiqueStoreReadOnly(bName);
+          const wk = ensureBoutiqueWeekObject(st, pkt.mondayIso, bName);
+          wk.quantities = JSON.parse(JSON.stringify(pkt.quantities || {}));
+          (wk.traiteur || []).forEach(tr => {
+            tr.quantities = Array.isArray(pkt.traiteur?.[tr.id]) ? [...pkt.traiteur[tr.id]] : [0,0,0,0,0,0,0];
+          });
+          wk.patisserie = JSON.parse(JSON.stringify(pkt.patisserie || {}));
+          if (Array.isArray(pkt.caObjectif) && pkt.caObjectif.length === 7) wk.caObjectif = [...pkt.caObjectif];
+          if (Array.isArray(pkt.caRealise) && pkt.caRealise.length === 7) wk.caRealise = [...pkt.caRealise];
+          syncTraiteurToForecast(wk);
+          safeSetItem(boutiqueStorageKey(bName), JSON.stringify(st));
+          if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
             if (state.currentUser) renderAllViews();
           }
         } else if (pkt.kind === "cell_delta" && pkt.boutique && pkt.mondayIso) {
-          const st = readBoutiqueStoreReadOnly(pkt.boutique);
-          st.weeks = st.weeks || {};
-          if (!st.weeks[pkt.mondayIso]) {
-            st.weeks[pkt.mondayIso] = {
-              quantities: {},
-              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
-              patisserie: {},
-              caObjectif: [0,0,0,0,0,0,0],
-              caRealise: [0,0,0,0,0,0,0],
-              autoSyncTraiteur: true
-            };
-          }
-          const wk = st.weeks[pkt.mondayIso];
+          const bName = normalizeBoutiqueName(pkt.boutique);
+          const st = readBoutiqueStoreReadOnly(bName);
+          const wk = ensureBoutiqueWeekObject(st, pkt.mondayIso, bName);
+          const dIdx = Number(pkt.dayIdx) || 0;
+          const val = Number(pkt.value) || 0;
+
           if (pkt.domain === "forecast" && pkt.productId) {
             if (!wk.quantities[pkt.productId]) wk.quantities[pkt.productId] = [0,0,0,0,0,0,0];
-            wk.quantities[pkt.productId][pkt.dayIdx] = pkt.value;
+            wk.quantities[pkt.productId][dIdx] = val;
           } else if (pkt.domain === "traiteur" && pkt.trId) {
             const item = (wk.traiteur || []).find(t => t.id === pkt.trId);
             if (item) {
-              item.quantities[pkt.dayIdx] = pkt.value;
+              if (!Array.isArray(item.quantities)) item.quantities = [0,0,0,0,0,0,0];
+              item.quantities[dIdx] = val;
               syncTraiteurToForecast(wk);
             }
           } else if (pkt.domain === "patisserie" && pkt.patId) {
             if (!wk.patisserie[pkt.patId]) wk.patisserie[pkt.patId] = [0,0,0,0,0,0,0];
-            wk.patisserie[pkt.patId][pkt.dayIdx] = pkt.value;
+            wk.patisserie[pkt.patId][dIdx] = val;
           } else if (pkt.domain === "caRealise") {
-            wk.caRealise[pkt.dayIdx] = pkt.value;
+            wk.caRealise[dIdx] = val;
           } else if (pkt.domain === "caObjectif") {
-            wk.caObjectif[pkt.dayIdx] = pkt.value;
+            wk.caObjectif[dIdx] = val;
           }
-          safeSetItem(boutiqueStorageKey(pkt.boutique), JSON.stringify(st));
-          if (state.selectedBoutique === pkt.boutique) {
+
+          safeSetItem(boutiqueStorageKey(bName), JSON.stringify(st));
+          if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
             if (state.currentUser) renderAllViews();
           }
@@ -1965,6 +2044,10 @@
       runFullAutoBackup(true);
 
       if (!skipCloudPush && !_isApplyingRemote) {
+        broadcastNetworkPacket({
+          kind: "users_sync",
+          users: state.users
+        });
         broadcastNetworkPacket({
           kind: "global_state",
           users: state.users,
@@ -2089,13 +2172,15 @@
       clearTimeout(_cloudPushTimer);
       _cloudPushTimer = setTimeout(() => {
         if (state.selectedBoutique && state.storeData?.weeks?.[state.selectedWeekMonday]) {
-          broadcastNetworkPacket({
-            kind: "week_delta",
-            boutique: state.selectedBoutique,
-            mondayIso: state.selectedWeekMonday,
-            weekData: state.storeData.weeks[state.selectedWeekMonday]
-          });
+          broadcastNetworkPacket(
+            buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, state.storeData.weeks[state.selectedWeekMonday])
+          );
         }
+        if (window.__julesCloud && window.__julesCloud.pushBoutique && state.selectedBoutique) {
+          window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
+        }
+      }, 150);
+    }
         if (window.__julesCloud && window.__julesCloud.pushBoutique && state.selectedBoutique) {
           window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
         }
@@ -2160,10 +2245,11 @@
       if (!docData || !docData.boutique || !docData.weeksJson) return;
       _isApplyingRemote = true;
       try {
+        const bName = normalizeBoutiqueName(docData.boutique);
         const weeksObj = JSON.parse(docData.weeksJson);
-        const storeObj = { boutique: docData.boutique, weeks: weeksObj };
-        safeSetItem(boutiqueStorageKey(docData.boutique), JSON.stringify(storeObj));
-        if (state.selectedBoutique === docData.boutique) {
+        const storeObj = { boutique: bName, weeks: weeksObj };
+        safeSetItem(boutiqueStorageKey(bName), JSON.stringify(storeObj));
+        if (slugify(state.selectedBoutique) === slugify(bName)) {
           state.storeData = storeObj;
           if (state.currentUser) renderAllViews();
         }
