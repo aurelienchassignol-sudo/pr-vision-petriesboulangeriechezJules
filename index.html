@@ -540,6 +540,9 @@
         </div>
 
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem;">
+          <span id="realtime-sync-badge" style="font-size:0.7rem; font-weight:700; background:#1e3a8a; color:#bfdbfe; border:1px solid #3b82f6; padding:0.28rem 0.6rem; border-radius:999px;">
+            🔄 Sync temps réel...
+          </span>
           <span id="auto-backup-badge" style="font-size:0.7rem; font-weight:700; background:#064e3b; color:#a7f3d0; border:1px solid #047857; padding:0.28rem 0.6rem; border-radius:999px;">
             💾 Sauvegarde auto active (10 ans)
           </span>
@@ -692,6 +695,124 @@
   <!-- NOTIFICATION TOAST -->
   <div id="toast-box" class="toast hidden"></div>
 
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    window.__julesCloud = {
+      ready: false,
+      db: null,
+      auth: null,
+      appId: typeof __app_id !== "undefined" ? __app_id : "chez-jules-reseau-2026",
+      pushGlobal: null,
+      pushBoutique: null,
+      pushActivity: null
+    };
+
+    async function initRealtimeCloud() {
+      const badge = document.getElementById("realtime-sync-badge");
+      try {
+        if (typeof __firebase_config === "undefined" || !__firebase_config) {
+          if (badge) badge.textContent = "🟢 Temps réel local actif";
+          return;
+        }
+        const firebaseConfig = typeof __firebase_config === "string" ? JSON.parse(__firebase_config) : __firebase_config;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = window.__julesCloud.appId;
+
+        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        if (!auth.currentUser) return;
+        window.__julesCloud.db = db;
+        window.__julesCloud.auth = auth;
+        window.__julesCloud.ready = true;
+
+        if (badge) {
+          badge.style.background = "#064e3b";
+          badge.style.color = "#a7f3d0";
+          badge.style.borderColor = "#10b981";
+          badge.textContent = "🟢 Temps réel réseau actif";
+        }
+
+        const globalDocRef = doc(db, "artifacts", appId, "public", "data", "jules_network_state", "global_config");
+        const boutiquesColRef = collection(db, "artifacts", appId, "public", "data", "jules_boutiques_live");
+        const activityColRef = collection(db, "artifacts", appId, "public", "data", "jules_activity_log");
+
+        window.__julesCloud.pushGlobal = async (payload) => {
+          if (!auth.currentUser) return;
+          try {
+            await setDoc(globalDocRef, {
+              ...payload,
+              updatedAt: new Date().toISOString(),
+              updatedBy: window.__getCurrentActorName ? window.__getCurrentActorName() : "Réseau"
+            });
+          } catch (err) {}
+        };
+
+        window.__julesCloud.pushBoutique = async (boutiqueName, storeObj) => {
+          if (!auth.currentUser || !boutiqueName) return;
+          try {
+            const bDocRef = doc(db, "artifacts", appId, "public", "data", "jules_boutiques_live", boutiqueName);
+            await setDoc(bDocRef, {
+              boutique: boutiqueName,
+              weeksJson: JSON.stringify(storeObj.weeks || {}),
+              updatedAt: new Date().toISOString(),
+              updatedBy: window.__getCurrentActorName ? window.__getCurrentActorName() : boutiqueName
+            });
+          } catch (err) {}
+        };
+
+        window.__julesCloud.pushActivity = async (entry) => {
+          if (!auth.currentUser) return;
+          try {
+            const actDocRef = doc(db, "artifacts", appId, "public", "data", "jules_activity_log", entry.id);
+            await setDoc(actDocRef, entry);
+          } catch (err) {}
+        };
+
+        onSnapshot(globalDocRef, (snap) => {
+          if (!snap.exists()) return;
+          const data = snap.data();
+          if (window.__applyRemoteGlobalConfig) {
+            window.__applyRemoteGlobalConfig(data);
+          }
+        }, () => {});
+
+        onSnapshot(boutiquesColRef, (snap) => {
+          snap.docChanges().forEach(change => {
+            if (change.type === "added" || change.type === "modified") {
+              const d = change.doc.data();
+              if (window.__applyRemoteBoutiqueData && d && d.boutique) {
+                window.__applyRemoteBoutiqueData(d);
+              }
+            }
+          });
+        }, () => {});
+
+        onSnapshot(activityColRef, (snap) => {
+          const allLogs = [];
+          snap.forEach(docSnap => {
+            if (docSnap.exists()) allLogs.push(docSnap.data());
+          });
+          if (window.__applyRemoteActivityLogs) {
+            window.__applyRemoteActivityLogs(allLogs);
+          }
+        }, () => {});
+      } catch (e) {
+        if (badge) badge.textContent = "🟢 Temps réel local actif";
+      }
+    }
+
+    initRealtimeCloud();
+  </script>
+
   <script>
     /* ==========================================================================
        1. CONSTANTES RÉSEAU, CLÉS DE STOCKAGE 10 ANS & UTILITAIRES DE BASE
@@ -708,6 +829,7 @@
       patisserieCatalog: "jules_v8_patisserie_catalog",
       schedules: "jules_v8_schedules",
       techSheets: "jules_v8_tech_sheets",
+      activityLog: "jules_v8_activity_log",
       safetySnapshot: "jules_v8_safety_snapshot_10y"
     };
 
@@ -2203,6 +2325,7 @@
       patisserieCatalog: [],
       schedules: {},
       techSheets: [],
+      activityLog: [],
       storeData: { boutique: "Saint Paul", weeks: {} },
       hideZeroPetries: true,
       selectedTechSheetFolder: "ALL",
@@ -2287,152 +2410,56 @@
       } catch (e) {
         state.techSheets = JSON.parse(JSON.stringify(DEFAULT_TECH_SHEETS));
       }
+
+      try {
+        const al = JSON.parse(safeGetItem(STORAGE_KEYS.activityLog));
+        state.activityLog = Array.isArray(al) ? al : [];
+      } catch (e) {
+        state.activityLog = [];
+      }
     }
 
-    function saveGlobalConfig() {
+    let _isApplyingRemote = false;
+
+    function recordNetworkActivity(type, boutiqueName, summary) {
+      const actor = state.currentUser ? state.currentUser.label : (boutiqueName || "Système");
+      const entry = {
+        id: "act-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
+        timestamp: new Date().toISOString(),
+        type,
+        actor,
+        boutique: boutiqueName || (state.currentUser?.boutique && state.currentUser.boutique !== "ALL" ? state.currentUser.boutique : state.selectedBoutique),
+        summary
+      };
+      state.activityLog.unshift(entry);
+      if (state.activityLog.length > 150) state.activityLog = state.activityLog.slice(0, 150);
+      safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
+      if (!_isApplyingRemote && window.__julesCloud && window.__julesCloud.pushActivity) {
+        window.__julesCloud.pushActivity(entry);
+      }
+    }
+
+    function saveGlobalConfig(skipCloudPush = false) {
       safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
       safeSetItem(STORAGE_KEYS.catalog, JSON.stringify(state.catalog));
       safeSetItem(STORAGE_KEYS.patisserieCatalog, JSON.stringify(state.patisserieCatalog));
       safeSetItem(STORAGE_KEYS.schedules, JSON.stringify(state.schedules));
       safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
+      safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
       safeSetItem(STORAGE_KEYS.schemaMeta, JSON.stringify({
         version: APP_DATA_VERSION,
         retentionYears: RETENTION_YEARS,
         migratedAt: new Date().toISOString()
       }));
       runFullAutoBackup(true);
-    }
-
-    function migrateAndPersistAllData() {
-      loadGlobalConfig();
-
-      // Synchronisation du compte admin principal
-      const adminIdx = state.users.findIndex(u => u.id === "usr-admin" || u.email.toLowerCase() === "aurelien.chassignol@boulangeriechezjules.fr");
-      if (adminIdx !== -1) {
-        state.users[adminIdx].id = "usr-admin";
-        state.users[adminIdx].email = "aurelien.chassignol@boulangeriechezjules.fr";
-        state.users[adminIdx].password = "181276Alice!";
-        state.users[adminIdx].role = "admin";
-        state.users[adminIdx].boutique = "ALL";
-        state.users[adminIdx].isSuperAdmin = true;
-        state.users[adminIdx].permissions = { ...ADMIN_PERMISSIONS };
-      } else {
-        state.users.unshift({
-          ...JSON.parse(JSON.stringify(DEFAULT_USERS[0])),
-          isSuperAdmin: true
+      if (!skipCloudPush && !_isApplyingRemote && window.__julesCloud && window.__julesCloud.pushGlobal) {
+        window.__julesCloud.pushGlobal({
+          usersJson: JSON.stringify(state.users),
+          catalogJson: JSON.stringify(state.catalog),
+          patisserieCatalogJson: JSON.stringify(state.patisserieCatalog),
+          schedulesJson: JSON.stringify(state.schedules),
+          techSheetsJson: JSON.stringify(state.techSheets)
         });
-      }
-
-      // Garantir que tous les comptes ont bien les nouvelles clés de permissions initialisées
-      state.users.forEach(u => {
-        if (!u.permissions) u.permissions = u.role === "admin" ? { ...ADMIN_PERMISSIONS } : { ...DEFAULT_BOUTIQUE_PERMISSIONS };
-        if (u.role === "admin") {
-          u.boutique = "ALL";
-          u.permissions.adminAllBoutiques = true;
-          Object.keys(ADMIN_PERMISSIONS).forEach(k => {
-            if (typeof u.permissions[k] !== "boolean") u.permissions[k] = true;
-          });
-        } else {
-          Object.keys(DEFAULT_BOUTIQUE_PERMISSIONS).forEach(k => {
-            if (typeof u.permissions[k] !== "boolean") u.permissions[k] = DEFAULT_BOUTIQUE_PERMISSIONS[k];
-          });
-        }
-      });
-
-      // Synchroniser la règle 2 Sandwichs Gaspard = 1 pain Gaspard coupé en deux sur le tapis
-      const defGaspardTr = DEFAULT_TRAITEUR.find(t => t.id === "tr-sand-gaspard");
-      BOUTIQUES.forEach(b => {
-        const st = readBoutiqueStoreReadOnly(b.name);
-        let trChanged = false;
-        Object.values(st.weeks || {}).forEach(wk => {
-          if (Array.isArray(wk.traiteur)) {
-            const trItem = wk.traiteur.find(t => t.id === "tr-sand-gaspard");
-            if (trItem && defGaspardTr) {
-              trItem.name = defGaspardTr.name;
-              trItem.breadLabel = defGaspardTr.breadLabel;
-              trItem.targetProductId = "gaspard-sandwich";
-              trItem.ratio = 0.5;
-              trChanged = true;
-            }
-          }
-        });
-        if (trChanged) {
-          safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
-        }
-      });
-
-      // Compléter les fiches techniques réseau manquantes (y compris les FT Traiteur détaillées)
-      const existingSheetIds = new Set(state.techSheets.map(s => s.id));
-      DEFAULT_TECH_SHEETS.forEach(defSheet => {
-        if (!existingSheetIds.has(defSheet.id)) {
-          state.techSheets.push(JSON.parse(JSON.stringify(defSheet)));
-        }
-      });
-
-      // Injection initiale des objectifs CA 2026 extraits des TBB par boutique
-      BOUTIQUES.forEach(b => {
-        const st = readBoutiqueStoreReadOnly(b.name);
-        const tbbMap = INITIAL_TBB_2026_DATA[b.name] || {};
-        let changed = false;
-        Object.entries(tbbMap).forEach(([wkIso, vals]) => {
-          if (!st.weeks[wkIso]) {
-            st.weeks[wkIso] = {
-              quantities: {},
-              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
-              patisserie: {},
-              caObjectif: [...vals.caObjectif],
-              caRealise: [...vals.caRealise],
-              autoSyncTraiteur: true
-            };
-            changed = true;
-          } else {
-            const sumObj = (st.weeks[wkIso].caObjectif || []).reduce((s, v) => s + (Number(v) || 0), 0);
-            if (sumObj === 0 && vals.caObjectif) {
-              st.weeks[wkIso].caObjectif = [...vals.caObjectif];
-              changed = true;
-            }
-            const sumReal = (st.weeks[wkIso].caRealise || []).reduce((s, v) => s + (Number(v) || 0), 0);
-            if (sumReal === 0 && vals.caRealise) {
-              st.weeks[wkIso].caRealise = [...vals.caRealise];
-              changed = true;
-            }
-          }
-        });
-        if (changed) {
-          safeSetItem(boutiqueStorageKey(b.name), JSON.stringify(st));
-        }
-      });
-
-      saveGlobalConfig();
-    }
-
-    function readBoutiqueStoreReadOnly(boutiqueName) {
-      try {
-        const raw = safeGetItem(boutiqueStorageKey(boutiqueName));
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === "object" && parsed.weeks) {
-            return parsed;
-          }
-        }
-      } catch (e) {}
-      return { boutique: boutiqueName, weeks: {} };
-    }
-
-    function loadBoutiqueStore(boutiqueName) {
-      const store = readBoutiqueStoreReadOnly(boutiqueName);
-      store.boutique = boutiqueName;
-      state.storeData = store;
-      return store;
-    }
-
-    function saveCurrentBoutiqueData(triggerBackup = true) {
-      if (!state.selectedBoutique || !state.storeData) return;
-      state.storeData.boutique = state.selectedBoutique;
-      safeSetItem(boutiqueStorageKey(state.selectedBoutique), JSON.stringify(state.storeData));
-      if (triggerBackup) {
-        runFullAutoBackup(true);
-        scheduleCloudPush();
       }
     }
 
@@ -2570,11 +2597,63 @@
       state.currentUser.password = p1;
       state.currentUser.mustChangePassword = false;
       state.currentUser.passwordChangedAt = new Date().toISOString();
+      recordNetworkActivity(
+        "password",
+        state.currentUser.boutique === "ALL" ? "Réseau" : state.currentUser.boutique,
+        `Changement de mot de passe effectué par ${state.currentUser.label} (${state.currentUser.email})`
+      );
       saveGlobalConfig();
       safeSetItem(STORAGE_KEYS.session, JSON.stringify({ userId: state.currentUser.id }));
       document.getElementById("force-pwd-screen").classList.add("hidden");
       enterAuthenticatedApp();
-      showToast("Mot de passe enregistré avec succès !");
+      showToast("Mot de passe enregistré et transmis en temps réel aux administrateurs !");
+    }
+
+    function migrateAndPersistAllData() {
+      loadGlobalConfig();
+      BOUTIQUES.forEach(b => {
+        const key = boutiqueStorageKey(b.name);
+        if (!safeGetItem(key)) {
+          const initialWeeks = {};
+          const tbbShop = INITIAL_TBB_2026_DATA[b.name] || {};
+          Object.entries(tbbShop).forEach(([mondayIso, obj]) => {
+            initialWeeks[mondayIso] = {
+              quantities: {},
+              traiteur: JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
+              patisserie: {},
+              caObjectif: [...(obj.caObjectif || [0,0,0,0,0,0,0])],
+              caRealise: [...(obj.caRealise || [0,0,0,0,0,0,0])],
+              autoSyncTraiteur: true
+            };
+          });
+          safeSetItem(key, JSON.stringify({ boutique: b.name, weeks: initialWeeks }));
+        }
+      });
+      saveGlobalConfig(true);
+    }
+
+    function readBoutiqueStoreReadOnly(boutiqueName) {
+      try {
+        const raw = safeGetItem(boutiqueStorageKey(boutiqueName));
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && typeof parsed === "object" && parsed.weeks) return parsed;
+      } catch (e) {}
+      return { boutique: boutiqueName, weeks: {} };
+    }
+
+    function loadBoutiqueStore(boutiqueName) {
+      state.storeData = readBoutiqueStoreReadOnly(boutiqueName);
+      if (!state.storeData.weeks) state.storeData.weeks = {};
+    }
+
+    function saveCurrentBoutiqueData(triggerBackup = true) {
+      if (!state.selectedBoutique || !state.storeData) return;
+      state.storeData.boutique = state.selectedBoutique;
+      safeSetItem(boutiqueStorageKey(state.selectedBoutique), JSON.stringify(state.storeData));
+      if (triggerBackup) {
+        runFullAutoBackup(true);
+        scheduleCloudPush();
+      }
     }
 
     function enterAuthenticatedApp() {
@@ -2659,9 +2738,9 @@
     function impersonateUser(userId) {
       if (!state.currentUser || state.currentUser.role !== "admin") return;
       const u = state.users.find(x => x.id === userId);
-      if (!u || isSuperAdminUser(u) || u.id === state.currentUser.id) return;
+      if (!u) return;
       state.impersonatedUser = u;
-      if (u.role !== "admin" && u.boutique && u.boutique !== "ALL") {
+      if (u.boutique && u.boutique !== "ALL") {
         state.selectedBoutique = u.boutique;
       }
       enterAuthenticatedApp();
@@ -2908,7 +2987,9 @@
     function onBoutiqueCaRealiseChange(dayIdx, val) {
       if (!hasPermission("editPrevision")) return;
       const wk = getCurrentWeekData();
-      wk.caRealise[dayIdx] = Math.max(0, Number(val) || 0);
+      const num = Math.max(0, Number(val) || 0);
+      wk.caRealise[dayIdx] = num;
+      recordNetworkActivity("ca", state.selectedBoutique, `CA réalisé saisi : ${formatNum(num, 0)} € (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
       renderAllViews();
     }
@@ -3023,7 +3104,10 @@
       if (!hasPermission("editPrevision")) return;
       const wk = getCurrentWeekData();
       if (!wk.quantities[productId]) wk.quantities[productId] = [0, 0, 0, 0, 0, 0, 0];
-      wk.quantities[productId][dayIdx] = Math.max(0, Math.round(Number(val) || 0));
+      const num = Math.max(0, Math.round(Number(val) || 0));
+      wk.quantities[productId][dayIdx] = num;
+      const prod = state.catalog.find(p => p.id === productId);
+      recordNetworkActivity("prevision", state.selectedBoutique, `Prévision ${prod ? prod.name : productId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
       renderAllViews();
     }
@@ -3732,8 +3816,10 @@
       const wk = getCurrentWeekData();
       const item = wk.traiteur.find(t => t.id === trId);
       if (!item) return;
-      item.quantities[dayIdx] = Math.max(0, Math.round(Number(val) || 0));
+      const num = Math.max(0, Math.round(Number(val) || 0));
+      item.quantities[dayIdx] = num;
       syncTraiteurToForecast(wk);
+      recordNetworkActivity("traiteur", state.selectedBoutique, `Traiteur ${item.name} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
       renderTraiteurView();
     }
@@ -3837,7 +3923,10 @@
       if (!hasPermission("editPrevision")) return;
       const wk = getCurrentWeekData();
       if (!wk.patisserie[patId]) wk.patisserie[patId] = [0,0,0,0,0,0,0];
-      wk.patisserie[patId][dayIdx] = Math.max(0, Math.round(Number(val) || 0));
+      const num = Math.max(0, Math.round(Number(val) || 0));
+      wk.patisserie[patId][dayIdx] = num;
+      const pat = state.patisserieCatalog.find(p => p.id === patId);
+      recordNetworkActivity("patisserie", state.selectedBoutique, `Pâtisserie ${pat ? pat.name : patId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
       saveCurrentBoutiqueData(true);
       renderPatisserieView();
     }
@@ -4279,7 +4368,7 @@
                     <td style="text-align:center;">
                       ${u.mustChangePassword
                         ? `<span class="support-badge">⏳ 1ère connexion en attente</span>`
-                        : `<span class="price-badge">✅ MDP personnalisé</span>`}
+                        : `<span class="price-badge">✅ MDP personnalisé</span>${u.passwordChangedAt ? `<div style="font-size:0.65rem; color:#64748b; margin-top:2px;">Modifié le ${new Date(u.passwordChangedAt).toLocaleDateString("fr-FR")} à ${new Date(u.passwordChangedAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</div>` : ""}`}
                     </td>
                     <td style="text-align:center; display:flex; flex-wrap:wrap; justify-content:center; gap:0.3rem;">
                       ${!isSuper && u.id !== state.currentUser?.id ? `<button type="button" class="btn btn-amber btn-sm" onclick="impersonateUser('${u.id}')">👁️ Voir comme</button>` : ""}
@@ -4296,23 +4385,57 @@
         </div>
         ` : ""}
 
+        <!-- 1bis. Journal en temps réel des modifications & changements de mot de passe des magasins -->
+        <div class="card" style="margin-top:1rem; border-color:#bfdbfe; background:#eff6ff;">
+          <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.55rem;">
+            <div>
+              <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Temps Réel — Modifications des Magasins &amp; Mots de Passe</h3>
+              <p style="font-size:0.75rem; color:#1d4ed8;">Mise à jour instantanée dès qu'une boutique change son mot de passe ou modifie ses prévisions, le Traiteur, la Pâtisserie ou son CA réalisé.</p>
+            </div>
+            <span style="font-size:0.72rem; font-weight:800; background:#dbeafe; color:#1e40af; padding:3px 9px; border-radius:999px;">
+              ${state.activityLog.length} événement(s) récent(s)
+            </span>
+          </div>
+          <div style="max-height:230px; overflow-y:auto; background:#fff; border:1px solid #dbeafe; border-radius:9px; padding:0.45rem 0.65rem;">
+            ${state.activityLog.length === 0 ? `
+              <div style="font-size:0.78rem; color:#64748b; padding:0.5rem;">Aucune modification enregistrée pour le moment. Toutes les actions des magasins apparaîtront ici instantanément.</div>
+            ` : state.activityLog.slice(0, 40).map(ev => {
+              const dt = ev.timestamp ? new Date(ev.timestamp) : new Date();
+              const timeStr = dt.toLocaleDateString("fr-FR") + " " + dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+              const badgeStyle = ev.type === "password"
+                ? "background:#fef3c7; color:#92400e; border:1px solid #f59e0b;"
+                : "background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;";
+              const icon = ev.type === "password" ? "🔑" : (ev.type === "ca" ? "💶" : "📝");
+              return `
+                <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.4rem; padding:0.36rem 0.25rem; border-bottom:1px solid #f1f5f9; font-size:0.77rem;">
+                  <div>
+                    <span style="font-size:0.68rem; font-weight:800; padding:1px 7px; border-radius:999px; ${badgeStyle}">${icon} ${escapeHtml(ev.boutique || "Réseau")}</span>
+                    <strong style="color:#0f172a; margin-left:4px;">${escapeHtml(ev.summary)}</strong>
+                    <span style="color:#64748b; font-size:0.71rem;">(${escapeHtml(ev.actor || "")})</span>
+                  </div>
+                  <span class="tabular" style="font-size:0.7rem; color:#64748b; font-weight:700;">${timeStr}</span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+
         <!-- 2. Jours d'ouverture par boutique (hebdomadaires & dates exceptionnelles) -->
         ${canSchedules ? `
         <div class="card" style="margin-top:1rem;">
-          <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.25rem;">🗓️ Jours d'Ouverture par Boutique (Hebdomadaire &amp; Dates Exceptionnelles)</h3>
-          <p style="font-size:0.76rem; color:#4b5563; margin-bottom:0.75rem;">Seuls les jours ouvrés définis ici sont visibles dans la Feuille de Prévision, le Traiteur, la Pâtisserie et le calcul du CA.</p>
-          <div class="grid-3">
+          <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">🗓️ Jours d'Ouverture par Boutique (9 Magasins)</h3>
+          <p style="font-size:0.75rem; color:#4b5563; margin-bottom:0.65rem;">Configurez les jours habituels d'ouverture et les ouvertures/fermetures exceptionnelles pour chaque boutique.</p>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:0.55rem;">
             ${BOUTIQUES.map(b => {
-              const sc = state.schedules[b.name] || { weeklyDays: [0,1,2,3,4,5,6], exceptionalOpenDates: [], exceptionalClosedDates: [] };
-              const daysTxt = (sc.weeklyDays || []).map(d => DAY_SHORT[d]).join(", ") || "Aucun";
+              const sc = state.schedules[b.name] || { weeklyDays: [0,1,2,3,4,5,6] };
+              const daysTxt = (sc.weeklyDays || []).map(i => DAY_SHORT[i]).join(", ") || "Fermé";
               return `
-                <div style="border:1px solid #e2e8f0; border-radius:11px; padding:0.75rem; background:#f8fafc;">
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
-                    <strong style="font-size:0.88rem;">${escapeHtml(b.name)}</strong>
-                    <button type="button" class="btn btn-amber btn-sm" onclick="openBoutiqueScheduleModal('${escapeHtml(b.name)}')">🗓️ Horaires</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0.65rem; border:1px solid #e2e8f0; border-radius:9px; background:#f8fafc;">
+                  <div>
+                    <div style="font-weight:800; font-size:0.82rem; color:#111827;">${escapeHtml(b.name)}</div>
+                    <div style="font-size:0.71rem; color:#64748b;">${escapeHtml(daysTxt)}</div>
                   </div>
-                  <div style="font-size:0.74rem; color:#334155;">Jours habituels : <strong>${daysTxt}</strong></div>
-                  <div style="font-size:0.71rem; color:#059669; margin-top:2px;">⭐ Ouvertures excep. : ${(sc.exceptionalOpenDates || []).length} • Fermetures excep. : ${(sc.exceptionalClosedDates || []).length}</div>
+                  <button type="button" class="btn btn-white btn-sm" onclick="openBoutiqueScheduleModal('${escapeHtml(b.name)}')">Modifier</button>
                 </div>
               `;
             }).join("")}
@@ -4320,72 +4443,55 @@
         </div>
         ` : ""}
 
-        <!-- 3. Gestion exclusive des Tarifs & Catalogue Produits (Drag & Drop + Dormance) -->
-        ${(canPricesCa || canCatalog) ? `
-        <div class="grid-2" style="margin-top:1rem;">
-          ${canPricesCa ? `
-          <div class="card">
-            <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.3rem;">💶 Gestion Exclusive des Tarifs (€) &amp; Objectifs CA</h3>
-            <p style="font-size:0.76rem; color:#4b5563; margin-bottom:0.75rem;">
-              Modifiez les prix de vente réseau et renseignez ou importez les colonnes <strong>CA Objectif</strong> et <strong>CA Réalisé</strong> pour chaque boutique.
-            </p>
-            <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
-              <button type="button" class="btn btn-amber" onclick="openAdminCaObjectivesModal()">🎯 CA Objectif &amp; CA Réalisé (9 Boutiques)</button>
-              <button type="button" class="btn btn-emerald" onclick="openPricesManagerModal()">💶 Modifier tous les Tarifs (Pains, Vienn., Traiteur, Pât.)</button>
-              ${canCatalog ? `<button type="button" class="btn btn-white" onclick="openAddCatalogProductModal()">+ Nouveau Produit Boulangerie</button>` : ""}
-            </div>
+        <!-- 3. Tarifs & CA Objectif / Réalisé -->
+        ${canPricesCa ? `
+        <div class="card" style="margin-top:1rem;">
+          <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">💶 Tarifs Réseau &amp; CA Objectif / Réalisé</h3>
+          <p style="font-size:0.75rem; color:#4b5563; margin-bottom:0.65rem;">Modifiez les prix de vente (€) des gammes ou importez/saisissez le CA Objectif et Réalisé des 9 boutiques.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+            <button type="button" class="btn btn-amber btn-sm" onclick="openPricesManagerModal()">💶 Modifier les Tarifs (€)</button>
+            <button type="button" class="btn btn-emerald btn-sm" onclick="openAdminCaObjectivesModal()">🎯 CA Objectif &amp; CA Réalisé (9 Boutiques)</button>
           </div>
-          ` : ""}
-
-          ${canCatalog ? `
-          <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-              <h3 style="font-size:1rem; font-weight:900; color:#111827;">📦 Ordre d'affichage &amp; Dormance Produits</h3>
-              <select id="admin-prod-status-filter" class="select" style="width:auto;" onchange="renderAdminView()">
-                <option value="ALL">Tous</option>
-                <option value="ACTIVE">Actifs</option>
-                <option value="DORMANT">En dormance</option>
-              </select>
-            </div>
-            <div id="admin-products-list" style="max-height:360px; overflow-y:auto;"></div>
-          </div>
-          ` : ""}
         </div>
         ` : ""}
 
-        <!-- 4. Génération facile de index.html & Sauvegarde 10 ans -->
-        ${canExport ? `
-        <div class="card" style="margin-top:1rem; border-color:#a7f3d0; background:#f0fdf4;">
-          <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.65rem; margin-bottom:0.6rem;">
+        <!-- 4. Gestion du Catalogue Produits & Ordre d'affichage -->
+        ${canCatalog ? `
+        <div class="card" style="margin-top:1rem;">
+          <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.65rem;">
             <div>
-              <h3 style="font-size:1rem; font-weight:900; color:#065f46;">📦 Génération du fichier <code>index.html</code> &amp; Sauvegardes Automatiques (10 ans minimum)</h3>
-              <p style="font-size:0.77rem; color:#047857;">
-                Générez le fichier <code>index.html</code> prêt à déployer sur GitHub / Vercel. Vos données sont sauvegardées automatiquement et conservées <strong>10 ans minimum</strong>.
-              </p>
+              <h3 style="font-size:1rem; font-weight:900; color:#111827;">📦 Gestion de la Gamme Boulangerie / Viennoiserie &amp; Ordre</h3>
+              <p style="font-size:0.75rem; color:#4b5563;">Ajoutez, mettez en dormance ou réordonnez les produits visibles sur les feuilles de prévision.</p>
             </div>
-            <div style="display:flex; flex-wrap:wrap; gap:0.45rem;">
-              <button type="button" class="btn btn-amber" onclick="downloadGeneratedIndexHtml()">⬇️ Générer &amp; Télécharger index.html</button>
-              <button type="button" class="btn btn-emerald" onclick="exportFullNetworkBackupJson()">💾 Exporter Sauvegarde 10 ans (.json)</button>
-              <label class="btn btn-white" style="cursor:pointer;">
-                📂 Restaurer (.json)
-                <input type="file" accept=".json" class="hidden" onchange="importFullNetworkBackupJson(event)" />
-              </label>
+            <div style="display:flex; gap:0.4rem;">
+              <button type="button" class="btn btn-white btn-sm" onclick="openImportForecastProductsModal()">📥 Importer Excel</button>
+              <button type="button" class="btn btn-emerald btn-sm" onclick="openAddCatalogProductModal()">+ Nouveau Produit</button>
             </div>
           </div>
-          <div id="admin-html-status-bar" style="font-size:0.75rem; color:#065f46; background:#fff; border:1px solid #a7f3d0; padding:0.5rem 0.7rem; border-radius:8px; font-weight:700;"></div>
+          <div id="admin-catalog-order-list" style="max-height:360px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:9px; padding:0.45rem;"></div>
+        </div>
+        ` : ""}
+
+        <!-- 5. Sauvegarde 10 ans & Générateur index.html -->
+        ${canExport ? `
+        <div class="card" style="margin-top:1rem; background:#f8fafc; border-color:#cbd5e1;">
+          <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">💾 Sauvegarde Réseau 10 ans &amp; Export index.html</h3>
+          <div id="admin-html-status-bar" style="font-size:0.75rem; color:#065f46; font-weight:700; margin-bottom:0.65rem;"></div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+            <button type="button" class="btn btn-dark btn-sm" onclick="downloadGeneratedIndexHtml()">⬇️ Générer &amp; Télécharger index.html</button>
+            <button type="button" class="btn btn-white btn-sm" onclick="exportFullNetworkBackupJson()">📤 Exporter Sauvegarde JSON (10 ans)</button>
+            <label class="btn btn-white btn-sm" style="cursor:pointer;">
+              📥 Restaurer Sauvegarde JSON
+              <input type="file" accept=".json" class="hidden" onchange="importFullNetworkBackupJson(event)" />
+            </label>
+          </div>
         </div>
         ` : ""}
       `;
 
-      const prodListEl = document.getElementById("admin-products-list");
+      const prodListEl = document.getElementById("admin-catalog-order-list");
       if (prodListEl) {
-        const prodFilter = document.getElementById("admin-prod-status-filter")?.value || "ALL";
-        const filteredProds = state.catalog.filter(p => {
-          if (prodFilter === "ACTIVE") return !p.dormant;
-          if (prodFilter === "DORMANT") return !!p.dormant;
-          return true;
-        });
-
+        const filteredProds = state.catalog;
         prodListEl.innerHTML = `
           <div style="font-size:0.73rem; color:#475569; background:#f8fafc; border:1px solid #e2e8f0; border-radius:7px; padding:0.38rem 0.55rem; margin-bottom:0.4rem; font-weight:700;">
             ↕️ Glissez-déposez les produits (icône <strong>⋮⋮</strong>) pour les placer dans l'ordre exact souhaité sur les feuilles de prévision.
@@ -4417,6 +4523,117 @@
 
       refreshAdminHtmlPanel();
     }
+
+    let _cloudPushTimer = null;
+    function scheduleCloudPush() {
+      if (_isApplyingRemote) return;
+      clearTimeout(_cloudPushTimer);
+      _cloudPushTimer = setTimeout(() => {
+        if (window.__julesCloud && window.__julesCloud.pushBoutique && state.selectedBoutique) {
+          window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
+        }
+      }, 250);
+    }
+
+    window.__getCurrentActorName = function () {
+      return state.currentUser ? state.currentUser.label : state.selectedBoutique;
+    };
+
+    window.__applyRemoteGlobalConfig = function (data) {
+      if (!data) return;
+      _isApplyingRemote = true;
+      try {
+        if (data.usersJson) {
+          const parsedUsers = JSON.parse(data.usersJson);
+          if (Array.isArray(parsedUsers) && parsedUsers.length) {
+            state.users = parsedUsers;
+            safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
+            if (state.currentUser) {
+              const refreshedSelf = state.users.find(u => u.id === state.currentUser.id);
+              if (refreshedSelf) state.currentUser = refreshedSelf;
+            }
+          }
+        }
+        if (data.catalogJson) {
+          const parsedCat = JSON.parse(data.catalogJson);
+          if (Array.isArray(parsedCat) && parsedCat.length) {
+            state.catalog = parsedCat;
+            safeSetItem(STORAGE_KEYS.catalog, JSON.stringify(state.catalog));
+          }
+        }
+        if (data.patisserieCatalogJson) {
+          const parsedPat = JSON.parse(data.patisserieCatalogJson);
+          if (Array.isArray(parsedPat) && parsedPat.length) {
+            state.patisserieCatalog = parsedPat;
+            safeSetItem(STORAGE_KEYS.patisserieCatalog, JSON.stringify(state.patisserieCatalog));
+          }
+        }
+        if (data.schedulesJson) {
+          const parsedSch = JSON.parse(data.schedulesJson);
+          if (parsedSch && typeof parsedSch === "object") {
+            state.schedules = parsedSch;
+            safeSetItem(STORAGE_KEYS.schedules, JSON.stringify(state.schedules));
+          }
+        }
+        if (data.techSheetsJson) {
+          const parsedTs = JSON.parse(data.techSheetsJson);
+          if (Array.isArray(parsedTs) && parsedTs.length) {
+            state.techSheets = parsedTs;
+            safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
+          }
+        }
+        if (state.currentUser) {
+          renderAllViews();
+        }
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+    };
+
+    window.__applyRemoteBoutiqueData = function (docData) {
+      if (!docData || !docData.boutique || !docData.weeksJson) return;
+      _isApplyingRemote = true;
+      try {
+        const weeksObj = JSON.parse(docData.weeksJson);
+        const storeObj = { boutique: docData.boutique, weeks: weeksObj };
+        safeSetItem(boutiqueStorageKey(docData.boutique), JSON.stringify(storeObj));
+        if (state.selectedBoutique === docData.boutique) {
+          state.storeData = storeObj;
+          if (state.currentUser) renderAllViews();
+        }
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+    };
+
+    window.__applyRemoteActivityLogs = function (logs) {
+      if (!Array.isArray(logs)) return;
+      _isApplyingRemote = true;
+      try {
+        const prevTopId = state.activityLog[0]?.id;
+        logs.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
+        state.activityLog = logs.slice(0, 150);
+        safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
+        const newest = state.activityLog[0];
+        if (newest && newest.id !== prevTopId && isEffectiveAdmin() && state.currentUser && newest.actor !== state.currentUser.label) {
+          showToast(`📡 ${newest.boutique} : ${newest.summary}`);
+          if (state.activeTab === "admin") renderAdminView();
+        }
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+    };
+
+    window.addEventListener("storage", (ev) => {
+      if (!ev.key) return;
+      if (ev.key === STORAGE_KEYS.users || ev.key === STORAGE_KEYS.catalog || ev.key === STORAGE_KEYS.patisserieCatalog || ev.key === STORAGE_KEYS.schedules || ev.key === STORAGE_KEYS.techSheets || ev.key === STORAGE_KEYS.activityLog) {
+        loadGlobalConfig();
+        if (state.currentUser) renderAllViews();
+      } else if (ev.key === boutiqueStorageKey(state.selectedBoutique)) {
+        loadBoutiqueStore(state.selectedBoutique);
+        if (state.currentUser) renderAllViews();
+      }
+    });
 
     /* Drag & Drop Ordre Produits */
     let draggedCatalogProductId = null;
