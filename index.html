@@ -2181,11 +2181,6 @@
         }
       }, 150);
     }
-        if (window.__julesCloud && window.__julesCloud.pushBoutique && state.selectedBoutique) {
-          window.__julesCloud.pushBoutique(state.selectedBoutique, state.storeData);
-        }
-      }, 200);
-    }
 
     window.__getCurrentActorName = function () {
       return state.currentUser ? state.currentUser.label : state.selectedBoutique;
