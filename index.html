@@ -509,6 +509,20 @@
       <button type="button" class="btn btn-dark btn-sm" onclick="exitImpersonation()">↩️ Revenir à ma Vue Administrateur</button>
     </div>
 
+    <div id="admin-live-ticker" class="hidden no-print" style="background:#0f172a; color:#f8fafc; padding:0.42rem 1.15rem; border-bottom:1px solid #334155; font-size:0.78rem;">
+      <div style="max-width:1560px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981;"></span>
+          <strong style="color:#fbbf24;">EN DIRECT BOUTIQUES :</strong>
+          <span id="admin-live-ticker-text" style="color:#e2e8f0;">En attente d'une saisie boutique...</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.4rem;">
+          <button id="admin-live-ticker-jump" type="button" class="btn btn-amber btn-sm hidden" onclick="jumpToLastLiveBoutique()">👁️ Voir cette boutique</button>
+          <button type="button" class="btn btn-white btn-sm" onclick="forceManualSyncNow()">🔄 Actualiser maintenant</button>
+        </div>
+      </div>
+    </div>
+
     <header class="topbar">
       <div class="topbar-inner">
         <div style="display:flex; align-items:center; gap:0.65rem;">
@@ -1668,6 +1682,7 @@
     let _sseEventSource = null;
     let _lastPollTimestamp = Math.floor(Date.now() / 1000) - 86400;
     const _processedPacketIds = new Set();
+    let _lastLiveEventMeta = null;
 
     function normalizeBoutiqueName(rawName) {
       const targetSlug = slugify(rawName);
@@ -1783,8 +1798,8 @@
 
     function pollMissedNetworkPackets(sinceParam) {
       const ch = getActiveNetworkChannel();
-      const since = sinceParam || Math.max(1, _lastPollTimestamp - 15);
-      fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/json?poll=1&since=${since}`, { cache: "no-store" })
+      const since = sinceParam || Math.max(1, _lastPollTimestamp - 20);
+      fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/json?poll=1&since=${since}&_t=${Date.now()}`, { cache: "no-store" })
         .then(r => r.text())
         .then(txt => {
           _lastPollTimestamp = Math.floor(Date.now() / 1000);
@@ -1846,23 +1861,59 @@
       };
 
       connectStream();
-      pollMissedNetworkPackets("24h");
+      pollMissedNetworkPackets("48h");
 
-      // Scrutation continue toutes les 3 secondes + lors du retour sur l'onglet
+      // Scrutation continue toutes les 1.8 secondes pour un affichage quasi-instantané
       setInterval(() => {
         pollMissedNetworkPackets();
-      }, 3000);
+      }, 1800);
 
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
-          pollMissedNetworkPackets("2h");
+          pollMissedNetworkPackets("6h");
           broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
         }
       });
 
       setTimeout(() => {
         broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
-      }, 700);
+      }, 500);
+    }
+
+    function updateAdminLiveTicker(boutiqueName, summary, mondayIso, dayIdx) {
+      if (!isEffectiveAdmin() || !state.currentUser) return;
+      const ticker = document.getElementById("admin-live-ticker");
+      const txt = document.getElementById("admin-live-ticker-text");
+      const jumpBtn = document.getElementById("admin-live-ticker-jump");
+      if (!ticker || !txt) return;
+
+      ticker.classList.remove("hidden");
+      const timeNow = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      txt.innerHTML = `<span style="background:#f59e0b; color:#111827; font-weight:900; padding:1px 6px; border-radius:4px; margin-right:5px;">${escapeHtml(boutiqueName)}</span> ${escapeHtml(summary)} <span style="opacity:0.75;">(${timeNow})</span>`;
+
+      if (BOUTIQUES.some(b => slugify(b.name) === slugify(boutiqueName))) {
+        _lastLiveEventMeta = {
+          boutique: normalizeBoutiqueName(boutiqueName),
+          mondayIso: mondayIso || state.selectedWeekMonday,
+          dayIdx: typeof dayIdx === "number" ? dayIdx : state.selectedDayIdx
+        };
+        if (jumpBtn) {
+          jumpBtn.textContent = `👁️ Basculer sur ${escapeHtml(_lastLiveEventMeta.boutique)}`;
+          jumpBtn.classList.remove("hidden");
+        }
+      }
+    }
+
+    function jumpToLastLiveBoutique() {
+      if (!_lastLiveEventMeta || !isEffectiveAdmin()) return;
+      state.selectedBoutique = _lastLiveEventMeta.boutique;
+      state.selectedWeekMonday = _lastLiveEventMeta.mondayIso;
+      state.selectedDayIdx = _lastLiveEventMeta.dayIdx;
+      const bSelect = document.getElementById("boutique-select");
+      if (bSelect) bSelect.value = state.selectedBoutique;
+      loadBoutiqueStore(state.selectedBoutique);
+      renderAllViews();
+      showToast(`Affichage basculé sur ${state.selectedBoutique}`);
     }
 
     function forceManualSyncNow() {
@@ -1916,17 +1967,17 @@
       return wk;
     }
 
-    function refreshViewsSafelyAfterRemoteUpdate(affectedBoutique) {
+    function refreshViewsSafelyAfterRemoteUpdate(affectedBoutique, mondayIso, dayIdx) {
       if (!state.currentUser) return;
       const activeEl = document.activeElement;
-      const isTypingInInput = activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.tagName === "SELECT");
+      const isEditingNumber = activeEl && activeEl.tagName === "INPUT" && activeEl.type === "number" && document.hasFocus();
 
       if (state.activeTab === "admin" && isEffectiveAdmin()) {
-        if (!isTypingInInput) renderAdminView();
+        renderAdminView();
         return;
       }
       if (affectedBoutique && slugify(state.selectedBoutique) === slugify(affectedBoutique)) {
-        if (!isTypingInInput) {
+        if (!isEditingNumber) {
           renderAllViews();
         }
       }
@@ -1941,7 +1992,6 @@
         _processedPacketIds.delete(first);
       }
 
-      // Réassemblage des paquets multi-morceaux
       if (pkt.kind === "chunk_part" && pkt.batchId) {
         if (!_incomingChunkBuffers[pkt.batchId]) {
           _incomingChunkBuffers[pkt.batchId] = { total: pkt.totalParts, parts: {}, createdAt: Date.now() };
@@ -2032,44 +2082,55 @@
           if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
           }
-          refreshViewsSafelyAfterRemoteUpdate(bName);
+          updateAdminLiveTicker(bName, `Semaine ${getIsoWeekNumber(pkt.mondayIso)} synchronisée`, pkt.mondayIso);
+          refreshViewsSafelyAfterRemoteUpdate(bName, pkt.mondayIso);
         } else if (pkt.kind === "cell_delta" && pkt.boutique && pkt.mondayIso) {
           const bName = normalizeBoutiqueName(pkt.boutique);
           const st = readBoutiqueStoreReadOnly(bName);
           const wk = ensureBoutiqueWeekObject(st, pkt.mondayIso, bName);
           const dIdx = Number(pkt.dayIdx) || 0;
           const val = Number(pkt.value) || 0;
+          let labelInfo = `${DAY_NAMES[dIdx]} → ${val}`;
 
           if (pkt.domain === "forecast" && pkt.productId) {
             if (!wk.quantities[pkt.productId]) wk.quantities[pkt.productId] = [0,0,0,0,0,0,0];
             wk.quantities[pkt.productId][dIdx] = val;
+            const prod = state.catalog.find(p => p.id === pkt.productId);
+            labelInfo = `${prod ? prod.name : pkt.productId} (${DAY_NAMES[dIdx]}) : ${val}`;
           } else if (pkt.domain === "traiteur" && pkt.trId) {
             const item = (wk.traiteur || []).find(t => t.id === pkt.trId);
             if (item) {
               if (!Array.isArray(item.quantities)) item.quantities = [0,0,0,0,0,0,0];
               item.quantities[dIdx] = val;
               syncTraiteurToForecast(wk);
+              labelInfo = `Traiteur ${item.name} (${DAY_NAMES[dIdx]}) : ${val}`;
             }
           } else if (pkt.domain === "patisserie" && pkt.patId) {
             if (!wk.patisserie[pkt.patId]) wk.patisserie[pkt.patId] = [0,0,0,0,0,0,0];
             wk.patisserie[pkt.patId][dIdx] = val;
+            const pat = state.patisserieCatalog.find(p => p.id === pkt.patId);
+            labelInfo = `Pâtisserie ${pat ? pat.name : pkt.patId} (${DAY_NAMES[dIdx]}) : ${val}`;
           } else if (pkt.domain === "caRealise") {
             wk.caRealise[dIdx] = val;
+            labelInfo = `CA Réalisé (${DAY_NAMES[dIdx]}) : ${formatNum(val, 0)} €`;
           } else if (pkt.domain === "caObjectif") {
             wk.caObjectif[dIdx] = val;
+            labelInfo = `CA Objectif (${DAY_NAMES[dIdx]}) : ${formatNum(val, 0)} €`;
           }
 
           safeSetItem(boutiqueStorageKey(bName), JSON.stringify(st));
           if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
           }
-          refreshViewsSafelyAfterRemoteUpdate(bName);
+          updateAdminLiveTicker(bName, labelInfo, pkt.mondayIso, dIdx);
+          refreshViewsSafelyAfterRemoteUpdate(bName, pkt.mondayIso, dIdx);
         } else if (pkt.kind === "activity" && pkt.entry) {
           if (!state.activityLog.some(x => x.id === pkt.entry.id)) {
             state.activityLog.unshift(pkt.entry);
             if (state.activityLog.length > 150) state.activityLog = state.activityLog.slice(0, 150);
             safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
             if (isEffectiveAdmin() && state.currentUser) {
+              updateAdminLiveTicker(pkt.entry.boutique || "Réseau", pkt.entry.summary);
               showToast(`📡 ${pkt.entry.boutique} : ${pkt.entry.summary}`);
               if (state.activeTab === "admin") renderAdminView();
             }
@@ -2501,6 +2562,10 @@
       const btnStoreView = document.getElementById("btn-toggle-store-view");
       const btnImportExcel = document.getElementById("btn-import-forecast-excel");
       const banner = document.getElementById("store-view-banner");
+      const liveTicker = document.getElementById("admin-live-ticker");
+      if (liveTicker) {
+        liveTicker.classList.toggle("hidden", !effAdmin);
+      }
       if (btnImportExcel) {
         btnImportExcel.classList.toggle("hidden", !hasPermission("adminManageCatalog"));
       }
