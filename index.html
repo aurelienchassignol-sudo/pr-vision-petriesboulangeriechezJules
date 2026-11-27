@@ -278,17 +278,24 @@
     }
     /* Tableaux prévisions avec en-tête des jours fixe au défilement de la page */
     .table-wrap {
-      overflow-x: auto;
-      overflow-y: visible;
+      overflow: visible;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       background: #fff;
+    }
+    @media (max-width: 1024px) {
+      .table-wrap { overflow-x: auto; }
     }
     table.forecast-table {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
       font-size: 0.81rem;
+    }
+    .forecast-table thead {
+      position: sticky;
+      top: var(--sticky-header-offset, 148px);
+      z-index: 25;
     }
     .forecast-table thead th {
       position: sticky;
@@ -303,6 +310,8 @@
       white-space: nowrap;
       box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
     }
+    .forecast-table thead tr:first-child th:first-child { border-top-left-radius: 11px; }
+    .forecast-table thead tr:first-child th:last-child { border-top-right-radius: 11px; }
     .forecast-table th.sticky-col,
     .forecast-table td.sticky-col {
       position: sticky;
@@ -2786,12 +2795,14 @@
     function updateStickyTableHeaderOffset() {
       const headerEl = document.querySelector(".sticky-workspace-header");
       if (headerEl) {
-        const h = Math.ceil(headerEl.getBoundingClientRect().height);
+        const rect = headerEl.getBoundingClientRect();
+        const h = Math.max(0, Math.round(rect.height));
         document.documentElement.style.setProperty("--sticky-header-offset", `${h}px`);
       }
     }
 
     window.addEventListener("resize", updateStickyTableHeaderOffset);
+    window.addEventListener("scroll", updateStickyTableHeaderOffset, { passive: true });
 
     function renderAllViews() {
       const wkNum = getIsoWeekNumber(state.selectedWeekMonday);
@@ -5125,15 +5136,6 @@
       else sc.exceptionalClosedDates = (sc.exceptionalClosedDates || []).filter(x => x !== dt);
       saveGlobalConfig();
       openBoutiqueScheduleModal(bName);
-    }
-
-    function toggleBoutiqueWeeklyDay(bName, dayIdx, checked) {
-      const sc = state.schedules[bName];
-      if (!sc) return;
-      const set = new Set(sc.weeklyDays || []);
-      if (checked) set.add(dayIdx); else set.delete(dayIdx);
-      sc.weeklyDays = [...set].sort();
-      saveGlobalConfig();
     }
 
     function exportFullNetworkBackupJson() {
