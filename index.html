@@ -530,6 +530,10 @@
 
     <div id="admin-live-ticker" class="live-ticker-bar hidden">
       <span id="admin-live-ticker-text">📡 En direct du réseau...</span>
+      <label id="admin-auto-follow-wrap" class="hidden" style="display:inline-flex; align-items:center; gap:0.3rem; background:#dbeafe; border:1px solid #93c5fd; padding:2px 8px; border-radius:999px; font-size:0.72rem; cursor:pointer;">
+        <input id="admin-auto-follow-chk" type="checkbox" checked onchange="state.autoFollowLiveBoutique = this.checked" />
+        <span>Suivre automatiquement en direct</span>
+      </label>
       <button id="admin-live-ticker-jump" type="button" class="btn btn-dark btn-sm hidden">👁️ Voir la boutique</button>
     </div>
 
@@ -1305,7 +1309,8 @@
       storeData: { boutique: "Saint Paul", weeks: {} },
       hideZeroPetries: true,
       selectedTechSheetFolder: "ALL",
-      selectedTechSheetId: null
+      selectedTechSheetId: null,
+      autoFollowLiveBoutique: true
     };
 
     function parseIsoDate(iso) {
@@ -1729,11 +1734,15 @@
       const ticker = document.getElementById("admin-live-ticker");
       const textEl = document.getElementById("admin-live-ticker-text");
       const jumpBtn = document.getElementById("admin-live-ticker-jump");
+      const autoFollowWrap = document.getElementById("admin-auto-follow-wrap");
       if (!ticker || !textEl || !entry) return;
       const dt = entry.timestamp ? new Date(entry.timestamp) : new Date();
       const timeStr = dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
       textEl.textContent = `📡 EN DIRECT (${timeStr}) — ${entry.boutique || "Réseau"} : ${entry.summary}`;
       ticker.classList.remove("hidden");
+      if (autoFollowWrap) {
+        autoFollowWrap.classList.toggle("hidden", !isEffectiveAdmin());
+      }
       if (jumpBtn) {
         const isValidStore = BOUTIQUES.some(b => slugify(b.name) === slugify(entry.boutique));
         if (isValidStore && isEffectiveAdmin()) {
@@ -1751,6 +1760,45 @@
         } else {
           jumpBtn.classList.add("hidden");
         }
+      }
+    }
+
+    function autoSwitchAdminToLiveStoreIfEnabled(bName, mondayIso, dayIdx, domain) {
+      if (!state.currentUser || !isEffectiveAdmin() || !state.autoFollowLiveBoutique) return;
+      const activeTag = document.activeElement?.tagName;
+      if (activeTag === "INPUT" || activeTag === "TEXTAREA" || activeTag === "SELECT") return;
+
+      const normalizedShop = normalizeBoutiqueName(bName);
+      let changed = false;
+      if (slugify(state.selectedBoutique) !== slugify(normalizedShop)) {
+        state.selectedBoutique = normalizedShop;
+        const bSelect = document.getElementById("boutique-select");
+        if (bSelect) bSelect.value = normalizedShop;
+        const effUser = getEffectiveUser();
+        const roleTag = isSuperAdminUser(effUser) ? "Super Admin • 9 Boutiques" : "Admin Délégué • 9 Boutiques";
+        const subEl = document.getElementById("user-role-subtitle");
+        if (subEl) subEl.textContent = `${effUser.label} (${roleTag}) • Affichage : ${state.selectedBoutique}`;
+        loadBoutiqueStore(normalizedShop);
+        changed = true;
+      }
+      if (mondayIso && state.selectedWeekMonday !== mondayIso) {
+        state.selectedWeekMonday = mondayIso;
+        changed = true;
+      }
+      if (typeof dayIdx === "number" && !isNaN(dayIdx) && state.selectedDayIdx !== dayIdx) {
+        state.selectedDayIdx = dayIdx;
+        changed = true;
+      }
+      if (domain === "traiteur" && state.activeTab !== "traiteur" && state.activeTab !== "admin") {
+        switchTab("traiteur");
+        return;
+      }
+      if (domain === "patisserie" && state.activeTab !== "patisserie" && state.activeTab !== "admin") {
+        switchTab("patisserie");
+        return;
+      }
+      if (changed) {
+        renderAllViews();
       }
     }
 
@@ -1839,8 +1887,9 @@
           if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
             refreshViewsSafelyAfterRemoteUpdate();
-          } else if (state.activeTab === "admin" && isEffectiveAdmin()) {
-            renderAdminView();
+          } else {
+            autoSwitchAdminToLiveStoreIfEnabled(bName, pkt.mondayIso, dIdx, pkt.domain);
+            if (state.activeTab === "admin" && isEffectiveAdmin()) renderAdminView();
           }
         } else if (pkt.kind === "activity" && pkt.entry) {
           if (!state.activityLog.some(x => x.id === pkt.entry.id)) {
@@ -1849,6 +1898,9 @@
             safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
             if (state.currentUser) {
               updateAdminLiveTicker(pkt.entry);
+              if (pkt.entry.boutique && BOUTIQUES.some(b => slugify(b.name) === slugify(pkt.entry.boutique))) {
+                autoSwitchAdminToLiveStoreIfEnabled(pkt.entry.boutique, pkt.entry.mondayIso, pkt.entry.dayIdx, pkt.entry.type);
+              }
               showToast(`📡 ${pkt.entry.boutique} : ${pkt.entry.summary}`);
               if (state.activeTab === "admin" && isEffectiveAdmin()) renderAdminView();
             }
