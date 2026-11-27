@@ -811,6 +811,7 @@
       techSheets: "jules_v11_tech_sheets",
       activityLog: "jules_v11_activity_log",
       networkChannel: "jules_v11_network_channel",
+      cloudBlobId: "jules_v11_cloud_blob_id",
       safetySnapshot: "jules_v11_safety_snapshot_10y"
     };
 
@@ -1675,7 +1676,7 @@
     }
 
     /* ==========================================================================
-       4. MOTEUR TEMPS RÉEL MULTI-POSTES
+       4. MOTEUR TEMPS RÉEL MULTI-POSTES PÉRENNE (CLOUD JSON PERSISTANT + SSE)
        ========================================================================== */
     let _isApplyingRemote = false;
     let _localBroadcastChannel = null;
@@ -1683,6 +1684,10 @@
     let _lastPollTimestamp = Math.floor(Date.now() / 1000) - 86400;
     const _processedPacketIds = new Set();
     let _lastLiveEventMeta = null;
+    let _cloudBlobId = null;
+    let _cloudSyncInFlight = false;
+    let _cloudDirtyPending = false;
+    let _lastCloudRev = 0;
 
     function normalizeBoutiqueName(rawName) {
       const targetSlug = slugify(rawName);
@@ -1691,7 +1696,17 @@
     }
 
     function getActiveNetworkChannel() {
-      const urlParam = new URLSearchParams(window.location.search).get("reseau");
+      const params = new URLSearchParams(window.location.search);
+      const urlBlob = params.get("blob");
+      if (urlBlob && urlBlob.trim()) {
+        _cloudBlobId = urlBlob.trim();
+        safeSetItem(STORAGE_KEYS.cloudBlobId, _cloudBlobId);
+      } else if (!_cloudBlobId) {
+        const savedBlob = safeGetItem(STORAGE_KEYS.cloudBlobId);
+        if (savedBlob && savedBlob.trim()) _cloudBlobId = savedBlob.trim();
+      }
+
+      const urlParam = params.get("reseau");
       if (urlParam && urlParam.trim()) {
         const clean = slugify(urlParam.trim());
         safeSetItem(STORAGE_KEYS.networkChannel, clean);
@@ -1703,6 +1718,222 @@
         state.networkChannel = saved.trim();
       }
       return state.networkChannel;
+    }
+
+    function buildFullDurableNetworkState() {
+      const boutiquesMap = {};
+      BOUTIQUES.forEach(b => {
+        const st = readBoutiqueStoreReadOnly(b.name);
+        boutiquesMap[b.name] = {
+          updatedAt: st.updatedAt || new Date(0).toISOString(),
+          weeks: st.weeks || {}
+        };
+      });
+      return {
+        app: "chez-jules-reseau",
+        channel: getActiveNetworkChannel(),
+        rev: Date.now(),
+        updatedBy: state.currentUser ? state.currentUser.label : DEVICE_ID,
+        users: state.users,
+        catalog: state.catalog,
+        patisserieCatalog: state.patisserieCatalog,
+        schedules: state.schedules,
+        techSheets: state.techSheets,
+        activityLog: (state.activityLog || []).slice(0, 120),
+        boutiques: boutiquesMap
+      };
+    }
+
+    function applyDurableCloudSnapshot(remoteDoc) {
+      if (!remoteDoc || typeof remoteDoc !== "object") return false;
+      let changed = false;
+      _isApplyingRemote = true;
+      try {
+        if (Array.isArray(remoteDoc.users) && remoteDoc.users.length) {
+          const prevStr = JSON.stringify(state.users);
+          remoteDoc.users.forEach(u => { u.mustChangePassword = false; });
+          if (JSON.stringify(remoteDoc.users) !== prevStr) {
+            state.users = remoteDoc.users;
+            safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
+            if (state.currentUser) {
+              const me = state.users.find(u => u.id === state.currentUser.id);
+              if (me) state.currentUser = me;
+            }
+            changed = true;
+          }
+        }
+        if (Array.isArray(remoteDoc.catalog) && remoteDoc.catalog.length) {
+          if (JSON.stringify(remoteDoc.catalog) !== JSON.stringify(state.catalog)) {
+            state.catalog = remoteDoc.catalog;
+            safeSetItem(STORAGE_KEYS.catalog, JSON.stringify(state.catalog));
+            changed = true;
+          }
+        }
+        if (Array.isArray(remoteDoc.patisserieCatalog) && remoteDoc.patisserieCatalog.length) {
+          if (JSON.stringify(remoteDoc.patisserieCatalog) !== JSON.stringify(state.patisserieCatalog)) {
+            state.patisserieCatalog = remoteDoc.patisserieCatalog;
+            safeSetItem(STORAGE_KEYS.patisserieCatalog, JSON.stringify(state.patisserieCatalog));
+            changed = true;
+          }
+        }
+        if (remoteDoc.schedules && typeof remoteDoc.schedules === "object") {
+          if (JSON.stringify(remoteDoc.schedules) !== JSON.stringify(state.schedules)) {
+            state.schedules = remoteDoc.schedules;
+            safeSetItem(STORAGE_KEYS.schedules, JSON.stringify(state.schedules));
+            changed = true;
+          }
+        }
+        if (Array.isArray(remoteDoc.techSheets) && remoteDoc.techSheets.length) {
+          if (JSON.stringify(remoteDoc.techSheets) !== JSON.stringify(state.techSheets)) {
+            state.techSheets = remoteDoc.techSheets;
+            safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
+            changed = true;
+          }
+        }
+        if (Array.isArray(remoteDoc.activityLog)) {
+          const existingIds = new Set(state.activityLog.map(x => x.id));
+          let addedAct = false;
+          remoteDoc.activityLog.forEach(ev => {
+            if (ev && ev.id && !existingIds.has(ev.id)) {
+              state.activityLog.push(ev);
+              existingIds.add(ev.id);
+              addedAct = true;
+            }
+          });
+          if (addedAct) {
+            state.activityLog.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
+            state.activityLog = state.activityLog.slice(0, 150);
+            safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
+            const newest = state.activityLog[0];
+            if (newest && isEffectiveAdmin() && state.currentUser && !String(newest.actor || "").includes(DEVICE_ID)) {
+              updateAdminLiveTicker(newest.boutique || "Réseau", newest.summary);
+            }
+            changed = true;
+          }
+        }
+        if (remoteDoc.boutiques && typeof remoteDoc.boutiques === "object") {
+          Object.entries(remoteDoc.boutiques).forEach(([rawName, remoteStore]) => {
+            const bName = normalizeBoutiqueName(rawName);
+            if (!remoteStore || typeof remoteStore !== "object") return;
+            const localStore = readBoutiqueStoreReadOnly(bName);
+            const remoteTs = Date.parse(remoteStore.updatedAt || 0) || 0;
+            const localTs = Date.parse(localStore.updatedAt || 0) || 0;
+            if (remoteTs > localTs && remoteStore.weeks) {
+              const merged = {
+                boutique: bName,
+                updatedAt: remoteStore.updatedAt,
+                weeks: remoteStore.weeks
+              };
+              Object.values(merged.weeks).forEach(wk => syncTraiteurToForecast(wk));
+              safeSetItem(boutiqueStorageKey(bName), JSON.stringify(merged));
+              if (slugify(state.selectedBoutique) === slugify(bName)) {
+                state.storeData = merged;
+              }
+              changed = true;
+            }
+          });
+        }
+      } catch (e) {} finally {
+        _isApplyingRemote = false;
+      }
+      return changed;
+    }
+
+    async function ensureDurableCloudBlobId() {
+      getActiveNetworkChannel();
+      if (_cloudBlobId) return _cloudBlobId;
+      try {
+        const res = await fetch("https://jsonblob.com/api/jsonBlob", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(buildFullDurableNetworkState())
+        });
+        const loc = res.headers.get("Location") || res.headers.get("X-jsonblob") || "";
+        const idMatch = loc.match(/([0-9a-f-]{16,})$/i);
+        if (idMatch && idMatch[1]) {
+          _cloudBlobId = idMatch[1];
+          safeSetItem(STORAGE_KEYS.cloudBlobId, _cloudBlobId);
+          broadcastNetworkPacket({ kind: "blob_announce", blobId: _cloudBlobId });
+          return _cloudBlobId;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    async function pushDurableCloudState(forceImmediate = false) {
+      if (_isApplyingRemote) return;
+      if (_cloudSyncInFlight && !forceImmediate) {
+        _cloudDirtyPending = true;
+        return;
+      }
+      _cloudSyncInFlight = true;
+      _cloudDirtyPending = false;
+      try {
+        const blobId = await ensureDurableCloudBlobId();
+        if (!blobId) return;
+
+        // 1. Lire la dernière version distante pour fusionner sans jamais écraser une autre boutique
+        try {
+          const getRes = await fetch(`https://jsonblob.com/api/jsonBlob/${encodeURIComponent(blobId)}`, {
+            headers: { "Accept": "application/json" },
+            cache: "no-store"
+          });
+          if (getRes.ok) {
+            const remoteDoc = await getRes.json();
+            applyDurableCloudSnapshot(remoteDoc);
+          }
+        } catch (e) {}
+
+        // 2. Écrire l'état fusionné complet dans le cloud pérenne
+        const payload = buildFullDurableNetworkState();
+        const putRes = await fetch(`https://jsonblob.com/api/jsonBlob/${encodeURIComponent(blobId)}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+        if (putRes.ok) {
+          _lastCloudRev = payload.rev;
+          const badge = document.getElementById("realtime-sync-badge");
+          if (badge) {
+            badge.style.background = "#064e3b";
+            badge.style.color = "#a7f3d0";
+            badge.style.borderColor = "#10b981";
+            badge.textContent = `🟢 Cloud Pérenne Synchro (${DEVICE_ID})`;
+          }
+        }
+      } catch (e) {} finally {
+        _cloudSyncInFlight = false;
+        if (_cloudDirtyPending) {
+          setTimeout(() => pushDurableCloudState(false), 300);
+        }
+      }
+    }
+
+    async function pullDurableCloudState() {
+      if (_cloudSyncInFlight || _isApplyingRemote) return;
+      const blobId = getActiveNetworkChannel() && _cloudBlobId;
+      if (!blobId) return;
+      try {
+        const res = await fetch(`https://jsonblob.com/api/jsonBlob/${encodeURIComponent(blobId)}?_t=${Date.now()}`, {
+          headers: { "Accept": "application/json" },
+          cache: "no-store"
+        });
+        if (!res.ok) return;
+        const remoteDoc = await res.json();
+        if (remoteDoc && Number(remoteDoc.rev || 0) !== _lastCloudRev) {
+          _lastCloudRev = Number(remoteDoc.rev || 0);
+          const hasChanges = applyDurableCloudSnapshot(remoteDoc);
+          if (hasChanges && state.currentUser) {
+            refreshViewsSafelyAfterRemoteUpdate(state.selectedBoutique, state.selectedWeekMonday);
+          }
+        }
+      } catch (e) {}
     }
 
     function sendPacketChunksToRelay(ch, fullPacket) {
@@ -1862,21 +2093,25 @@
 
       connectStream();
       pollMissedNetworkPackets("48h");
+      pullDurableCloudState();
 
-      // Scrutation continue toutes les 1.8 secondes pour un affichage quasi-instantané
+      // Scrutation continue toutes les 1.8 secondes (Cloud pérenne + Relai temps réel)
       setInterval(() => {
         pollMissedNetworkPackets();
+        pullDurableCloudState();
       }, 1800);
 
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden) {
           pollMissedNetworkPackets("6h");
-          broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
+          pullDurableCloudState();
+          broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID, blobId: _cloudBlobId || "" });
         }
       });
 
-      setTimeout(() => {
-        broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
+      setTimeout(async () => {
+        if (!_cloudBlobId) await ensureDurableCloudBlobId();
+        broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID, blobId: _cloudBlobId || "" });
       }, 500);
     }
 
@@ -1919,11 +2154,11 @@
     function forceManualSyncNow() {
       showToast("Synchronisation multi-PC en cours...");
       pollMissedNetworkPackets("48h");
-      broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
+      pullDurableCloudState();
+      broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID, blobId: _cloudBlobId || "" });
       if (state.currentUser) {
         if (isEffectiveAdmin()) {
           saveGlobalConfig(false);
-          // Diffuser aussi la semaine active de chaque boutique ayant des données
           BOUTIQUES.forEach(b => {
             const st = readBoutiqueStoreReadOnly(b.name);
             const wk = st.weeks?.[state.selectedWeekMonday];
@@ -1938,6 +2173,7 @@
             broadcastNetworkPacket(buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, wk));
           }
         }
+        pushDurableCloudState(true);
       }
       renderAllViews();
       showToast("✅ Synchronisation multi-PC actualisée !");
@@ -1992,6 +2228,19 @@
         _processedPacketIds.delete(first);
       }
 
+      if (pkt.blobId && !_cloudBlobId) {
+        _cloudBlobId = pkt.blobId;
+        safeSetItem(STORAGE_KEYS.cloudBlobId, _cloudBlobId);
+        pullDurableCloudState();
+      }
+
+      if (pkt.kind === "blob_announce" && pkt.blobId) {
+        _cloudBlobId = pkt.blobId;
+        safeSetItem(STORAGE_KEYS.cloudBlobId, _cloudBlobId);
+        pullDurableCloudState();
+        return;
+      }
+
       if (pkt.kind === "chunk_part" && pkt.batchId) {
         if (!_incomingChunkBuffers[pkt.batchId]) {
           _incomingChunkBuffers[pkt.batchId] = { total: pkt.totalParts, parts: {}, createdAt: Date.now() };
@@ -2012,6 +2261,9 @@
 
       if (pkt.kind === "sync_ping") {
         if (state.currentUser) {
+          if (_cloudBlobId) {
+            broadcastNetworkPacket({ kind: "blob_announce", blobId: _cloudBlobId });
+          }
           if (isEffectiveAdmin()) {
             broadcastNetworkPacket({
               kind: "users_sync",
@@ -2238,6 +2490,7 @@
       runFullAutoBackup(true);
 
       if (!skipCloudPush && !_isApplyingRemote) {
+        pushDurableCloudState(false);
         broadcastNetworkPacket({
           kind: "users_sync",
           users: state.users
@@ -2358,6 +2611,7 @@
     function saveCurrentBoutiqueData(triggerBackup = true) {
       if (!state.selectedBoutique || !state.storeData) return;
       state.storeData.boutique = state.selectedBoutique;
+      state.storeData.updatedAt = new Date().toISOString();
       safeSetItem(boutiqueStorageKey(state.selectedBoutique), JSON.stringify(state.storeData));
       if (triggerBackup) {
         runFullAutoBackup(true);
@@ -2370,6 +2624,7 @@
       if (_isApplyingRemote) return;
       clearTimeout(_cloudPushTimer);
       _cloudPushTimer = setTimeout(() => {
+        pushDurableCloudState(false);
         if (state.selectedBoutique && state.storeData?.weeks?.[state.selectedWeekMonday]) {
           broadcastNetworkPacket(
             buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, state.storeData.weeks[state.selectedWeekMonday])
@@ -4788,11 +5043,14 @@
             <div>
               <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Direct Multi-PC — Toutes les Modifications du Réseau</h3>
               <p style="font-size:0.75rem; color:#1d4ed8;">
-                Canal réseau partagé : <code style="background:#dbeafe; padding:1px 6px; border-radius:4px; font-weight:800;">${escapeHtml(getActiveNetworkChannel())}</code> • Poste actuel : <strong>${DEVICE_ID}</strong>
+                Base Cloud Pérenne : <code style="background:#dbeafe; padding:1px 6px; border-radius:4px; font-weight:800;">${escapeHtml(_cloudBlobId || "Initialisation...")}</code> • Canal : <code style="background:#dbeafe; padding:1px 6px; border-radius:4px; font-weight:800;">${escapeHtml(getActiveNetworkChannel())}</code> • Poste : <strong>${DEVICE_ID}</strong>
+              </p>
+              <p style="font-size:0.72rem; color:#1e40af; margin-top:3px;">
+                💡 Partagez le lien ci-contre aux 9 boutiques (ou intégrez-le dans votre <code>index.html</code> généré) pour relier tous les PC à la même base cloud en temps réel.
               </p>
             </div>
             <div style="display:flex; flex-wrap:wrap; gap:0.35rem; align-items:center;">
-              <button type="button" class="btn btn-white btn-sm" onclick="copyMultiPcShareLink()">🔗 Copier lien Multi-PC</button>
+              <button type="button" class="btn btn-amber btn-sm" onclick="copyMultiPcShareLink()">🔗 Copier le lien Multi-PC (9 boutiques)</button>
               <button type="button" class="btn btn-emerald btn-sm" onclick="forceManualSyncNow()">🔄 Actualiser en direct</button>
             </div>
           </div>
@@ -4918,17 +5176,54 @@
       refreshAdminHtmlPanel();
     }
 
-    function copyMultiPcShareLink() {
+    async function copyMultiPcShareLink() {
       const ch = getActiveNetworkChannel();
+      const blobId = await ensureDurableCloudBlobId();
       const baseUrl = window.location.href.split("?")[0];
-      const shareUrl = `${baseUrl}?reseau=${encodeURIComponent(ch)}`;
+      const shareUrl = blobId
+        ? `${baseUrl}?reseau=${encodeURIComponent(ch)}&blob=${encodeURIComponent(blobId)}`
+        : `${baseUrl}?reseau=${encodeURIComponent(ch)}`;
       const tmp = document.createElement("textarea");
       tmp.value = shareUrl;
       document.body.appendChild(tmp);
       tmp.select();
       try { document.execCommand("copy"); } catch (e) {}
       tmp.remove();
-      showToast(`Lien Multi-PC copié : ${shareUrl}`);
+      showToast(`Lien Cloud Multi-PC copié : ${shareUrl}`);
+    }
+
+    async function downloadGeneratedIndexHtml() {
+      if (!isEffectiveAdmin()) return;
+      await ensureDurableCloudBlobId();
+      saveCurrentBoutiqueData(false);
+      saveGlobalConfig();
+      await pushDurableCloudState(true);
+      runFullAutoBackup(true);
+
+      const cloneDoc = document.documentElement.cloneNode(true);
+      const loginScreen = cloneDoc.querySelector("#login-screen");
+      const appShell = cloneDoc.querySelector("#app-shell");
+      if (loginScreen) loginScreen.classList.remove("hidden");
+      if (appShell) appShell.classList.add("hidden");
+
+      // Graver l'identifiant du Cloud Pérenne dans le fichier index.html exporté pour que tous les PC partagent automatiquement la même base
+      if (_cloudBlobId) {
+        const inlineScript = cloneDoc.createElement("script");
+        inlineScript.textContent = `try { localStorage.setItem("${STORAGE_KEYS.cloudBlobId}", "${_cloudBlobId}"); localStorage.setItem("${STORAGE_KEYS.networkChannel}", "${getActiveNetworkChannel()}"); } catch(e) {}`;
+        cloneDoc.querySelector("head")?.appendChild(inlineScript);
+      }
+
+      const htmlContent = "<!DOCTYPE html>\n" + cloneDoc.outerHTML;
+      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "index.html";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("Fichier index.html généré avec liaison Cloud Multi-PC intégrée !");
     }
 
     function openAdminChangePasswordModal(userId) {
@@ -5592,31 +5887,6 @@
       if (statusEl) {
         statusEl.textContent = `✅ Fichier index.html prêt à générer • Schéma de données v${APP_DATA_VERSION} • Conservation garantie minimum ${RETENTION_YEARS} ans${meta?.migratedAt ? " • Dernière vérification : " + new Date(meta.migratedAt).toLocaleString("fr-FR") : ""}`;
       }
-    }
-
-    function downloadGeneratedIndexHtml() {
-      if (!isEffectiveAdmin()) return;
-      saveCurrentBoutiqueData(false);
-      saveGlobalConfig();
-      runFullAutoBackup(true);
-
-      const cloneDoc = document.documentElement.cloneNode(true);
-      const loginScreen = cloneDoc.querySelector("#login-screen");
-      const appShell = cloneDoc.querySelector("#app-shell");
-      if (loginScreen) loginScreen.classList.remove("hidden");
-      if (appShell) appShell.classList.add("hidden");
-
-      const htmlContent = "<!DOCTYPE html>\n" + cloneDoc.outerHTML;
-      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "index.html";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      showToast("Fichier index.html généré et téléchargé !");
     }
 
     /* ==========================================================================
