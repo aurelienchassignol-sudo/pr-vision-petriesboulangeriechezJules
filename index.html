@@ -437,21 +437,34 @@
         size: A4 landscape;
         margin: 7mm;
       }
-      .topbar, .nav-bar, .no-print, .store-view-banner, .modal-backdrop, .toast { display: none !important; }
+      .topbar, .nav-bar, .no-print, .store-view-banner, .modal-backdrop, .toast, #app-shell, #login-screen { display: none !important; }
       body { background: #fff !important; font-size: 10px !important; min-height: auto !important; }
-      body.print-bundle-mode #app-shell { display: none !important; }
-      body.print-bundle-mode #dedicated-print-sheet {
+      #dedicated-print-sheet {
         display: block !important;
+        position: static !important;
+        inset: auto !important;
+        padding: 0 !important;
+        overflow: visible !important;
       }
       .main-container { padding: 0; max-width: 100%; }
       .print-page-break { page-break-before: always; break-before: page; }
     }
     #dedicated-print-sheet {
       display: none;
-      background: #fff;
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      overflow-y: auto;
+      background: #f1f5f9;
       color: #111827;
       padding: 1rem;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body.print-bundle-mode {
+      overflow: hidden;
+    }
+    body.print-bundle-mode #dedicated-print-sheet {
+      display: block !important;
     }
   </style>
 </head>
@@ -3629,25 +3642,35 @@
                   <table style="width:100%; border-collapse:collapse; font-size:0.79rem;">
                     <thead>
                       <tr style="border-bottom:1px solid #e2e8f0; color:#64748b;">
-                        <th style="text-align:left; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? `Besoin levain (${p.nextDayInfo.dayName} ${p.nextDayInfo.dateFr})` : "Produit à fabriquer"}</th>
-                        <th style="text-align:right; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Jour" : "Poids unit."}</th>
-                        <th style="text-align:right; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Besoin" : "Qté"}</th>
-                        <th style="text-align:right; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Poids (g)" : "Poids Pâte"}</th>
+                        ${p.isLevainNextDay ? `
+                          <th style="text-align:left; padding:0.3rem 0.25rem;">Besoin levain (${p.nextDayInfo.dayName} ${p.nextDayInfo.dateFr})</th>
+                          <th style="text-align:right; padding:0.3rem 0.25rem;">Poids (kg)</th>
+                        ` : `
+                          <th style="text-align:left; padding:0.3rem 0.25rem;">Produit à fabriquer</th>
+                          <th style="text-align:right; padding:0.3rem 0.25rem;">Poids unit.</th>
+                          <th style="text-align:right; padding:0.3rem 0.25rem;">Qté</th>
+                          <th style="text-align:right; padding:0.3rem 0.25rem;">Poids Pâte</th>
+                        `}
                       </tr>
                     </thead>
                     <tbody>
-                      ${p.visibleItems.map(r => `
+                      ${p.visibleItems.map(r => p.isLevainNextDay ? `
                         <tr style="border-bottom:1px solid #f1f5f9; ${r.totalGrams === 0 ? "opacity:0.5;" : ""}">
                           <td style="padding:0.34rem 0.25rem; font-weight:600; color:#111827;">${escapeHtml(r.name)}</td>
-                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; color:#64748b;">${r.isLevainUsage ? escapeHtml(r.usageTag || "J+1") : `${r.weight} g`}</td>
-                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:800;">${r.isLevainUsage ? formatGramsOrKg(r.totalGrams) : r.qty}</td>
-                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:700;">${r.isLevainUsage ? `${formatNum(Math.round(r.totalGrams))} g` : `${formatNum(r.totalGrams / 1000, 2)} kg`}</td>
+                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:800; color:#7c2d12;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
+                        </tr>
+                      ` : `
+                        <tr style="border-bottom:1px solid #f1f5f9; ${r.totalGrams === 0 ? "opacity:0.5;" : ""}">
+                          <td style="padding:0.34rem 0.25rem; font-weight:600; color:#111827;">${escapeHtml(r.name)}</td>
+                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; color:#64748b;">${r.weight} g</td>
+                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:800;">${r.qty}</td>
+                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:700;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
                         </tr>
                       `).join("")}
                       ${p.isLevainNextDay ? `
                         <tr style="background:#fff7ed; font-weight:800;">
-                          <td colspan="3" style="padding:0.35rem 0.25rem; color:#7c2d12;">Total besoin brut (avant ×1,32)</td>
-                          <td class="tabular" style="text-align:right; padding:0.35rem 0.25rem; color:#7c2d12;">${formatNum(Math.round(p.neededForNextDayGrams))} g</td>
+                          <td style="padding:0.35rem 0.25rem; color:#7c2d12;">Total besoin brut (avant ×1,32)</td>
+                          <td class="tabular" style="text-align:right; padding:0.35rem 0.25rem; color:#7c2d12;">${formatNum(p.neededForNextDayGrams / 1000, 2)} kg</td>
                         </tr>
                       ` : ""}
                     </tbody>
@@ -5637,12 +5660,17 @@
             </table>
             <table style="width:100%; border-collapse:collapse; font-size:8.6px;">
               <tbody>
-                ${p.visibleItems.map(r => `
+                ${p.visibleItems.map(r => p.isLevainUsage ? `
                   <tr style="border-bottom:1px solid #e5e7eb;">
                     <td style="padding:1.5px 2px; color:#111827;">${escapeHtml(r.name)}</td>
-                    <td style="padding:1.5px 2px; text-align:right; color:#4b5563; white-space:nowrap;">${r.isLevainUsage ? escapeHtml(r.usageTag || "J+1") : `${r.weight}g`}</td>
-                    <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">${r.isLevainUsage ? `${formatNum(Math.round(r.totalGrams))}g` : `×${r.qty}`}</td>
-                    <td style="padding:1.5px 2px; text-align:right; white-space:nowrap;">${r.isLevainUsage ? "" : `${formatNum(r.totalGrams / 1000, 2)}kg`}</td>
+                    <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
+                  </tr>
+                ` : `
+                  <tr style="border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:1.5px 2px; color:#111827;">${escapeHtml(r.name)}</td>
+                    <td style="padding:1.5px 2px; text-align:right; color:#4b5563; white-space:nowrap;">${r.weight}g</td>
+                    <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">×${r.qty}</td>
+                    <td style="padding:1.5px 2px; text-align:right; white-space:nowrap;">${formatNum(r.totalGrams / 1000, 2)}kg</td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -5782,49 +5810,7 @@
         ${sections.join("")}
       `;
     }
-
-    function getSelectedPrintDayGroups(opts) {
-      const checkedBoxes = Array.from(document.querySelectorAll(".pdf-day-chk:checked"));
-      const selectedIndices = checkedBoxes.length > 0
-        ? checkedBoxes.map(c => Number(c.value)).sort((a, b) => a - b)
-        : [state.selectedDayIdx];
-
-      const wk = getCurrentWeekData();
-      const groups = [];
-      selectedIndices.forEach(dIdx => {
-        const sig = getDayForecastSignature(wk, dIdx, opts);
-        const existingGroup = groups.find(g => g.sig === sig);
-        if (existingGroup) {
-          existingGroup.days.push(dIdx);
-        } else {
-          groups.push({ sig, days: [dIdx] });
-        }
-      });
-      return groups;
-    }
-
-    function buildPrintableDocumentHtml(customOpts) {
-      const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
-      const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
-      const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
-      const hideZeros = document.getElementById("pdf-opt-hide-zero")
-        ? !!document.getElementById("pdf-opt-hide-zero").checked
-        : state.hideZeroPetries;
-
-      if (!includePetries && !includeTraiteur && !includePatisserie) return null;
-
-      const opts = { petries: includePetries, traiteur: includeTraiteur, patisserie: includePatisserie, hideZeros };
-      const groups = getSelectedPrintDayGroups(opts);
-      const renderedBlocks = groups
-        .map((g, gIdx) => {
-          const blockHtml = buildSingleDayGroupPrintHtml(g.days, opts);
-          if (!blockHtml) return "";
-          return gIdx > 0 ? `<div class="print-page-break">${blockHtml}</div>` : blockHtml;
-        })
-        .filter(Boolean);
-
-      return renderedBlocks.length > 0 ? renderedBlocks.join("") : null;
-    }
+    let _lastPrintCustomOpts = null;
 
     function exitPrintDedicatedMode() {
       document.body.classList.remove("print-bundle-mode");
@@ -5832,28 +5818,70 @@
       if (dedicatedEl) dedicatedEl.innerHTML = "";
     }
 
+    function executeSafePrintPopupOrNative() {
+      const sheetContainer = document.getElementById("print-sheet-pages-container");
+      const contentHtml = sheetContainer ? sheetContainer.innerHTML : "";
+      if (!contentHtml) return;
+
+      try {
+        const win = window.open("", "_blank", "width=1120,height=780");
+        if (win && win.document) {
+          win.document.open();
+          win.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Impression — Boulangeries Chez Jules</title>
+  <style>
+    @page { size: A4 landscape; margin: 7mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #fff; color: #111827; line-height: 1.3; }
+    .print-page-break { page-break-before: always; break-before: page; }
+  </style>
+</head>
+<body>${contentHtml}</body>
+</html>`);
+          win.document.close();
+          win.focus();
+          setTimeout(() => {
+            try { win.print(); } catch (e) {}
+          }, 150);
+          return;
+        }
+      } catch (e) {}
+
+      try {
+        window.print();
+      } catch (e) {
+        showToast("Utilisez le bouton « Télécharger PDF » pour enregistrer le fichier.");
+      }
+    }
+
     function triggerInstantNativePrint(bodyHtml) {
       const dedicatedEl = document.getElementById("dedicated-print-sheet");
       if (dedicatedEl) {
         dedicatedEl.innerHTML = `
-          <div class="no-print" style="background:#111827; color:#fff; padding:0.65rem 1rem; border-radius:10px; margin-bottom:0.85rem; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem;">
-            <div style="font-size:0.82rem; font-weight:800;">🖨️ Aperçu avant impression prêt (A4 Paysage • Économie d'encre)</div>
-            <div style="display:flex; gap:0.45rem;">
-              <button type="button" class="btn btn-emerald btn-sm" onclick="window.print()">🖨️ Lancer l'impression</button>
-              <button type="button" class="btn btn-amber btn-sm" onclick="exitPrintDedicatedMode(); downloadDirectPdfBundle();">⬇️ Télécharger PDF</button>
-              <button type="button" class="btn btn-white btn-sm" onclick="exitPrintDedicatedMode()">↩️ Retour à l'application</button>
+          <div style="max-width:1180px; margin:0 auto;">
+            <div class="no-print" style="background:#111827; color:#fff; padding:0.7rem 1rem; border-radius:10px; margin-bottom:0.85rem; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+              <div style="font-size:0.84rem; font-weight:800;">🖨️ Aperçu avant impression (A4 Paysage • Économie d'encre)</div>
+              <div style="display:flex; flex-wrap:wrap; gap:0.45rem;">
+                <button type="button" class="btn btn-emerald btn-sm" onclick="executeSafePrintPopupOrNative()">🖨️ Imprimer maintenant</button>
+                <button type="button" class="btn btn-amber btn-sm" onclick="downloadDirectPdfBundle(_lastPrintCustomOpts)">⬇️ Télécharger le PDF</button>
+                <button type="button" class="btn btn-white btn-sm" onclick="exitPrintDedicatedMode()">↩️ Retour à l'application</button>
+              </div>
+            </div>
+            <div id="print-sheet-pages-container" style="background:#fff; padding:0.85rem; border-radius:10px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+              ${bodyHtml}
             </div>
           </div>
-          ${bodyHtml}
         `;
         document.body.classList.add("print-bundle-mode");
-        setTimeout(() => {
-          try { window.print(); } catch (e) {}
-        }, 120);
+        dedicatedEl.scrollTop = 0;
       }
     }
 
     function generateAndPrintBundle(customOpts) {
+      _lastPrintCustomOpts = customOpts || null;
       const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
       const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
       const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
@@ -6019,7 +6047,7 @@
                   pdf.text(item.name.slice(0, 36), x + 1.8, y + 2.2);
                   pdf.setFont("helvetica", "bold");
                   const rightVal = item.isLevainUsage
-                    ? `${Math.round(item.totalGrams)} g`
+                    ? `${formatNum(item.totalGrams / 1000, 2)} kg`
                     : `x${item.qty} (${formatNum(item.totalGrams / 1000, 2)}kg)`;
                   pdf.text(rightVal, x + colW - 1.8, y + 2.2, { align: "right" });
                   y += 3.6;
