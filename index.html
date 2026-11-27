@@ -239,8 +239,22 @@
       border-color: #111827;
     }
     .day-pill small { font-size: 0.67rem; opacity: 0.85; margin-top: 1px; }
+
+    /* Bandeau CA sur 1 seule ligne côte à côte */
+    .ca-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 0.85rem;
+    }
+    @media (max-width: 960px) {
+      .ca-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    .ca-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
       border-radius: 12px;
-      padding: 0.75rem 0.95rem;
+      padding: 0.65rem 0.85rem;
     }
     .ca-card.highlight {
       background: linear-gradient(135deg, #064e3b, #065f46);
@@ -263,19 +277,24 @@
       border-color: #10b981;
     }
 
-    /* Tableaux prévisions */
+    /* Tableaux prévisions avec en-tête des jours fixe au défilement */
     .table-wrap {
-      overflow-x: auto;
+      overflow: auto;
+      max-height: calc(100vh - 215px);
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       background: #fff;
     }
     table.forecast-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       font-size: 0.81rem;
     }
-    .forecast-table th {
+    .forecast-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 8;
       background: #1e293b;
       color: #fff;
       padding: 0.6rem 0.5rem;
@@ -294,7 +313,10 @@
       min-width: 245px;
       border-right: 1px solid #e5e7eb;
     }
-    .forecast-table th.sticky-col { background: #0f172a; z-index: 6; }
+    .forecast-table thead th.sticky-col {
+      background: #0f172a;
+      z-index: 10;
+    }
     .forecast-table td.sticky-col { background: #fff; }
     .forecast-table td {
       padding: 0.4rem 0.35rem;
