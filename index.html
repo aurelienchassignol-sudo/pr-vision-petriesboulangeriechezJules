@@ -769,22 +769,22 @@
     /* ==========================================================================
        1. CONSTANTES RÉSEAU, CLÉS DE STOCKAGE 10 ANS & UTILITAIRES DE BASE
        ========================================================================== */
-    const APP_DATA_VERSION = 9;
+    const APP_DATA_VERSION = 11;
     const RETENTION_YEARS = 10;
     const DEVICE_ID = "PC-" + Math.random().toString(36).substring(2, 6).toUpperCase();
 
     const STORAGE_KEYS = {
-      schemaMeta: "jules_v9_schema_meta",
-      session: "jules_v9_session",
-      users: "jules_v9_users",
-      catalog: "jules_v9_catalog",
-      customCatalogOrder: "jules_v9_custom_catalog_order",
-      patisserieCatalog: "jules_v9_patisserie_catalog",
-      schedules: "jules_v9_schedules",
-      techSheets: "jules_v9_tech_sheets",
-      activityLog: "jules_v9_activity_log",
-      networkChannel: "jules_v9_network_channel",
-      safetySnapshot: "jules_v9_safety_snapshot_10y"
+      schemaMeta: "jules_v11_schema_meta",
+      session: "jules_v11_session",
+      users: "jules_v11_users",
+      catalog: "jules_v11_catalog",
+      customCatalogOrder: "jules_v11_custom_catalog_order",
+      patisserieCatalog: "jules_v11_patisserie_catalog",
+      schedules: "jules_v11_schedules",
+      techSheets: "jules_v11_tech_sheets",
+      activityLog: "jules_v11_activity_log",
+      networkChannel: "jules_v11_network_channel",
+      safetySnapshot: "jules_v11_safety_snapshot_10y"
     };
 
     const _memoryStorage = {};
@@ -813,7 +813,7 @@
     }
 
     function boutiqueStorageKey(boutiqueName) {
-      return `jules_v9_boutique_${slugify(boutiqueName)}`;
+      return `jules_v11_boutique_${slugify(boutiqueName)}`;
     }
 
     function escapeHtml(str) {
@@ -864,16 +864,15 @@
       { id: "petrin-complet", title: "3. Pétrin Base Complet & Célestine" },
       { id: "petrin-leonie", title: "4. Pétrin Léonie (Petit Épeautre & Graines)" },
       { id: "petrin-gaspard", title: "5. Pétrin Gaspard" },
-      { id: "petrin-campagne", title: "6. Pétrin Campagne" },
+      { id: "petrin-campagne", title: "6. Pétrin Campagne & Seigle" },
       { id: "petrin-5-graines", title: "7. Pétrin 5 Graines" },
       { id: "petrin-saxon", title: "8. Pétrin Saxon" },
       { id: "petrin-tourte-seigle", title: "9. Pétrin Tourte de Seigle (100% Seigle T170)" },
-      { id: "petrin-seigle", title: "10. Pétrin Seigle & Seigle Raisin" },
-      { id: "petrin-sarrasin", title: "11. Pétrin Sarrasin" },
-      { id: "petrin-mais", title: "12. Pétrin Base Maïs & Maïs Épinards" },
-      { id: "petrin-ciabatta-panini", title: "13. Pétrin Ciabatta, Focaccia, Burgers, Panini & Tart'à Pain" },
-      { id: "petrin-viennois", title: "14. Pétrin Base Viennois, Muesli, Hot Dog & Pain de Mie" },
-      { id: "petrin-brioche", title: "15. Pétrin Base Brioche (Nanterres, Briochettes & Bressanes)" }
+      { id: "petrin-sarrasin", title: "10. Pétrin Sarrasin" },
+      { id: "petrin-mais", title: "11. Pétrin Base Maïs & Maïs Épinards" },
+      { id: "petrin-ciabatta-panini", title: "12. Pétrin Ciabatta, Focaccia, Burgers, Panini & Tart'à Pain" },
+      { id: "petrin-viennois", title: "13. Pétrin Base Viennois, Muesli, Hot Dog & Pain de Mie" },
+      { id: "petrin-brioche", title: "14. Pétrin Base Brioche (Nanterres, Briochettes & Bressanes)" }
     ];
 
     function buildDefaultSchedules() {
@@ -978,9 +977,8 @@
       { id: "complet", category: "Pains", name: "Pain Complet (350g)", unitWeight: 350, price: 2.40 },
       { id: "complet-gros", category: "Pains", name: "Pain Complet Gros (700g)", unitWeight: 700, price: 4.50 },
       { id: "celestine", category: "Pains", name: "Célestine (600g)", unitWeight: 600, price: 4.20 },
-      { id: "campagne", category: "Pains", name: "Pain Campagne (330g)", unitWeight: 330, price: 2.30 },
+      { id: "campagne", category: "Pains", name: "Pain de Seigle / Petit Campagne (330g)", unitWeight: 330, price: 2.30 },
       { id: "campagne-gros", category: "Pains", name: "Pain Campagne Gros (3200g)", unitWeight: 3200, price: 19.50 },
-      { id: "seigle", category: "Pains", name: "Pain Seigle (420g)", unitWeight: 420, price: 2.70 },
       { id: "seigle-raisin", category: "Pains", name: "Pain Seigle Raisin (420g)", unitWeight: 420, price: 3.20 },
       { id: "5-graines", category: "Pains", name: "Pain 5 Graines (350g)", unitWeight: 350, price: 2.70 },
       { id: "5-graines-sandwich", category: "Pains", name: "5 Graines Sandwich (175g)", unitWeight: 175, price: 1.50 },
@@ -1266,17 +1264,17 @@
       {
         id: "ft-levain",
         folder: "Pains",
-        title: "Levain by Jules",
+        title: "Levain by Jules (Pétri J-1 pour utilisation Jour J)",
         isBaseRecipe: true,
         baseFlourGrams: 1000,
         flourLabel: "Farine BioBise (g)",
-        divisionInfo: "Rafraîchi quotidien • T° fin pétrissage 25 à 30°C",
+        divisionInfo: "Pétri la veille (J-1) pour utilisation le lendemain (Jour J) • Ratio 1,32 × Besoins",
         tempBaseWinter: 56,
         tempBaseSummer: 52,
         recipeWeights: [
           { name: "Farine BioBise", grams: 1000 },
           { name: "Eau", grams: 550 },
-          { name: "Levain dur (souche)", grams: 330 }
+          { name: "Levain dur (souche)", grams: 350 }
         ],
         detailedSteps: [
           { step: "Étape 1", desc: "Nettoyer le pétrin (aucun résidu de pâte) et graisser légèrement le bac à levain propre." },
@@ -1286,7 +1284,7 @@
           { step: "Étape 5", desc: "Mettre immédiatement en bac couvert au froid pour utilisation le lendemain." }
         ],
         qualityPoints: ["Levain aromatique sans acidité", "Levain ferme"],
-        attentionPoints: ["Refaire le levain tous les jours", "Si fermé le dimanche, baisser la T°B de 5°C le samedi"]
+        attentionPoints: ["Refaire le levain tous les jours la veille pour le lendemain", "Si fermé le dimanche, baisser la T°B de 5°C le samedi"]
       },
       {
         id: "ft-base-biobise",
@@ -1347,11 +1345,11 @@
       {
         id: "ft-campagne",
         folder: "Pains",
-        title: "Campagne by Jules",
+        title: "Campagne, Pain de Seigle & Seigle Raisin by Jules",
         isBaseRecipe: true,
         baseFlourGrams: 1000,
         flourLabel: "Farine T65 (g)",
-        divisionInfo: "Petit pain 320-330g (lamé en épi la veille) • Gros pain 3,2 kg",
+        divisionInfo: "Pain de Seigle / Petit Campagne 320-330g • Gros pain 3,2 kg • Seigle Raisin 420g (+75g raisins)",
         tempBaseWinter: 56,
         tempBaseSummer: 52,
         recipeWeights: [
@@ -1364,14 +1362,14 @@
         ],
         detailedSteps: [
           { step: "Étape 1", desc: "Peser la veille sauf levain et levure à peser le jour de la pétrie. Couler l'eau (56°C hiver / 52°C été)." },
-          { step: "Étape 2", desc: "Pétrir 5 min en 1ère et 10 min en 2ème (T° pâte entre 24 et 26°C)." },
+          { step: "Étape 2", desc: "Pétrir 5 min en 1ère et 10 min en 2ème (T° pâte entre 24 et 26°C). Incorporer 75 g de raisins secs par pièce pour le Seigle Raisin." },
           { step: "Étape 3", desc: "Mettre en bac, faire un rabat et bloquer au froid 1h." },
-          { step: "Étape 4", desc: "Diviser à 320-330g (petits) ou 3,2 kg (gros), bouler/préformer et laisser reposer 20 à 30 min." },
-          { step: "Étape 5", desc: "Façonner, fariner, lamer en épi (10 à 13 coups de lame/côté) la veille pour les petits, puis bloquer au froid." },
+          { step: "Étape 4", desc: "Diviser à 320-330g (Pain de Seigle / petit campagne), 420g (Seigle Raisin) ou 3,2 kg (gros), bouler/préformer et laisser reposer 20 à 30 min." },
+          { step: "Étape 5", desc: "Façonner, fariner, lamer en épi la veille pour les petits, puis bloquer au froid." },
           { step: "Étape 6", desc: "Cuire à 230°C : 30 min petits / 45 min gros + 15 min de séchage." }
         ],
         qualityPoints: ["Belle cuisson et beau volume"],
-        attentionPoints: ["Lamage fait la veille pour les petits pains"]
+        attentionPoints: ["La levure et le levain doivent être pesés le jour du pétrissage"]
       },
       {
         id: "ft-5-graines",
@@ -1466,7 +1464,7 @@
         recipeWeights: [
           { name: "Farine T55 (pesée possible la veille)", grams: 334 },
           { name: "Farine T55 de force (pesée possible la veille)", grams: 666 },
-          { name: "Œufs entiers", grams: 580 },
+          { name: "Œufs entiers (à peser le jour du pétrissage)", grams: 580 },
           { name: "Beurre froid (en fin de pétrissage)", grams: 500 },
           { name: "Sucre", grams: 125 },
           { name: "Lait (à peser le jour du pétrissage)", grams: 95 },
@@ -1474,7 +1472,7 @@
           { name: "Sel", grams: 20 }
         ],
         detailedSteps: [
-          { step: "Étape 1", desc: "La brioche se pétrit la veille pour la boulange du lendemain. Peser le lait et la levure le jour du pétrissage." },
+          { step: "Étape 1", desc: "La brioche se pétrit la veille pour la boulange du lendemain. Peser le lait, les œufs et la levure le jour du pétrissage." },
           { step: "Étape 2", desc: "Verser le lait, les œufs puis le reste dans la cuve sauf beurre et levure. Pétrir 5 min en 1ère et 5 min en 2ème." },
           { step: "Étape 3", desc: "Ajouter le beurre et la levure et pétrir 10 min en 1ère et 2 min en 2ème. Mettre immédiatement en bac au froid." },
           { step: "Étape 4", desc: "Incorpos : 131 g de pépites chocolat ou pralines roses par kg de pâte (feuilletage 2 tours pour la praline)." },
@@ -1482,7 +1480,7 @@
           { step: "Étape 6", desc: "Le lendemain une fois poussées, dorer, inciser aux ciseaux, sucrer et cuire à 150°C (11-13 min briochettes ; 13 min à 150°C + 10 min à 130°C Nanterres)." }
         ],
         qualityPoints: ["Brioche qui explose au four", "Pépites ou pralines bien réparties"],
-        attentionPoints: ["Pétrir la brioche la veille pour boulange le lendemain", "Peser le lait et la levure le jour du pétrissage"]
+        attentionPoints: ["Pétrir la brioche la veille pour boulange le lendemain", "Peser le lait, les œufs et la levure le jour du pétrissage"]
       },
       {
         id: "ft-tr-salades-grandes",
@@ -1650,7 +1648,7 @@
     }
 
     /* ==========================================================================
-       4. MOTEUR TEMPS RÉEL MULTI-POSTES (TRIPLE CANAL : FIRESTORE + RELAI HTTP/SSE + BROADCAST)
+       4. MOTEUR TEMPS RÉEL MULTI-POSTES
        ========================================================================== */
     let _isApplyingRemote = false;
     let _localBroadcastChannel = null;
@@ -1690,7 +1688,6 @@
       };
       _processedPacketIds.add(fullPacket.pktId);
 
-      // 1. Diffusion instantanée entre onglets / fenêtres du même navigateur
       try {
         if (!_localBroadcastChannel && typeof BroadcastChannel !== "undefined") {
           _localBroadcastChannel = new BroadcastChannel("jules_live_" + ch);
@@ -1698,7 +1695,6 @@
         if (_localBroadcastChannel) _localBroadcastChannel.postMessage(fullPacket);
       } catch (e) {}
 
-      // 2. Relai réseau HTTP temps réel multi-PC (paquets compacts < 3 Ko)
       try {
         const serialized = JSON.stringify(fullPacket);
         if (serialized.length <= 3800) {
@@ -1764,7 +1760,6 @@
       const ch = getActiveNetworkChannel();
       const badge = document.getElementById("realtime-sync-badge");
 
-      // Canal local inter-onglets
       try {
         if (typeof BroadcastChannel !== "undefined") {
           _localBroadcastChannel = new BroadcastChannel("jules_live_" + ch);
@@ -1774,7 +1769,6 @@
         }
       } catch (e) {}
 
-      // Flux SSE temps réel multi-PC
       const connectStream = () => {
         try {
           if (_sseEventSource) _sseEventSource.close();
@@ -1810,7 +1804,6 @@
       connectStream();
       pollMissedNetworkPackets("2h");
 
-      // Filet de sécurité toutes les 4 secondes pour ne jamais rater une saisie
       setInterval(() => {
         pollMissedNetworkPackets();
       }, 4000);
@@ -1996,7 +1989,6 @@
       } catch (e) {
         state.users = JSON.parse(JSON.stringify(DEFAULT_USERS));
       }
-      // Garantir que les boutiques n'ont jamais de changement de mot de passe forcé
       state.users.forEach(u => { u.mustChangePassword = false; });
 
       try {
@@ -2005,7 +1997,6 @@
       } catch (e) {
         state.catalog = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
       }
-      // Garantir que Gaspard Sandwich 300g reste bien verrouillé en Auto Traiteur
       const gaspSand = state.catalog.find(p => p.id === "gaspard-sandwich");
       if (gaspSand && gaspSand.isTraiteurSupport === undefined) {
         gaspSand.isTraiteurSupport = true;
@@ -2939,7 +2930,7 @@
     }
 
     /* ==========================================================================
-       9. ONGLET 2 : PÉTRIES JOURNALIÈRES (AVEC PRODUITS LIÉS AUX PÉTRIES)
+       9. ONGLET 2 : PÉTRIES JOURNALIÈRES (LEVAIN J-1 BIOBISE + INGRÉDIENTS EN COLONNE)
        ========================================================================== */
     function toggleHideZeroPetries(checked) {
       state.hideZeroPetries = !!checked;
@@ -2948,7 +2939,7 @@
 
     function formatGramsOrKg(g) {
       const rounded = Math.round(Number(g) || 0);
-      if (rounded >= 1000) return `${formatNum(rounded / 1000, 2)} kg`;
+      if (rounded >= 1000) return `${formatNum(rounded / 1000, 2)} kg (${formatNum(rounded)} g)`;
       return `${formatNum(rounded)} g`;
     }
 
@@ -3041,13 +3032,13 @@
             ...getCustomItemsForPetrin("petrin-tradition")
           ],
           computeIngredients: (totalPateG) => {
-            const farine = totalPateG * (1000 / 1745.6);
+            const farine = totalPateG * (1000 / 1791);
             return [
               { label: "Farine T65", grams: farine },
               { label: "Eau 1er coulage", grams: farine * 0.70 },
               { label: "Eau bassinage", grams: farine * 0.025 },
               { label: "Sel", grams: farine * 0.016 },
-              { label: "Levure fraîche", grams: farine * 0.0046 },
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.0046 },
               { label: "Pâte fermentée (max 5%)", grams: farine * 0.05 }
             ];
           }
@@ -3070,15 +3061,16 @@
             ...getCustomItemsForPetrin("petrin-biobise")
           ],
           computeIngredients: (totalPateG) => {
-            const farine = totalPateG * (1000 / 2011);
+            const farine = totalPateG * (1000 / 2001);
             const sportifPieces = q("sportif-gros") + q("sportif-pave") + q("sportif-petit") + q("pain-sandwich-sportif");
             const melangeSportif = sportifPieces * 30;
             const res = [
               { label: "Farine BioBise", grams: farine },
-              { label: "Eau (coulage + bassinage)", grams: farine * 0.78 },
-              { label: "Levain Chez Jules", grams: farine * 0.20 },
+              { label: "Eau 1er coulage", grams: farine * 0.72 },
+              { label: "Eau bassinage", grams: farine * 0.06 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.20 },
               { label: "Sel", grams: farine * 0.018 },
-              { label: "Levure fraîche", grams: farine * 0.003 }
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.003 }
             ];
             if (melangeSportif > 0) res.push({ label: "Mélange Sportif (incorpo)", grams: melangeSportif });
             return res;
@@ -3101,9 +3093,9 @@
             return [
               { label: "Farine Super Pétrus", grams: farine },
               { label: "Eau", grams: farine * 0.83 },
-              { label: "Levain Chez Jules", grams: farine * 0.20 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.20 },
               { label: "Sel", grams: farine * 0.016 },
-              { label: "Levure fraîche", grams: farine * 0.004 }
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.004 }
             ];
           }
         },
@@ -3124,10 +3116,10 @@
               { label: "Farine Petit Épeautre", grams: 2212 * factor },
               { label: "Farine T65", grams: 552 * factor },
               { label: "Eau", grams: 2074 * factor },
-              { label: "Levain Chez Jules", grams: 552 * factor },
+              { label: "Levain Chez Jules (pesée jour J)", grams: 552 * factor },
               { label: "Graines torréfiées", grams: 552 * factor },
               { label: "Sel", grams: 48 * factor },
-              { label: "Levure fraîche", grams: 20 * factor }
+              { label: "Levure fraîche (pesée jour J)", grams: 20 * factor }
             ];
           }
         },
@@ -3140,42 +3132,46 @@
           items: [
             { name: "Gaspard Baguette (350g)", weight: 350, qty: q("gaspard") },
             { name: "Gaspard Flûte (700g)", weight: 700, qty: q("gaspard-flute") },
-            { name: "Gaspard Sandwich (300g — Auto Traiteur 4 sand. = 2 pains)", weight: 300, qty: q("gaspard-sandwich") },
+            { name: "Gaspard Sandwich (300g — Auto Traiteur)", weight: 300, qty: q("gaspard-sandwich") },
             ...getCustomItemsForPetrin("petrin-gaspard")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2011);
             return [
               { label: "Farine Gaspard", grams: farine },
-              { label: "Eau (1er coulage)", grams: farine * 0.74 },
+              { label: "Eau 1er coulage", grams: farine * 0.74 },
               { label: "Eau bassinage", grams: farine * 0.10 },
-              { label: "Levain Chez Jules", grams: farine * 0.15 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.15 },
               { label: "Sel", grams: farine * 0.016 },
-              { label: "Levure fraîche", grams: farine * 0.005 }
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.005 }
             ];
           }
         },
         {
           id: "petrin-campagne",
-          title: "6. Pétrin Campagne",
+          title: "6. Pétrin Campagne & Seigle",
           badge: "T°B Hiver 56°C / Été 52°C",
           color: "#78350f",
           bg: "#fef3c7",
           items: [
-            { name: "Pain Campagne (330g)", weight: 330, qty: q("campagne") },
+            { name: "Pain de Seigle / Petit Campagne (330g)", weight: 330, qty: q("campagne") },
             { name: "Pain Campagne Gros (3200g)", weight: 3200, qty: q("campagne-gros") },
+            { name: "Pain Seigle Raisin (420g)", weight: 420, qty: q("seigle-raisin") },
             ...getCustomItemsForPetrin("petrin-campagne")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2439);
-            return [
+            const raisins = q("seigle-raisin") * 75;
+            const res = [
               { label: "Farine T65", grams: farine },
               { label: "Farine de Seigle", grams: farine * 0.212 },
               { label: "Eau", grams: farine },
-              { label: "Levain Chez Jules", grams: farine * 0.20 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.20 },
               { label: "Sel", grams: farine * 0.023 },
-              { label: "Levure fraîche", grams: farine * 0.004 }
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.004 }
             ];
+            if (raisins > 0) res.push({ label: "Raisins secs (incorpo Seigle Raisin)", grams: raisins });
+            return res;
           }
         },
         {
@@ -3195,10 +3191,10 @@
             return [
               { label: "Farine T65", grams: farine },
               { label: "Eau", grams: farine * 0.88 },
-              { label: "Levain Chez Jules", grams: farine * 0.26 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.26 },
               { label: "Mélange 5 Graines", grams: farine * 0.19 },
               { label: "Sel", grams: farine * 0.020 },
-              { label: "Levure fraîche", grams: farine * 0.003 }
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.003 }
             ];
           }
         },
@@ -3218,9 +3214,9 @@
               { label: "Farine T65", grams: farineTot * 0.65 },
               { label: "Farine Saxon", grams: farineTot * 0.35 },
               { label: "Eau", grams: farineTot * 0.75 },
-              { label: "Levain Chez Jules", grams: farineTot * 0.20 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farineTot * 0.20 },
               { label: "Sel", grams: farineTot * 0.018 },
-              { label: "Levure fraîche", grams: farineTot * 0.005 }
+              { label: "Levure fraîche (pesée jour J)", grams: farineTot * 0.005 }
             ];
           }
         },
@@ -3239,40 +3235,15 @@
             return [
               { label: "Farine de Seigle T170", grams: farine },
               { label: "Eau", grams: farine * 1.10 },
-              { label: "Levain Chez Jules", grams: farine * 0.50 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.50 },
               { label: "Sel", grams: farine * 0.025 },
-              { label: "Levure fraîche", grams: farine * 0.003 }
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.003 }
             ];
-          }
-        },
-        {
-          id: "petrin-seigle",
-          title: "10. Pétrin Seigle & Seigle Raisin",
-          badge: "T°B Hiver 60°C / Été 56°C",
-          color: "#78350f",
-          bg: "#fef3c7",
-          items: [
-            { name: "Pain Seigle (420g)", weight: 420, qty: q("seigle") },
-            { name: "Pain Seigle Raisin (420g)", weight: 420, qty: q("seigle-raisin") },
-            ...getCustomItemsForPetrin("petrin-seigle")
-          ],
-          computeIngredients: (totalPateG) => {
-            const farineTot = totalPateG * (1000 / 2250);
-            const raisins = q("seigle-raisin") * 75;
-            const res = [
-              { label: "Farine de Seigle T130", grams: farineTot * 0.70 },
-              { label: "Farine T65", grams: farineTot * 0.30 },
-              { label: "Eau", grams: farineTot * 0.78 },
-              { label: "Levain de seigle", grams: farineTot * 0.25 },
-              { label: "Sel", grams: farineTot * 0.020 }
-            ];
-            if (raisins > 0) res.push({ label: "Raisins secs (incorpo)", grams: raisins });
-            return res;
           }
         },
         {
           id: "petrin-sarrasin",
-          title: "11. Pétrin Sarrasin",
+          title: "10. Pétrin Sarrasin",
           badge: "T°B Hiver 56°C / Été 50°C",
           color: "#92400e",
           bg: "#fffbeb",
@@ -3287,15 +3258,15 @@
               { label: "Farine T110", grams: farineTot * 0.85 },
               { label: "Farine de Sarrasin", grams: farineTot * 0.15 },
               { label: "Eau", grams: farineTot * 0.70 },
-              { label: "Levain Chez Jules", grams: farineTot * 0.30 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farineTot * 0.30 },
               { label: "Sel", grams: farineTot * 0.020 },
-              { label: "Levure fraîche", grams: farineTot * 0.002 }
+              { label: "Levure fraîche (pesée jour J)", grams: farineTot * 0.002 }
             ];
           }
         },
         {
           id: "petrin-mais",
-          title: "12. Pétrin Base Maïs & Maïs Épinards",
+          title: "11. Pétrin Base Maïs & Maïs Épinards",
           badge: "T°B Hiver 56°C / Été 52°C",
           color: "#b45309",
           bg: "#fffbeb",
@@ -3311,9 +3282,9 @@
             const res = [
               { label: "Farine Mix Maïs", grams: farine },
               { label: "Eau", grams: farine * 0.62 },
-              { label: "Levain Chez Jules", grams: farine * 0.16 },
+              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.16 },
               { label: "Sel", grams: farine * 0.018 },
-              { label: "Levure fraîche", grams: farine * 0.009 }
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.009 }
             ];
             if (epinards > 0) res.push({ label: "Épinards hachés (incorpo)", grams: epinards });
             return res;
@@ -3321,7 +3292,7 @@
         },
         {
           id: "petrin-ciabatta-panini",
-          title: "13. Pétrin Ciabatta, Focaccia, Burgers, Panini & Tart'à Pain",
+          title: "12. Pétrin Ciabatta, Focaccia, Burgers, Panini & Tart'à Pain",
           badge: "T°B Hiver 54°C / Été 50°C",
           color: "#1e40af",
           bg: "#eff6ff",
@@ -3346,7 +3317,7 @@
         },
         {
           id: "petrin-viennois",
-          title: "14. Pétrin Base Viennois, Muesli, Hot Dog & Pain de Mie",
+          title: "13. Pétrin Base Viennois, Muesli, Hot Dog & Pain de Mie",
           badge: "T°B Hiver 52°C / Été 48°C",
           color: "#92400e",
           bg: "#fffbeb",
@@ -3365,11 +3336,11 @@
             const muesli = q("viennois-muesli") * 10;
             const res = [
               { label: "Farine T65", grams: farine },
-              { label: "Lait", grams: farine * 0.70 },
+              { label: "Lait (pesée jour J)", grams: farine * 0.70 },
               { label: "Beurre", grams: farine * 0.052 },
               { label: "Sucre", grams: farine * 0.032 },
               { label: "Sel", grams: farine * 0.020 },
-              { label: "Levure fraîche", grams: farine * 0.016 }
+              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.016 }
             ];
             if (pepites > 0) res.push({ label: "Pépites chocolat (incorpo)", grams: pepites });
             if (muesli > 0) res.push({ label: "Mélange muesli (incorpo)", grams: muesli });
@@ -3378,7 +3349,7 @@
         },
         {
           id: "petrin-brioche",
-          title: "15. Pétrin Base Brioche (Nanterres, Briochettes & Bressanes)",
+          title: "14. Pétrin Base Brioche (Nanterres, Briochettes & Bressanes)",
           badge: "Beurre & Levure fin pétrissage",
           color: "#b45309",
           bg: "#fef3c7",
@@ -3412,11 +3383,11 @@
             const res = [
               { label: "Farine T55", grams: farineTot * 0.334 },
               { label: "Farine T55 de force", grams: farineTot * 0.666 },
-              { label: "Œufs entiers", grams: farineTot * 0.58 },
+              { label: "Œufs entiers (pesée jour J)", grams: farineTot * 0.58 },
               { label: "Beurre froid", grams: farineTot * 0.50 },
               { label: "Sucre", grams: farineTot * 0.125 },
-              { label: "Lait", grams: farineTot * 0.095 },
-              { label: "Levure fraîche", grams: farineTot * 0.030 },
+              { label: "Lait (pesée jour J)", grams: farineTot * 0.095 },
+              { label: "Levure fraîche (pesée jour J)", grams: farineTot * 0.030 },
               { label: "Sel", grams: farineTot * 0.020 }
             ];
             if (pralines > 0) res.push({ label: "Pralines roses (incorpo)", grams: pralines });
@@ -3465,76 +3436,73 @@
         ? currentWk
         : getWeekDataReadOnly(nextDay.mondayIso);
 
-      let neededLevainGrams = 0;
+      const levainSources = [
+        { id: "petrin-tourte-seigle", label: "Tourte de seigle" },
+        { id: "petrin-sarrasin", label: "Sarrasin" },
+        { id: "petrin-campagne", label: "Campagne & Seigle" },
+        { id: "petrin-saxon", label: "Saxon" },
+        { id: "petrin-gaspard", label: "Gaspard" },
+        { id: "petrin-leonie", label: "Léonie" },
+        { id: "petrin-complet", label: "Complet" },
+        { id: "petrin-5-graines", label: "5 graines" },
+        { id: "petrin-biobise", label: "Biobise" },
+        { id: "petrin-mais", label: "Maïs" }
+      ];
+
+      let totalBesoinGrams = 0;
       const usageItems = [];
 
       if (nextWk) {
         const nextDayBreadData = computeBreadPetriesOnlyForDay(nextWk, nextDay.dayIdx, false);
-        nextDayBreadData.preparedPetries.forEach(p => {
-          if (p.totalGrams <= 0) return;
-          const levainIng = (p.ingredients || []).find(ing =>
-            String(ing.label || "").toLowerCase().includes("levain chez jules")
-          );
-          if (levainIng && levainIng.grams > 0) {
-            neededLevainGrams += levainIng.grams;
+        levainSources.forEach(src => {
+          const petrinObj = nextDayBreadData.preparedPetries.find(p => p.id === src.id);
+          let needG = 0;
+          if (petrinObj && petrinObj.totalGrams > 0) {
+            const levainIng = (petrinObj.ingredients || []).find(ing =>
+              String(ing.label || "").toLowerCase().includes("levain")
+            );
+            needG = levainIng ? levainIng.grams : 0;
+          }
+          totalBesoinGrams += needG;
+          if (!hideZeros || needG > 0) {
             usageItems.push({
-              name: `${p.title} (${nextDay.dayName} ${nextDay.dateFr})`,
-              weight: Math.round(levainIng.grams),
+              name: `${src.label} (${nextDay.dayName} ${nextDay.dateFr})`,
+              weight: Math.round(needG),
               qty: 1,
-              totalGrams: levainIng.grams,
+              totalGrams: needG,
               isLevainUsage: true,
-              usageTag: `Pour ${nextDay.dayName.slice(0, 3)}.`
+              usageTag: `Besoin ${nextDay.dayName.slice(0, 3)}.`
             });
           }
         });
       }
 
-      // Recette officielle ft-levain : 1000g BioBise + 550g Eau + 330g Souche = 1880g
-      // Part nette utilisable pour les pâtes du lendemain = 1550g (1000 + 550), et 330g conservés en souche
-      const soucheGrams = neededLevainGrams > 0 ? neededLevainGrams * (330 / 1550) : 0;
-      const farineBioBiseGrams = neededLevainGrams > 0 ? neededLevainGrams * (1000 / 1550) : 0;
-      const eauGrams = neededLevainGrams > 0 ? neededLevainGrams * (550 / 1550) : 0;
-      const totalLevainGrams = neededLevainGrams + soucheGrams;
-
-      if (soucheGrams > 0) {
-        usageItems.push({
-          name: "Souche conservée pour le rafraîchi suivant",
-          weight: Math.round(soucheGrams),
-          qty: 1,
-          totalGrams: soucheGrams,
-          isLevainUsage: true,
-          usageTag: "Souche"
-        });
-      } else if (!hideZeros) {
-        usageItems.push({
-          name: `Aucune prévision pain au levain saisie pour ${nextDay.dayName} ${nextDay.dateFr}`,
-          weight: 0,
-          qty: 0,
-          totalGrams: 0,
-          isLevainUsage: true,
-          usageTag: "J+1"
-        });
-      }
+      // Formule officielle capture d'écran & Excel : Total à produire = Total Besoin × 1.32
+      // Répartition sur Farine BioBise : 1000g BioBise + 550g Eau + 350g Souche = 1900g
+      const totalLevainGrams = totalBesoinGrams * 1.32;
+      const farineBioBiseGrams = totalLevainGrams * (1000 / 1900);
+      const eauGrams = totalLevainGrams * (550 / 1900);
+      const soucheGrams = totalLevainGrams * (350 / 1900);
 
       const tbBadge = nextDay.daysGap > 1
-        ? `J+${nextDay.daysGap} (fermeture entre-temps) • Baisser T°B de 5°C (51°C Hiver / 47°C Été)`
-        : `J+1 (pétri aujourd'hui pour ${nextDay.dayName} ${nextDay.dateFr}) • T°B Hiver 56°C / Été 52°C`;
+        ? `Pétri ce jour pour ${nextDay.dayName} ${nextDay.dateFr} (J+${nextDay.daysGap}) • Baisser T°B de 5°C`
+        : `ATTENTION : à pétrir la veille pour utilisation le lendemain (${nextDay.dayName} ${nextDay.dateFr}) • Ratio ×1,32`;
 
       return {
         id: "petrin-levain",
-        title: `0. Pétrin Levain Chez Jules (pour ${nextDay.dayName} ${nextDay.dateFr})`,
+        title: `0. Pétrin Levain (pour ${nextDay.dayName} ${nextDay.dateFr})`,
         badge: tbBadge,
         color: "#7c2d12",
         bg: "#ffedd5",
         isLevainNextDay: true,
         nextDayInfo: nextDay,
-        neededForNextDayGrams: neededLevainGrams,
+        neededForNextDayGrams: totalBesoinGrams,
         totalGrams: totalLevainGrams,
         visibleItems: usageItems,
         ingredients: [
           { label: "Farine BioBise", grams: farineBioBiseGrams },
           { label: "Eau", grams: eauGrams },
-          { label: "Levain dur (souche)", grams: soucheGrams }
+          { label: "Levain (souche)", grams: soucheGrams }
         ]
       };
     }
@@ -3544,10 +3512,8 @@
       const breadData = computeBreadPetriesOnlyForDay(wk, dayIdx, hideZeros);
       const levainCard = computeLevainPetrieForNextDay(state.selectedBoutique, mondayIso, dayIdx, wk, hideZeros);
 
-      const displayedPetries = [...breadData.displayedPetries];
-      if (!hideZeros || levainCard.totalGrams > 0) {
-        displayedPetries.unshift(levainCard);
-      }
+      // La pétrie du levain est toujours affichée en tête de liste
+      const displayedPetries = [levainCard, ...breadData.displayedPetries];
 
       return {
         allPetriesCount: breadData.allPetriesCount + 1,
@@ -3583,10 +3549,13 @@
               <h2 style="font-size:1.05rem; font-weight:900; color:#111827;">🥣 Toutes les Pétries Journalières &amp; Plaquage Viennoiserie — ${DAY_NAMES[dayIdx]} (${escapeHtml(state.selectedBoutique)})</h2>
               <p style="font-size:0.76rem; color:#4b5563; margin-top:2px;">
                 Poids total à pétrir : <strong class="tabular" style="color:#92400e;">${formatNum(grandTotalDoughGrams / 1000, 2)} kg</strong>
-                • Levain J+1 (pétri ce ${DAY_NAMES[dayIdx]} pour <strong>${levainNext.dayName} ${levainNext.dateFr}</strong>) : <strong class="tabular" style="color:#7c2d12;">${formatNum(levainCard.totalGrams / 1000, 2)} kg</strong>
+                • Levain J-1 (pétri ce ${DAY_NAMES[dayIdx]} pour <strong>${levainNext.dayName} ${levainNext.dateFr}</strong>) : <strong class="tabular" style="color:#7c2d12;">${formatNum(levainCard.totalGrams / 1000, 2)} kg</strong>
                 • <strong>${displayedPetries.length}</strong> pétrin(s) actif(s) sur ${allPetriesCount}
                 • Plaquage Viennoiserie : <strong class="tabular" style="color:#065f46;">${totalViennoiseriePieces} pièce(s)</strong>
               </p>
+              <div style="margin-top:6px; display:inline-block; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:0.74rem; font-weight:800; padding:4px 9px; border-radius:7px;">
+                ⚠️ Rappel Fournil : La levure, le levain, le lait et les œufs doivent être pesés le jour du pétrissage et pas en avance.
+              </div>
             </div>
             <label style="display:inline-flex; align-items:center; gap:0.45rem; background:#fffbeb; border:1.5px solid #f59e0b; padding:0.45rem 0.8rem; border-radius:9px; font-size:0.8rem; font-weight:800; color:#92400e; cursor:pointer;">
               <input type="checkbox" ${hideZeros ? "checked" : ""} onchange="toggleHideZeroPetries(this.checked)" />
@@ -3617,43 +3586,53 @@
           </div>
         ` : ""}
 
-        ${displayedPetries.length === 0 && totalViennoiseriePieces === 0 ? `
-          <div class="card" style="text-align:center; padding:2rem; color:#64748b;">
-            <div style="font-size:1.5rem; margin-bottom:0.4rem;">🥖</div>
-            <div style="font-weight:800; color:#111827;">Aucune quantité prévue pour ${DAY_NAMES[dayIdx]}</div>
-            <p style="font-size:0.8rem; margin-top:0.25rem;">Saisissez vos prévisions dans l'onglet 1 ou décochez « Masquer les produits à zéro » pour afficher toutes les pétries.</p>
-          </div>
-        ` : `
-          <div class="grid-2">
-            ${displayedPetries.map(p => {
-              const ingredients = p.ingredients;
-              return `
-                <div class="card" style="border-top:4px solid ${p.color};">
-                  <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.4rem; margin-bottom:0.55rem;">
-                    <h3 style="font-size:0.94rem; font-weight:900; color:${p.color};">${escapeHtml(p.title)}</h3>
-                    <span style="font-size:0.68rem; font-weight:800; background:${p.bg}; color:${p.color}; padding:2px 8px; border-radius:999px;">${escapeHtml(p.badge)}</span>
-                  </div>
+        <div class="grid-2">
+          ${displayedPetries.map(p => {
+            const ingredients = p.ingredients;
+            return `
+              <div class="card" style="border-top:4px solid ${p.color};">
+                <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.4rem; margin-bottom:0.45rem;">
+                  <h3 style="font-size:0.94rem; font-weight:900; color:${p.color};">${escapeHtml(p.title)}</h3>
+                  <span style="font-size:0.68rem; font-weight:800; background:${p.bg}; color:${p.color}; padding:2px 8px; border-radius:999px;">${escapeHtml(p.badge)}</span>
+                </div>
 
-                  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(95px, 1fr)); gap:0.35rem; background:#f8fafc; border:1px solid #e2e8f0; padding:0.55rem; border-radius:9px; margin-bottom:0.65rem; text-align:center;">
-                    <div style="background:${p.bg}; border-radius:7px; padding:0.25rem;">
-                      <small style="color:${p.color}; font-weight:800; font-size:0.66rem;">PÂTE TOTALE</small>
-                      <div class="tabular" style="font-weight:900; color:${p.color}; font-size:0.9rem;">${formatNum(p.totalGrams / 1000, 2)} kg</div>
-                    </div>
+                <div style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:0.7rem; font-weight:800; padding:4px 8px; border-radius:7px; margin-bottom:0.55rem;">
+                  ⚠️ La levure, le levain, le lait et les œufs doivent être pesés le jour de pétrissage et pas en avance.
+                </div>
+
+                <!-- Liste des ingrédients en colonne -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:0.5rem 0.65rem; margin-bottom:0.65rem;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:${p.bg}; padding:0.35rem 0.55rem; border-radius:7px; margin-bottom:0.35rem;">
+                    <span style="color:${p.color}; font-weight:900; font-size:0.74rem;">${p.isLevainNextDay ? "TOTAL LEVAIN À PRODUIRE (×1,32)" : "POIDS DE PÂTE TOTAL"}</span>
+                    <span class="tabular" style="font-weight:900; color:${p.color}; font-size:0.92rem;">${formatNum(p.totalGrams / 1000, 2)} kg (${formatNum(Math.round(p.totalGrams))} g)</span>
+                  </div>
+                  <div style="display:flex; flex-direction:column;">
                     ${ingredients.map(ing => `
-                      <div style="padding:0.25rem;">
-                        <small style="color:#64748b; font-weight:700; font-size:0.65rem; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(ing.label)}">${escapeHtml(ing.label)}</small>
-                        <div class="tabular" style="font-weight:800; color:#0f172a; font-size:0.84rem;">${formatGramsOrKg(ing.grams)}</div>
+                      <div style="display:flex; justify-content:space-between; align-items:center; padding:0.26rem 0.35rem; border-bottom:1px solid #e2e8f0; font-size:0.79rem;">
+                        <span style="color:#334155; font-weight:700;">${escapeHtml(ing.label)}</span>
+                        <span class="tabular" style="font-weight:900; color:#0f172a;">${formatGramsOrKg(ing.grams)}</span>
                       </div>
                     `).join("")}
                   </div>
+                </div>
 
+                ${p.isLevainNextDay && p.totalGrams === 0 ? `
+                  <div style="background:#fff7ed; border:1px dashed #fb923c; border-radius:8px; padding:0.65rem; font-size:0.77rem; color:#9a3412; margin-bottom:0.4rem;">
+                    ℹ️ Aucun pain au levain n'est encore saisi pour <strong>${escapeHtml(p.nextDayInfo.dayName)} ${escapeHtml(p.nextDayInfo.dateFr)}</strong>.
+                    <div style="margin-top:0.45rem;">
+                      <button type="button" class="btn btn-amber btn-sm" onclick="state.selectedWeekMonday='${p.nextDayInfo.mondayIso}'; state.selectedDayIdx=${p.nextDayInfo.dayIdx}; switchTab('prevision');">
+                        ✏️ Saisir les prévisions de ${escapeHtml(p.nextDayInfo.dayName)} ${escapeHtml(p.nextDayInfo.dateFr)}
+                      </button>
+                    </div>
+                  </div>
+                ` : `
                   <table style="width:100%; border-collapse:collapse; font-size:0.79rem;">
                     <thead>
                       <tr style="border-bottom:1px solid #e2e8f0; color:#64748b;">
-                        <th style="text-align:left; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Pétrie utilisatrice du lendemain" : "Produit à fabriquer"}</th>
-                        <th style="text-align:right; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Échéance" : "Poids unit."}</th>
+                        <th style="text-align:left; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? `Besoin levain (${p.nextDayInfo.dayName} ${p.nextDayInfo.dateFr})` : "Produit à fabriquer"}</th>
+                        <th style="text-align:right; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Jour" : "Poids unit."}</th>
                         <th style="text-align:right; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Besoin" : "Qté"}</th>
-                        <th style="text-align:right; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Poids Levain" : "Poids Pâte"}</th>
+                        <th style="text-align:right; padding:0.3rem 0.25rem;">${p.isLevainNextDay ? "Poids (g)" : "Poids Pâte"}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3662,21 +3641,27 @@
                           <td style="padding:0.34rem 0.25rem; font-weight:600; color:#111827;">${escapeHtml(r.name)}</td>
                           <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; color:#64748b;">${r.isLevainUsage ? escapeHtml(r.usageTag || "J+1") : `${r.weight} g`}</td>
                           <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:800;">${r.isLevainUsage ? formatGramsOrKg(r.totalGrams) : r.qty}</td>
-                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:700;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
+                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:700;">${r.isLevainUsage ? `${formatNum(Math.round(r.totalGrams))} g` : `${formatNum(r.totalGrams / 1000, 2)} kg`}</td>
                         </tr>
                       `).join("")}
+                      ${p.isLevainNextDay ? `
+                        <tr style="background:#fff7ed; font-weight:800;">
+                          <td colspan="3" style="padding:0.35rem 0.25rem; color:#7c2d12;">Total besoin brut (avant ×1,32)</td>
+                          <td class="tabular" style="text-align:right; padding:0.35rem 0.25rem; color:#7c2d12;">${formatNum(Math.round(p.neededForNextDayGrams))} g</td>
+                        </tr>
+                      ` : ""}
                     </tbody>
                   </table>
-                </div>
-              `;
-            }).join("")}
-          </div>
-        `}
+                `}
+              </div>
+            `;
+          }).join("")}
+        </div>
       `;
     }
 
     /* ==========================================================================
-       10. ONGLET 3 : GAMME TRAITEUR (LIAISON AU PAIN OU À UNE PÉTRIE)
+       10. ONGLET 3 : GAMME TRAITEUR
        ========================================================================== */
     function renderTraiteurView(openDays) {
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
@@ -4159,23 +4144,6 @@
       showToast("Pâtisserie supprimée.");
     }
 
-    function createPatisserieProduct() {
-      if (!hasPermission("adminManageCatalog")) return;
-      const name = (document.getElementById("new-pat-name").value || "").trim();
-      if (!name) return;
-      state.patisserieCatalog.push({
-        id: "pat-custom-" + Date.now(),
-        category: document.getElementById("new-pat-cat").value,
-        name,
-        price: Number(document.getElementById("new-pat-price").value) || 0
-      });
-      recordNetworkActivity("catalog", "Réseau", `Nouvelle pâtisserie ajoutée : ${name}`);
-      saveGlobalConfig();
-      closeModal();
-      renderPatisserieView();
-      showToast("Pâtisserie ajoutée.");
-    }
-
     /* ==========================================================================
        12. ONGLET 5 : FICHES TECHNIQUES
        ========================================================================== */
@@ -4221,7 +4189,7 @@
             <div>
               <h2 style="font-size:1.05rem; font-weight:900; color:#111827;">📘 Fiches Techniques Réseau Chez Jules</h2>
               <p style="font-size:0.75rem; color:#4b5563; margin-top:2px;">
-                Farines pesables la veille • Levure &amp; levain le jour de la pétrie • Lait viennois/brioche le jour du pétrissage • Brioche pétrie la veille.
+                La levure, le levain, le lait et les œufs doivent être pesés le jour du pétrissage et pas en avance • Brioche pétrie la veille.
               </p>
             </div>
             ${canEditTs ? `<button type="button" class="btn btn-emerald btn-sm" onclick="openTechSheetEditor('')">+ Nouvelle Fiche Technique</button>` : ""}
@@ -4520,7 +4488,6 @@
       const canExport = hasPermission("adminExportHtml");
 
       container.innerHTML = `
-        <!-- 1. Gestion des Comptes & Mots de Passe -->
         ${canUsers ? `
         <div class="card">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.6rem; margin-bottom:0.75rem;">
@@ -4572,7 +4539,6 @@
         </div>
         ` : ""}
 
-        <!-- 1bis. Tableau de Bord Visuel : État des Prévisions & Téléchargements PDF par Boutique -->
         <div class="card" style="margin-top:1rem; border-color:#a7f3d0; background:#f0fdf4;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.65rem;">
             <div>
@@ -4641,7 +4607,6 @@
           </div>
         </div>
 
-        <!-- 1ter. Journal en temps réel Multi-PC -->
         <div class="card" style="margin-top:1rem; border-color:#bfdbfe; background:#eff6ff;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.55rem;">
             <div>
@@ -4679,7 +4644,6 @@
           </div>
         </div>
 
-        <!-- 2. Jours d'ouverture par boutique -->
         ${canSchedules ? `
         <div class="card" style="margin-top:1rem;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">🗓️ Jours d'Ouverture par Boutique (9 Magasins)</h3>
@@ -4701,7 +4665,6 @@
         </div>
         ` : ""}
 
-        <!-- 3. Tarifs & CA Objectif / Réalisé -->
         ${canPricesCa ? `
         <div class="card" style="margin-top:1rem;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">💶 Tarifs Réseau &amp; CA Objectif / Réalisé</h3>
@@ -4712,7 +4675,6 @@
         </div>
         ` : ""}
 
-        <!-- 4. Gestion du Catalogue Produits & Ordre -->
         ${canCatalog ? `
         <div class="card" style="margin-top:1rem;">
           <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.65rem;">
@@ -4729,7 +4691,6 @@
         </div>
         ` : ""}
 
-        <!-- 5. Sauvegarde 10 ans & Générateur index.html -->
         ${canExport ? `
         <div class="card" style="margin-top:1rem; background:#f8fafc; border-color:#cbd5e1;">
           <h3 style="font-size:1rem; font-weight:900; color:#111827; margin-bottom:0.35rem;">💾 Sauvegarde Réseau 10 ans &amp; Export index.html</h3>
@@ -5483,7 +5444,7 @@
     }
 
     /* ==========================================================================
-       15. IMPRESSION & GÉNÉRATION PDF (3 A4 MAX POUR LES PÉTRIES + SUIVI TEMPS RÉEL)
+       15. IMPRESSION & GÉNÉRATION PDF (INGRÉDIENTS EN COLONNE + ÉTALÉ SUR 3 A4)
        ========================================================================== */
     function getDayForecastSignature(wk, dayIdx, opts) {
       const sig = {};
@@ -5536,7 +5497,7 @@
       const wk = getCurrentWeekData();
 
       if (selectedIndices.length === 1) {
-        infoEl.innerHTML = `📄 1 feuille sera éditée pour : <strong>${escapeHtml(formatCombinedDaysLabel(selectedIndices))}</strong> (mode économie d'encre niveaux de gris).`;
+        infoEl.innerHTML = `📄 Édition prête pour : <strong>${escapeHtml(formatCombinedDaysLabel(selectedIndices))}</strong> (pétries étalées sur 3 feuilles A4 max, ingrédients en colonne).`;
         return;
       }
 
@@ -5552,9 +5513,9 @@
       });
 
       if (groups.length === 1) {
-        infoEl.innerHTML = `✅ <strong>Prévisions identiques détectées !</strong> Une seule feuille commune sera imprimée avec l'en-tête :<br/><strong>« ${escapeHtml(formatCombinedDaysLabel(groups[0].days))} »</strong>`;
+        infoEl.innerHTML = `✅ <strong>Prévisions identiques détectées !</strong> Un seul jeu de feuilles sera imprimé avec l'en-tête :<br/><strong>« ${escapeHtml(formatCombinedDaysLabel(groups[0].days))} »</strong>`;
       } else {
-        const lines = groups.map((g, i) => `• Lot ${i + 1} (1 feuille) : <strong>${escapeHtml(formatCombinedDaysLabel(g.days))}</strong>`).join("<br/>");
+        const lines = groups.map((g, i) => `• Lot ${i + 1} : <strong>${escapeHtml(formatCombinedDaysLabel(g.days))}</strong>`).join("<br/>");
         infoEl.innerHTML = `ℹ️ Les jours sélectionnés ont des prévisions différentes et seront regroupés automatiquement en <strong>${groups.length} lots</strong> :<br/>${lines}`;
       }
     }
@@ -5572,8 +5533,7 @@
       openModal(`
         <h3 style="font-size:1.08rem; font-weight:900; color:#111827; margin-bottom:0.3rem;">🖨️ Impression &amp; Génération PDF — ${escapeHtml(state.selectedBoutique)}</h3>
         <p style="font-size:0.78rem; color:#4b5563; margin-bottom:0.75rem;">
-          Semaine ${getIsoWeekNumber(state.selectedWeekMonday)} • <strong>Mode Économie d'Encre (Nuances de gris)</strong>.
-          Si plusieurs jours ont exactement les mêmes prévisions, une seule feuille regroupant toutes leurs dates est générée.
+          Semaine ${getIsoWeekNumber(state.selectedWeekMonday)} • <strong>Mode Économie d'Encre (Nuances de gris)</strong> • Pétries étalées sur 3 feuilles A4 max avec ingrédients en colonne.
         </p>
 
         <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem; margin-bottom:0.75rem;">
@@ -5596,7 +5556,7 @@
         <div style="display:flex; flex-direction:column; gap:0.45rem; margin-bottom:0.85rem;">
           <label style="display:flex; align-items:center; gap:0.55rem; padding:0.5rem 0.7rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:9px; font-weight:800; font-size:0.81rem; color:#111827; cursor:pointer;">
             <input id="pdf-opt-petries" type="checkbox" checked onchange="updatePrintDaysSelectionInfo()" />
-            <span>🥣 Pétries Journalières &amp; Plaquage Viennoiserie (3 feuilles A4 max)</span>
+            <span>🥣 Pétries Journalières &amp; Plaquage Viennoiserie (étalées sur 3 feuilles A4 max)</span>
           </label>
           <label style="display:flex; align-items:center; gap:0.55rem; padding:0.5rem 0.7rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:9px; font-weight:800; font-size:0.81rem; color:#111827; cursor:pointer;">
             <input id="pdf-opt-traiteur" type="checkbox" checked onchange="updatePrintDaysSelectionInfo()" />
@@ -5613,7 +5573,7 @@
         </div>
 
         <div style="display:flex; flex-wrap:wrap; gap:0.45rem; margin-bottom:0.85rem;">
-          <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: false, patisserie: false })">📄 Pétries seules (3 A4 max)</button>
+          <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: false, patisserie: false })">📄 Pétries seules (3 A4)</button>
           <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: false, traiteur: true, patisserie: false })">📄 Traiteur seul</button>
           <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: false, traiteur: false, patisserie: true })">📄 Pâtisserie seule</button>
           <button type="button" class="btn btn-dark btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: true, patisserie: true })">📑 Tout Ensemble</button>
@@ -5628,22 +5588,15 @@
       updatePrintDaysSelectionInfo();
     }
 
-    function applyLowInkGrayscaleStyles(rootEl) {
-      const styleTag = document.createElement("style");
-      styleTag.textContent = `
-        .low-ink-root, .low-ink-root * {
-          color: #111827 !important;
-          box-shadow: none !important;
-          text-shadow: none !important;
-        }
-        .low-ink-root .card {
-          background: #ffffff !important;
-          border: 1px solid #9ca3af !important;
-          border-top: 2px solid #374151 !important;
-        }
-      `;
-      rootEl.classList.add("low-ink-root");
-      rootEl.prepend(styleTag);
+    function splitPetriesAcrossThreeA4Pages(cards) {
+      if (!cards || cards.length === 0) return [];
+      const targetPages = Math.min(3, cards.length);
+      const chunks = Array.from({ length: targetPages }, () => []);
+      cards.forEach((card, idx) => {
+        const pageIdx = Math.floor((idx * targetPages) / cards.length);
+        chunks[pageIdx].push(card);
+      });
+      return chunks.filter(c => c.length > 0);
     }
 
     function buildSingleDayGroupPrintHtml(dayIndices, opts) {
@@ -5658,28 +5611,38 @@
       const wkNum = getIsoWeekNumber(state.selectedWeekMonday);
       const sections = [];
 
-      // 1. SECTION PÉTRIES EN TABLEAUX PURS ÉCONOMIE D'ENCRE (SANS GRILLE CSS BLOQUANTE)
       if (includePetries) {
         const pData = computePetriesDataForDay(wk, dayIdx, hideZeros);
         const cards = pData.displayedPetries;
 
         const renderPetrinCardHtml = (p) => `
-          <div style="border:1px solid #9ca3af; border-top:2px solid #111827; border-radius:4px; padding:4px 5px; margin-bottom:6px; background:#fff;">
-            <div style="font-size:10px; font-weight:800; color:#111827; border-bottom:1px solid #d1d5db; padding-bottom:2px; margin-bottom:3px;">
+          <div style="border:1px solid #9ca3af; border-top:2px solid #111827; border-radius:4px; padding:5px 6px; margin-bottom:7px; background:#fff; break-inside:avoid;">
+            <div style="font-size:10.5px; font-weight:900; color:#111827; border-bottom:1px solid #d1d5db; padding-bottom:2px; margin-bottom:3px;">
               ${escapeHtml(p.title)}
               <span style="float:right; font-weight:900;">${formatNum(p.totalGrams / 1000, 2)} kg</span>
             </div>
-            <div style="font-size:8.5px; color:#374151; background:#f3f4f6; padding:2px 4px; margin-bottom:3px; line-height:1.3;">
-              ${p.ingredients.map(ing => `<strong>${escapeHtml(ing.label)} :</strong> ${formatGramsOrKg(ing.grams)}`).join(" • ")}
+            <div style="font-size:7.8px; font-weight:700; color:#374151; margin-bottom:3px;">
+              ⚠️ Peser levure, levain, lait et œufs le jour du pétrissage.
             </div>
-            <table style="width:100%; border-collapse:collapse; font-size:8.5px;">
+            <!-- Ingrédients en colonne -->
+            <table style="width:100%; border-collapse:collapse; font-size:9px; background:#f3f4f6; margin-bottom:4px; border:1px solid #d1d5db;">
+              <tbody>
+                ${p.ingredients.map(ing => `
+                  <tr style="border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:2px 4px; color:#111827; font-weight:600;">${escapeHtml(ing.label)}</td>
+                    <td style="padding:2px 4px; text-align:right; font-weight:900; color:#111827; white-space:nowrap;">${formatGramsOrKg(ing.grams)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+            <table style="width:100%; border-collapse:collapse; font-size:8.6px;">
               <tbody>
                 ${p.visibleItems.map(r => `
                   <tr style="border-bottom:1px solid #e5e7eb;">
                     <td style="padding:1.5px 2px; color:#111827;">${escapeHtml(r.name)}</td>
                     <td style="padding:1.5px 2px; text-align:right; color:#4b5563; white-space:nowrap;">${r.isLevainUsage ? escapeHtml(r.usageTag || "J+1") : `${r.weight}g`}</td>
-                    <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">${r.isLevainUsage ? formatGramsOrKg(r.totalGrams) : `×${r.qty}`}</td>
-                    <td style="padding:1.5px 2px; text-align:right; white-space:nowrap;">${formatNum(r.totalGrams / 1000, 2)}kg</td>
+                    <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">${r.isLevainUsage ? `${formatNum(Math.round(r.totalGrams))}g` : `×${r.qty}`}</td>
+                    <td style="padding:1.5px 2px; text-align:right; white-space:nowrap;">${r.isLevainUsage ? "" : `${formatNum(r.totalGrams / 1000, 2)}kg`}</td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -5694,18 +5657,13 @@
           </div>
         ` : "";
 
-        const maxPages = 3;
-        const perPage = Math.max(3, Math.ceil(cards.length / maxPages));
-        const pageChunks = [];
-        for (let i = 0; i < cards.length; i += perPage) {
-          pageChunks.push(cards.slice(i, i + perPage));
-        }
+        const pageChunks = splitPetriesAcrossThreeA4Pages(cards);
 
         const build3ColTable = (slice) => {
           const cols = [[], [], []];
           slice.forEach((card, idx) => cols[idx % 3].push(card));
           return `
-            <table style="width:100%; table-layout:fixed; border-collapse:separate; border-spacing:5px 0;">
+            <table style="width:100%; table-layout:fixed; border-collapse:separate; border-spacing:6px 0;">
               <tr>
                 ${cols.map(col => `<td style="vertical-align:top; width:33.33%; padding:0;">${col.map(renderPetrinCardHtml).join("")}</td>`).join("")}
               </tr>
@@ -5727,7 +5685,7 @@
             <div class="${pIdx > 0 ? "print-page-break" : ""}">
               <div style="background:#f3f4f6; border:1px solid #9ca3af; border-left:3px solid #111827; padding:4px 6px; margin-bottom:5px; font-weight:800; font-size:10.5px;">
                 ${pIdx === 0 ? "PÉTRIES JOURNALIÈRES &amp; VIENNOISERIE" : "SUITE DES PÉTRIES"} — ${escapeHtml(state.selectedBoutique)} • ${escapeHtml(combinedDateLabel)}
-                <span style="float:right; font-weight:700;">Pâte totale : ${formatNum(pData.grandTotalDoughGrams / 1000, 2)} kg • Page ${pIdx + 1}/${pageChunks.length}</span>
+                <span style="float:right; font-weight:700;">Pâte totale : ${formatNum(pData.grandTotalDoughGrams / 1000, 2)} kg • Feuille ${pIdx + 1}/${pageChunks.length}</span>
               </div>
               ${pIdx === 0 ? viennoiserieHtml : ""}
               ${build3ColTable(slice)}
@@ -5737,7 +5695,6 @@
         }
       }
 
-      // 2. SECTION TRAITEUR
       if (includeTraiteur) {
         const trRows = (wk.traiteur || [])
           .filter(t => !t.dormant)
@@ -5775,7 +5732,6 @@
         `);
       }
 
-      // 3. SECTION PÂTISSERIE
       if (includePatisserie) {
         const patRows = state.patisserieCatalog
           .filter(p => !p.dormant)
@@ -5870,70 +5826,30 @@
       return renderedBlocks.length > 0 ? renderedBlocks.join("") : null;
     }
 
-    function triggerInstantNativePrint(bodyHtml) {
-      // Impression instantanée via un iframe propre sans polices externes ni connexions actives (évite 100% le blocage "Chargement...")
-      let oldFrame = document.getElementById("jules-print-iframe");
-      if (oldFrame) oldFrame.remove();
-
-      const iframe = document.createElement("iframe");
-      iframe.id = "jules-print-iframe";
-      iframe.style.position = "fixed";
-      iframe.style.right = "0";
-      iframe.style.bottom = "0";
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.border = "0";
-      document.body.appendChild(iframe);
-
-      const printDocHtml = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Chez Jules — Impression</title>
-  <style>
-    @page { size: A4 landscape; margin: 7mm; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #ffffff;
-      color: #111827;
-      line-height: 1.3;
-      padding: 0;
+    function exitPrintDedicatedMode() {
+      document.body.classList.remove("print-bundle-mode");
+      const dedicatedEl = document.getElementById("dedicated-print-sheet");
+      if (dedicatedEl) dedicatedEl.innerHTML = "";
     }
-    .print-page-break { page-break-before: always; break-before: page; }
-  </style>
-</head>
-<body>${bodyHtml}</body>
-</html>`;
 
-      try {
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(printDocHtml);
-        doc.close();
-
+    function triggerInstantNativePrint(bodyHtml) {
+      const dedicatedEl = document.getElementById("dedicated-print-sheet");
+      if (dedicatedEl) {
+        dedicatedEl.innerHTML = `
+          <div class="no-print" style="background:#111827; color:#fff; padding:0.65rem 1rem; border-radius:10px; margin-bottom:0.85rem; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem;">
+            <div style="font-size:0.82rem; font-weight:800;">🖨️ Aperçu avant impression prêt (A4 Paysage • Économie d'encre)</div>
+            <div style="display:flex; gap:0.45rem;">
+              <button type="button" class="btn btn-emerald btn-sm" onclick="window.print()">🖨️ Lancer l'impression</button>
+              <button type="button" class="btn btn-amber btn-sm" onclick="exitPrintDedicatedMode(); downloadDirectPdfBundle();">⬇️ Télécharger PDF</button>
+              <button type="button" class="btn btn-white btn-sm" onclick="exitPrintDedicatedMode()">↩️ Retour à l'application</button>
+            </div>
+          </div>
+          ${bodyHtml}
+        `;
+        document.body.classList.add("print-bundle-mode");
         setTimeout(() => {
-          try {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-          } catch (err) {
-            const dedicatedEl = document.getElementById("dedicated-print-sheet");
-            if (dedicatedEl) {
-              dedicatedEl.innerHTML = bodyHtml;
-              document.body.classList.add("print-bundle-mode");
-              window.print();
-              setTimeout(() => document.body.classList.remove("print-bundle-mode"), 1000);
-            }
-          }
-        }, 60);
-      } catch (e) {
-        const dedicatedEl = document.getElementById("dedicated-print-sheet");
-        if (dedicatedEl) {
-          dedicatedEl.innerHTML = bodyHtml;
-          document.body.classList.add("print-bundle-mode");
-          window.print();
-          setTimeout(() => document.body.classList.remove("print-bundle-mode"), 1000);
-        }
+          try { window.print(); } catch (e) {}
+        }, 120);
       }
     }
 
@@ -6025,17 +5941,12 @@
           if (includePetries) {
             const pData = computePetriesDataForDay(wk, dayIdx, hideZeros);
             const cards = pData.displayedPetries;
-            const maxPages = 3;
-            const perPage = Math.max(3, Math.ceil(cards.length / maxPages));
-            const pageChunks = [];
-            for (let i = 0; i < cards.length; i += perPage) {
-              pageChunks.push(cards.slice(i, i + perPage));
-            }
+            const pageChunks = splitPetriesAcrossThreeA4Pages(cards);
             if (pageChunks.length === 0) pageChunks.push([]);
 
             pageChunks.forEach((slice, pIdx) => {
               let startY = addHeader(
-                `${pIdx === 0 ? "PÉTRIES & VIENNOISERIE" : "SUITE DES PÉTRIES"} - ${combinedDateLabel} (Page ${pIdx + 1}/${pageChunks.length})`,
+                `${pIdx === 0 ? "PÉTRIES & VIENNOISERIE" : "SUITE DES PÉTRIES"} - ${combinedDateLabel} (Feuille ${pIdx + 1}/${pageChunks.length})`,
                 `Pâte totale : ${formatNum(pData.grandTotalDoughGrams / 1000, 2)} kg | ${editStamp}`
               );
 
@@ -6062,12 +5973,11 @@
                 const x = margin + c * (colW + colGap);
                 let y = colY[c];
 
-                const ingStr = petrin.ingredients.map(i => `${i.label}: ${formatGramsOrKg(i.grams)}`).join(" | ");
-                pdf.setFontSize(7);
-                const ingLines = pdf.splitTextToSize(ingStr, colW - 4);
-                const cardH = 6 + (ingLines.length * 3.2 + 2) + (petrin.visibleItems.length * 3.6) + 3;
+                const ingH = petrin.ingredients.length * 3.5 + 2;
+                const itemsH = petrin.visibleItems.length * 3.6;
+                const cardH = 10.5 + ingH + itemsH + 3;
 
-                if (y + cardH > pageH - 6) return;
+                if (y + cardH > pageH - 5) return;
 
                 pdf.setDrawColor(130, 130, 130);
                 pdf.setFillColor(255, 255, 255);
@@ -6082,20 +5992,34 @@
                 pdf.text(`${formatNum(petrin.totalGrams / 1000, 2)} kg`, x + colW - 1.8, y + 3.7, { align: "right" });
                 y += 6.2;
 
-                pdf.setFont("helvetica", "normal");
-                pdf.setFontSize(6.8);
-                pdf.setTextColor(55, 55, 55);
-                pdf.text(ingLines, x + 1.8, y + 2);
-                y += ingLines.length * 3.2 + 2.2;
+                pdf.setFont("helvetica", "bold");
+                pdf.setFontSize(6.3);
+                pdf.setTextColor(70, 70, 70);
+                pdf.text("Peser levure, levain, lait et oeufs le jour du pétrissage.", x + 1.8, y + 2);
+                y += 3.8;
+
+                // Ingrédients en colonne
+                pdf.setFillColor(246, 246, 246);
+                pdf.rect(x + 1.2, y, colW - 2.4, ingH, "F");
+                petrin.ingredients.forEach(ing => {
+                  pdf.setFont("helvetica", "normal");
+                  pdf.setFontSize(6.9);
+                  pdf.setTextColor(25, 25, 25);
+                  pdf.text(ing.label.slice(0, 34), x + 2.2, y + 2.6);
+                  pdf.setFont("helvetica", "bold");
+                  pdf.text(formatGramsOrKg(ing.grams), x + colW - 2.2, y + 2.6, { align: "right" });
+                  y += 3.5;
+                });
+                y += 2.2;
 
                 pdf.setTextColor(15, 15, 15);
                 petrin.visibleItems.forEach(item => {
                   pdf.setFont("helvetica", "normal");
-                  pdf.setFontSize(7.1);
+                  pdf.setFontSize(7);
                   pdf.text(item.name.slice(0, 36), x + 1.8, y + 2.2);
                   pdf.setFont("helvetica", "bold");
                   const rightVal = item.isLevainUsage
-                    ? `${formatGramsOrKg(item.totalGrams)}`
+                    ? `${Math.round(item.totalGrams)} g`
                     : `x${item.qty} (${formatNum(item.totalGrams / 1000, 2)}kg)`;
                   pdf.text(rightVal, x + colW - 1.8, y + 2.2, { align: "right" });
                   y += 3.6;
