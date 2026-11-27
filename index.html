@@ -5611,6 +5611,35 @@
       updatePrintDaysSelectionInfo();
     }
 
+    function readCurrentPrintSelection(customOpts) {
+      const checkedBoxes = Array.from(document.querySelectorAll(".pdf-day-chk:checked"));
+      const dayIndices = checkedBoxes.length > 0
+        ? checkedBoxes.map(c => Number(c.value)).sort((a, b) => a - b)
+        : [state.selectedDayIdx];
+
+      const petries = customOpts ? !!customOpts.petries : (document.getElementById("pdf-opt-petries") ? !!document.getElementById("pdf-opt-petries").checked : true);
+      const traiteur = customOpts ? !!customOpts.traiteur : (document.getElementById("pdf-opt-traiteur") ? !!document.getElementById("pdf-opt-traiteur").checked : true);
+      const patisserie = customOpts ? !!customOpts.patisserie : (document.getElementById("pdf-opt-patisserie") ? !!document.getElementById("pdf-opt-patisserie").checked : true);
+      const hideZeros = (customOpts && typeof customOpts.hideZeros === "boolean")
+        ? customOpts.hideZeros
+        : (document.getElementById("pdf-opt-hide-zero") ? !!document.getElementById("pdf-opt-hide-zero").checked : state.hideZeroPetries);
+
+      const wk = getCurrentWeekData();
+      const opts = { petries, traiteur, patisserie, hideZeros };
+      const groups = [];
+      dayIndices.forEach(dIdx => {
+        const sig = getDayForecastSignature(wk, dIdx, opts);
+        const existingGroup = groups.find(g => g.sig === sig);
+        if (existingGroup) {
+          existingGroup.days.push(dIdx);
+        } else {
+          groups.push({ sig, days: [dIdx] });
+        }
+      });
+
+      return { opts, groups };
+    }
+
     function splitPetriesAcrossThreeA4Pages(cards) {
       if (!cards || cards.length === 0) return [];
       const targetPages = Math.min(3, cards.length);
@@ -5810,7 +5839,28 @@
         ${sections.join("")}
       `;
     }
-    let _lastPrintCustomOpts = null;
+
+    function getSelectedPrintDayGroups(opts) {
+      return readCurrentPrintSelection(opts).groups;
+    }
+
+    function buildPrintableDocumentHtml(customOpts, precomputedSelection) {
+      const sel = precomputedSelection || readCurrentPrintSelection(customOpts);
+      const { opts, groups } = sel;
+
+      if (!opts.petries && !opts.traiteur && !opts.patisserie) return null;
+
+      const renderedBlocks = groups
+        .map((g, gIdx) => {
+          const blockHtml = buildSingleDayGroupPrintHtml(g.days, opts);
+          if (!blockHtml) return "";
+          return gIdx > 0 ? `<div class="print-page-break">${blockHtml}</div>` : blockHtml;
+        })
+        .filter(Boolean);
+
+      return renderedBlocks.length > 0 ? renderedBlocks.join("") : null;
+    }
+    let _lastPrintSelection = null;
 
     function exitPrintDedicatedMode() {
       document.body.classList.remove("print-bundle-mode");
@@ -5823,37 +5873,34 @@
       const contentHtml = sheetContainer ? sheetContainer.innerHTML : "";
       if (!contentHtml) return;
 
-      try {
-        const win = window.open("", "_blank", "width=1120,height=780");
-        if (win && win.document) {
-          win.document.open();
-          win.document.write(`<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Impression — Boulangeries Chez Jules</title>
-  <style>
-    @page { size: A4 landscape; margin: 7mm; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, Helvetica, sans-serif; background: #fff; color: #111827; line-height: 1.3; }
-    .print-page-break { page-break-before: always; break-before: page; }
-  </style>
-</head>
-<body>${contentHtml}</body>
-</html>`);
-          win.document.close();
-          win.focus();
-          setTimeout(() => {
-            try { win.print(); } catch (e) {}
-          }, 150);
-          return;
-        }
-      } catch (e) {}
-
+      // 1. Tentative impression native directe de la vue dédiée (#dedicated-print-sheet est déjà isolé via @media print)
       try {
         window.print();
+        return;
+      } catch (e) {}
+
+      // 2. Fallback via iframe caché si window.print() direct échoue
+      try {
+        let oldFrame = document.getElementById("jules-print-iframe");
+        if (oldFrame) oldFrame.remove();
+        const iframe = document.createElement("iframe");
+        iframe.id = "jules-print-iframe";
+        iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
+        document.body.appendChild(iframe);
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><style>@page{size:A4 landscape;margin:7mm;}*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111827;}.print-page-break{page-break-before:always;break-before:page;}</style></head><body>${contentHtml}</body></html>`);
+        doc.close();
+        setTimeout(() => {
+          try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+          } catch (err) {
+            showToast("Astuce : appuyez sur Ctrl+P (ou Cmd+P) pour imprimer ou enregistrer en PDF.");
+          }
+        }, 120);
       } catch (e) {
-        showToast("Utilisez le bouton « Télécharger PDF » pour enregistrer le fichier.");
+        showToast("Astuce : appuyez sur Ctrl+P (ou Cmd+P) pour imprimer ou enregistrer en PDF.");
       }
     }
 
@@ -5865,8 +5912,8 @@
             <div class="no-print" style="background:#111827; color:#fff; padding:0.7rem 1rem; border-radius:10px; margin-bottom:0.85rem; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
               <div style="font-size:0.84rem; font-weight:800;">🖨️ Aperçu avant impression (A4 Paysage • Économie d'encre)</div>
               <div style="display:flex; flex-wrap:wrap; gap:0.45rem;">
-                <button type="button" class="btn btn-emerald btn-sm" onclick="executeSafePrintPopupOrNative()">🖨️ Imprimer maintenant</button>
-                <button type="button" class="btn btn-amber btn-sm" onclick="downloadDirectPdfBundle(_lastPrintCustomOpts)">⬇️ Télécharger le PDF</button>
+                <button type="button" class="btn btn-emerald btn-sm" onclick="executeSafePrintPopupOrNative()">🖨️ Lancer l'impression (Ctrl+P)</button>
+                <button type="button" class="btn btn-amber btn-sm" onclick="downloadDirectPdfBundle(null, _lastPrintSelection)">⬇️ Télécharger le PDF</button>
                 <button type="button" class="btn btn-white btn-sm" onclick="exitPrintDedicatedMode()">↩️ Retour à l'application</button>
               </div>
             </div>
@@ -5877,23 +5924,28 @@
         `;
         document.body.classList.add("print-bundle-mode");
         dedicatedEl.scrollTop = 0;
+        setTimeout(() => {
+          try { window.print(); } catch (e) {}
+        }, 180);
       }
     }
 
     function generateAndPrintBundle(customOpts) {
-      _lastPrintCustomOpts = customOpts || null;
-      const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
-      const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
-      const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
-      const opts = { petries: includePetries, traiteur: includeTraiteur, patisserie: includePatisserie };
-      const groups = getSelectedPrintDayGroups(opts);
-      const bodyHtml = buildPrintableDocumentHtml(customOpts);
-      if (!bodyHtml) {
+      const sel = readCurrentPrintSelection(customOpts);
+      const { opts, groups } = sel;
+      if (!opts.petries && !opts.traiteur && !opts.patisserie) {
         showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
         return;
       }
 
-      const printedParts = [includePetries ? "Pétries" : "", includeTraiteur ? "Traiteur" : "", includePatisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
+      _lastPrintSelection = sel;
+      const bodyHtml = buildPrintableDocumentHtml(customOpts, sel);
+      if (!bodyHtml) {
+        showToast("Aucune donnée à imprimer pour cette sélection.");
+        return;
+      }
+
+      const printedParts = [opts.petries ? "Pétries" : "", opts.traiteur ? "Traiteur" : "", opts.patisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
       const daysSummary = groups.map(g => formatCombinedDaysLabel(g.days)).join(" | ");
       recordNetworkActivity("print", state.selectedBoutique, `Impression lancée (${printedParts}) pour ${daysSummary}`);
 
@@ -5901,34 +5953,61 @@
       triggerInstantNativePrint(bodyHtml);
     }
 
-    function downloadDirectPdfBundle(customOpts) {
-      const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
-      const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
-      const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
-      const hideZeros = document.getElementById("pdf-opt-hide-zero")
-        ? !!document.getElementById("pdf-opt-hide-zero").checked
-        : state.hideZeroPetries;
+    function ensureJsPdfLoaded() {
+      return new Promise(resolve => {
+        if (window.jspdf && window.jspdf.jsPDF) {
+          resolve(window.jspdf.jsPDF);
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+        script.onload = () => resolve((window.jspdf && window.jspdf.jsPDF) || null);
+        script.onerror = () => resolve(null);
+        document.head.appendChild(script);
+      });
+    }
 
-      if (!includePetries && !includeTraiteur && !includePatisserie) {
+    function downloadHtmlFallbackFile(bodyHtml, baseName) {
+      const docHtml = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><title>${escapeHtml(baseName)}</title><style>@page{size:A4 landscape;margin:7mm;}*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#111827;padding:8mm;line-height:1.3;}.print-page-break{page-break-before:always;break-before:page;}</style></head><body onload="window.print()">${bodyHtml}</body></html>`;
+      const blob = new Blob([docHtml], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${baseName}.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    async function downloadDirectPdfBundle(customOpts, precomputedSelection) {
+      const sel = precomputedSelection || readCurrentPrintSelection(customOpts);
+      const { opts, groups } = sel;
+
+      if (!opts.petries && !opts.traiteur && !opts.patisserie) {
         showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
         return;
       }
 
-      const opts = { petries: includePetries, traiteur: includeTraiteur, patisserie: includePatisserie, hideZeros };
-      const groups = getSelectedPrintDayGroups(opts);
-      const printedParts = [includePetries ? "Pétries" : "", includeTraiteur ? "Traiteur" : "", includePatisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
+      _lastPrintSelection = sel;
+      const printedParts = [opts.petries ? "Pétries" : "", opts.traiteur ? "Traiteur" : "", opts.patisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
       const daysSummary = groups.map(g => formatCombinedDaysLabel(g.days)).join(" | ");
       recordNetworkActivity("print", state.selectedBoutique, `PDF téléchargé (${printedParts}) pour ${daysSummary}`);
 
       const daySlug = groups[0]?.days.map(d => DAY_SHORT[d].toLowerCase()).join("-") || "jour";
-      const fileName = `chez-jules-${slugify(state.selectedBoutique)}-${daySlug}-${state.selectedWeekMonday}.pdf`;
+      const baseFileName = `chez-jules-${slugify(state.selectedBoutique)}-${daySlug}-${state.selectedWeekMonday}`;
+      const fileName = `${baseFileName}.pdf`;
 
       closeModal();
+      showToast("⏳ Génération du PDF en cours...");
 
-      const JsPDFCtor = window.jspdf && window.jspdf.jsPDF;
+      const JsPDFCtor = await ensureJsPdfLoaded();
       if (!JsPDFCtor) {
-        const bodyHtml = buildPrintableDocumentHtml(customOpts);
-        if (bodyHtml) triggerInstantNativePrint(bodyHtml);
+        const bodyHtml = buildPrintableDocumentHtml(customOpts, sel);
+        if (bodyHtml) {
+          downloadHtmlFallbackFile(bodyHtml, baseFileName);
+          showToast("📄 Fiche d'impression téléchargée (ouvrez-la pour imprimer ou enregistrer en PDF).");
+        }
         return;
       }
 
@@ -5966,8 +6045,8 @@
           const combinedDateLabel = formatCombinedDaysLabel(group.days);
           const editStamp = `Édité le ${new Date().toLocaleDateString("fr-FR")} (Sem. ${wkNum})`;
 
-          if (includePetries) {
-            const pData = computePetriesDataForDay(wk, dayIdx, hideZeros);
+          if (opts.petries) {
+            const pData = computePetriesDataForDay(wk, dayIdx, opts.hideZeros);
             const cards = pData.displayedPetries;
             const pageChunks = splitPetriesAcrossThreeA4Pages(cards);
             if (pageChunks.length === 0) pageChunks.push([]);
@@ -5978,7 +6057,7 @@
                 `Pâte totale : ${formatNum(pData.grandTotalDoughGrams / 1000, 2)} kg | ${editStamp}`
               );
 
-              if (pIdx === 0 && (!hideZeros || pData.totalViennoiseriePieces > 0)) {
+              if (pIdx === 0 && (!opts.hideZeros || pData.totalViennoiseriePieces > 0)) {
                 const vLine = `PLAQUAGE VIENNOISERIE (${pData.totalViennoiseriePieces} pcs) : ` +
                   pData.visibleViennoiserieItems.map(v => `${v.name} (${v.qty})`).join("  |  ");
                 pdf.setFillColor(243, 244, 246);
@@ -6026,7 +6105,6 @@
                 pdf.text("Peser levure, levain, lait et oeufs le jour du pétrissage.", x + 1.8, y + 2);
                 y += 3.8;
 
-                // Ingrédients en colonne
                 pdf.setFillColor(246, 246, 246);
                 pdf.rect(x + 1.2, y, colW - 2.4, ingH, "F");
                 petrin.ingredients.forEach(ing => {
@@ -6058,11 +6136,11 @@
             });
           }
 
-          if (includeTraiteur) {
+          if (opts.traiteur) {
             const trRows = (wk.traiteur || [])
               .filter(t => !t.dormant)
               .map(t => ({ category: t.category, name: t.name, breadLabel: t.breadLabel || "", qty: Number(t.quantities?.[dayIdx]) || 0 }))
-              .filter(r => !hideZeros || r.qty > 0);
+              .filter(r => !opts.hideZeros || r.qty > 0);
             const trTotal = trRows.reduce((s, r) => s + r.qty, 0);
             let y = addHeader(`PRODUCTION TRAITEUR - ${combinedDateLabel} (Total : ${trTotal} pcs)`, editStamp);
 
@@ -6095,11 +6173,11 @@
             });
           }
 
-          if (includePatisserie) {
+          if (opts.patisserie) {
             const patRows = state.patisserieCatalog
               .filter(p => !p.dormant)
               .map(p => ({ category: p.category, name: p.name, qty: Number(wk.patisserie?.[p.id]?.[dayIdx]) || 0 }))
-              .filter(r => !hideZeros || r.qty > 0);
+              .filter(r => !opts.hideZeros || r.qty > 0);
             const patTotal = patRows.reduce((s, r) => s + r.qty, 0);
             let y = addHeader(`PRODUCTION PÂTISSERIE - ${combinedDateLabel} (Total : ${patTotal} pcs)`, editStamp);
 
@@ -6129,11 +6207,22 @@
           }
         });
 
-        pdf.save(fileName);
-        showToast(`✅ PDF téléchargé instantanément : ${fileName}`);
+        const pdfBlob = pdf.output("blob");
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const dlLink = document.createElement("a");
+        dlLink.href = pdfUrl;
+        dlLink.download = fileName;
+        document.body.appendChild(dlLink);
+        dlLink.click();
+        dlLink.remove();
+        setTimeout(() => URL.revokeObjectURL(pdfUrl), 3000);
+        showToast(`✅ PDF téléchargé : ${fileName}`);
       } catch (err) {
-        const bodyHtml = buildPrintableDocumentHtml(customOpts);
-        if (bodyHtml) triggerInstantNativePrint(bodyHtml);
+        const bodyHtml = buildPrintableDocumentHtml(customOpts, sel);
+        if (bodyHtml) {
+          downloadHtmlFallbackFile(bodyHtml, baseFileName);
+          showToast("📄 Fichier d'impression téléchargé.");
+        }
       }
     }
 
