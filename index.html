@@ -1666,7 +1666,7 @@
     let _isApplyingRemote = false;
     let _localBroadcastChannel = null;
     let _sseEventSource = null;
-    let _lastPollTimestamp = Math.floor(Date.now() / 1000) - 600;
+    let _lastPollTimestamp = Math.floor(Date.now() / 1000) - 86400;
     const _processedPacketIds = new Set();
 
     function normalizeBoutiqueName(rawName) {
@@ -1690,6 +1690,45 @@
       return state.networkChannel;
     }
 
+    function sendPacketChunksToRelay(ch, fullPacket) {
+      try {
+        const serialized = JSON.stringify(fullPacket);
+        // Si le paquet est compact (< 3400 octets), envoi direct
+        if (serialized.length <= 3400) {
+          fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}`, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=UTF-8" },
+            body: serialized,
+            keepalive: true
+          }).catch(() => {});
+          return;
+        }
+        // Sinon découpage automatique en morceaux pour ne jamais perdre de données
+        const chunkSize = 2600;
+        const totalChunks = Math.ceil(serialized.length / chunkSize);
+        const batchId = fullPacket.pktId;
+        for (let i = 0; i < totalChunks; i++) {
+          const chunkEnvelope = JSON.stringify({
+            kind: "chunk_part",
+            pktId: `${batchId}-p${i}`,
+            batchId,
+            partIdx: i,
+            totalParts: totalChunks,
+            senderDevice: DEVICE_ID,
+            slice: serialized.slice(i * chunkSize, (i + 1) * chunkSize)
+          });
+          fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}`, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=UTF-8" },
+            body: chunkEnvelope,
+            keepalive: true
+          }).catch(() => {});
+        }
+      } catch (e) {}
+    }
+
+    const _incomingChunkBuffers = {};
+
     function broadcastNetworkPacket(packet) {
       if (_isApplyingRemote) return;
       const ch = getActiveNetworkChannel();
@@ -1708,15 +1747,7 @@
         if (_localBroadcastChannel) _localBroadcastChannel.postMessage(fullPacket);
       } catch (e) {}
 
-      try {
-        const serialized = JSON.stringify(fullPacket);
-        if (serialized.length <= 3800) {
-          fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}`, {
-            method: "POST",
-            body: serialized
-          }).catch(() => {});
-        }
-      } catch (e) {}
+      sendPacketChunksToRelay(ch, fullPacket);
     }
 
     function buildCompactWeekPatch(boutiqueName, mondayIso, wk) {
@@ -1752,8 +1783,8 @@
 
     function pollMissedNetworkPackets(sinceParam) {
       const ch = getActiveNetworkChannel();
-      const since = sinceParam || Math.max(1, _lastPollTimestamp - 5);
-      fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/json?poll=1&since=${since}`)
+      const since = sinceParam || Math.max(1, _lastPollTimestamp - 15);
+      fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/json?poll=1&since=${since}`, { cache: "no-store" })
         .then(r => r.text())
         .then(txt => {
           _lastPollTimestamp = Math.floor(Date.now() / 1000);
@@ -1785,7 +1816,7 @@
       const connectStream = () => {
         try {
           if (_sseEventSource) _sseEventSource.close();
-          _sseEventSource = new EventSource(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/sse?since=2h`);
+          _sseEventSource = new EventSource(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/sse?since=24h`);
           _sseEventSource.onopen = () => {
             if (badge) {
               badge.style.background = "#064e3b";
@@ -1815,26 +1846,47 @@
       };
 
       connectStream();
-      pollMissedNetworkPackets("2h");
+      pollMissedNetworkPackets("24h");
 
+      // Scrutation continue toutes les 3 secondes + lors du retour sur l'onglet
       setInterval(() => {
         pollMissedNetworkPackets();
-      }, 4000);
+      }, 3000);
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          pollMissedNetworkPackets("2h");
+          broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
+        }
+      });
 
       setTimeout(() => {
         broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
-      }, 900);
+      }, 700);
     }
 
     function forceManualSyncNow() {
       showToast("Synchronisation multi-PC en cours...");
-      pollMissedNetworkPackets("12h");
+      pollMissedNetworkPackets("48h");
       broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID });
       if (state.currentUser) {
         if (isEffectiveAdmin()) {
           saveGlobalConfig(false);
+          // Diffuser aussi la semaine active de chaque boutique ayant des données
+          BOUTIQUES.forEach(b => {
+            const st = readBoutiqueStoreReadOnly(b.name);
+            const wk = st.weeks?.[state.selectedWeekMonday];
+            if (wk) {
+              broadcastNetworkPacket(buildCompactWeekPatch(b.name, state.selectedWeekMonday, wk));
+            }
+          });
+        } else {
+          saveCurrentBoutiqueData(false);
+          const wk = state.storeData?.weeks?.[state.selectedWeekMonday];
+          if (wk) {
+            broadcastNetworkPacket(buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, wk));
+          }
         }
-        saveCurrentBoutiqueData(false);
       }
       renderAllViews();
       showToast("✅ Synchronisation multi-PC actualisée !");
@@ -1864,13 +1916,48 @@
       return wk;
     }
 
+    function refreshViewsSafelyAfterRemoteUpdate(affectedBoutique) {
+      if (!state.currentUser) return;
+      const activeEl = document.activeElement;
+      const isTypingInInput = activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.tagName === "SELECT");
+
+      if (state.activeTab === "admin" && isEffectiveAdmin()) {
+        if (!isTypingInInput) renderAdminView();
+        return;
+      }
+      if (affectedBoutique && slugify(state.selectedBoutique) === slugify(affectedBoutique)) {
+        if (!isTypingInInput) {
+          renderAllViews();
+        }
+      }
+    }
+
     window.__processIncomingNetworkPacket = function (pkt) {
       if (!pkt || !pkt.pktId) return;
       if (pkt.senderDevice === DEVICE_ID || _processedPacketIds.has(pkt.pktId)) return;
       _processedPacketIds.add(pkt.pktId);
-      if (_processedPacketIds.size > 1000) {
+      if (_processedPacketIds.size > 2000) {
         const first = _processedPacketIds.values().next().value;
         _processedPacketIds.delete(first);
+      }
+
+      // Réassemblage des paquets multi-morceaux
+      if (pkt.kind === "chunk_part" && pkt.batchId) {
+        if (!_incomingChunkBuffers[pkt.batchId]) {
+          _incomingChunkBuffers[pkt.batchId] = { total: pkt.totalParts, parts: {}, createdAt: Date.now() };
+        }
+        const buf = _incomingChunkBuffers[pkt.batchId];
+        buf.parts[pkt.partIdx] = pkt.slice;
+        if (Object.keys(buf.parts).length === buf.total) {
+          let fullStr = "";
+          for (let i = 0; i < buf.total; i++) fullStr += (buf.parts[i] || "");
+          delete _incomingChunkBuffers[pkt.batchId];
+          try {
+            const reassembled = JSON.parse(fullStr);
+            window.__processIncomingNetworkPacket(reassembled);
+          } catch (e) {}
+        }
+        return;
       }
 
       if (pkt.kind === "sync_ping") {
@@ -1880,11 +1967,12 @@
               kind: "users_sync",
               users: state.users
             });
-          }
-          if (state.selectedBoutique && state.storeData?.weeks?.[state.selectedWeekMonday]) {
-            broadcastNetworkPacket(
-              buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, state.storeData.weeks[state.selectedWeekMonday])
-            );
+          } else if (state.selectedBoutique) {
+            const st = readBoutiqueStoreReadOnly(state.selectedBoutique);
+            const wk = st.weeks?.[state.selectedWeekMonday];
+            if (wk) {
+              broadcastNetworkPacket(buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, wk));
+            }
           }
         }
         return;
@@ -1943,8 +2031,8 @@
           safeSetItem(boutiqueStorageKey(bName), JSON.stringify(st));
           if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
-            if (state.currentUser) renderAllViews();
           }
+          refreshViewsSafelyAfterRemoteUpdate(bName);
         } else if (pkt.kind === "cell_delta" && pkt.boutique && pkt.mondayIso) {
           const bName = normalizeBoutiqueName(pkt.boutique);
           const st = readBoutiqueStoreReadOnly(bName);
@@ -1974,8 +2062,8 @@
           safeSetItem(boutiqueStorageKey(bName), JSON.stringify(st));
           if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
-            if (state.currentUser) renderAllViews();
           }
+          refreshViewsSafelyAfterRemoteUpdate(bName);
         } else if (pkt.kind === "activity" && pkt.entry) {
           if (!state.activityLog.some(x => x.id === pkt.entry.id)) {
             state.activityLog.unshift(pkt.entry);
