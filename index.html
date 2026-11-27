@@ -1634,6 +1634,25 @@
       const d = parseIsoDate(iso);
       return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
     }
+    function formatFullShortYearFrDate(iso) {
+      const d = parseIsoDate(iso);
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yy = String(d.getFullYear()).slice(-2);
+      return `${dd}/${mm}/${yy}`;
+    }
+    function formatCombinedDaysLabel(dayIndices) {
+      const sorted = [...new Set(dayIndices)].sort((a, b) => a - b);
+      const parts = sorted.map((idx, pos) => {
+        const dayWord = pos === 0 ? DAY_NAMES[idx] : DAY_NAMES[idx].toLowerCase();
+        const dateStr = formatFullShortYearFrDate(addDaysIso(state.selectedWeekMonday, idx));
+        return `${dayWord} ${dateStr}`;
+      });
+      if (parts.length === 0) return "";
+      if (parts.length === 1) return parts[0];
+      if (parts.length === 2) return `${parts[0]} et ${parts[1]}`;
+      return `${parts.slice(0, -1).join(", ")} et ${parts[parts.length - 1]}`;
+    }
     function getIsoWeekNumber(iso) {
       const d = parseIsoDate(iso);
       const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -5304,76 +5323,208 @@
     /* ==========================================================================
        15. IMPRESSION & GÉNÉRATION PDF (3 A4 MAX POUR LES PÉTRIES + SUIVI TEMPS RÉEL)
        ========================================================================== */
+    function getDayForecastSignature(wk, dayIdx, opts) {
+      const sig = {};
+      if (opts.petries) {
+        sig.q = {};
+        state.catalog.forEach(p => {
+          if (p.dormant || p.formula) return;
+          const base = Number(wk.quantities?.[p.id]?.[dayIdx]) || 0;
+          const total = p.isTraiteurSupport ? base : base + getTraiteurAutoSupplementForDay(wk, p.id, dayIdx);
+          if (total > 0) sig.q[p.id] = total;
+        });
+      }
+      if (opts.traiteur) {
+        sig.tr = {};
+        (wk.traiteur || []).forEach(t => {
+          if (t.dormant) return;
+          const val = Number(t.quantities?.[dayIdx]) || 0;
+          if (val > 0) sig.tr[t.id] = val;
+        });
+      }
+      if (opts.patisserie) {
+        sig.pat = {};
+        state.patisserieCatalog.forEach(p => {
+          if (p.dormant) return;
+          const val = Number(wk.patisserie?.[p.id]?.[dayIdx]) || 0;
+          if (val > 0) sig.pat[p.id] = val;
+        });
+      }
+      return JSON.stringify(sig);
+    }
+
+    function updatePrintDaysSelectionInfo() {
+      const checkedBoxes = Array.from(document.querySelectorAll(".pdf-day-chk:checked"));
+      const selectedIndices = checkedBoxes.map(c => Number(c.value)).sort((a, b) => a - b);
+      const infoEl = document.getElementById("pdf-days-preview-info");
+      if (!infoEl) return;
+
+      if (selectedIndices.length === 0) {
+        infoEl.innerHTML = `<span style="color:#b91c1c;">⚠️ Sélectionnez au moins un jour à imprimer.</span>`;
+        return;
+      }
+
+      const opts = {
+        petries: !!document.getElementById("pdf-opt-petries")?.checked,
+        traiteur: !!document.getElementById("pdf-opt-traiteur")?.checked,
+        patisserie: !!document.getElementById("pdf-opt-patisserie")?.checked
+      };
+      const wk = getCurrentWeekData();
+
+      if (selectedIndices.length === 1) {
+        infoEl.innerHTML = `📄 1 feuille sera éditée pour : <strong>${escapeHtml(formatCombinedDaysLabel(selectedIndices))}</strong> (mode économie d'encre niveaux de gris).`;
+        return;
+      }
+
+      const groups = [];
+      selectedIndices.forEach(dIdx => {
+        const sig = getDayForecastSignature(wk, dIdx, opts);
+        const existingGroup = groups.find(g => g.sig === sig);
+        if (existingGroup) {
+          existingGroup.days.push(dIdx);
+        } else {
+          groups.push({ sig, days: [dIdx] });
+        }
+      });
+
+      if (groups.length === 1) {
+        infoEl.innerHTML = `✅ <strong>Prévisions identiques détectées !</strong> Une seule feuille commune sera imprimée avec l'en-tête :<br/><strong>« ${escapeHtml(formatCombinedDaysLabel(groups[0].days))} »</strong>`;
+      } else {
+        const lines = groups.map((g, i) => `• Lot ${i + 1} (1 feuille) : <strong>${escapeHtml(formatCombinedDaysLabel(g.days))}</strong>`).join("<br/>");
+        infoEl.innerHTML = `ℹ️ Les jours sélectionnés ont des prévisions différentes et seront regroupés automatiquement en <strong>${groups.length} lots</strong> :<br/>${lines}`;
+      }
+    }
+
     function openPrintPdfModal() {
-      const dayName = DAY_NAMES[state.selectedDayIdx] || "Jour";
-      const dateStr = formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx));
+      const openDays = getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
+      const wk = getCurrentWeekData();
+      const currentOpts = { petries: true, traiteur: true, patisserie: true };
+      const activeSig = getDayForecastSignature(wk, state.selectedDayIdx, currentOpts);
+      const matchingDays = openDays
+        .filter(od => getDayForecastSignature(wk, od.dayIdx, currentOpts) === activeSig)
+        .map(od => od.dayIdx);
+      const preselectedDays = matchingDays.length > 0 ? matchingDays : [state.selectedDayIdx];
+
       openModal(`
         <h3 style="font-size:1.08rem; font-weight:900; color:#111827; margin-bottom:0.3rem;">🖨️ Impression &amp; Génération PDF — ${escapeHtml(state.selectedBoutique)}</h3>
-        <p style="font-size:0.78rem; color:#4b5563; margin-bottom:0.85rem;">
-          Document pour <strong>${dayName} ${dateStr}</strong> (Semaine ${getIsoWeekNumber(state.selectedWeekMonday)}).
+        <p style="font-size:0.78rem; color:#4b5563; margin-bottom:0.75rem;">
+          Semaine ${getIsoWeekNumber(state.selectedWeekMonday)} • <strong>Mode Économie d'Encre (Nuances de gris)</strong>.
+          Si plusieurs jours ont exactement les mêmes prévisions, une seule feuille regroupant toutes leurs dates est générée.
         </p>
-        <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.95rem;">
-          <label style="display:flex; align-items:center; gap:0.55rem; padding:0.55rem 0.75rem; background:#fffbeb; border:1px solid #fcd34d; border-radius:9px; font-weight:800; font-size:0.82rem; color:#92400e; cursor:pointer;">
-            <input id="pdf-opt-petries" type="checkbox" checked />
+
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem; margin-bottom:0.75rem;">
+          <div style="font-size:0.77rem; font-weight:900; color:#0f172a; margin-bottom:0.4rem;">📅 Jours à inclure (les jours aux prévisions identiques sont pré-cochés) :</div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+            ${openDays.map(od => {
+              const isChecked = preselectedDays.includes(od.dayIdx);
+              const dateShort = formatFullShortYearFrDate(od.isoDate);
+              return `
+                <label style="display:inline-flex; align-items:center; gap:0.35rem; padding:0.35rem 0.6rem; border:1px solid #cbd5e1; border-radius:8px; background:#fff; font-size:0.77rem; font-weight:700; cursor:pointer;">
+                  <input type="checkbox" class="pdf-day-chk" value="${od.dayIdx}" ${isChecked ? "checked" : ""} onchange="updatePrintDaysSelectionInfo()" />
+                  <span>${od.dayName} ${dateShort}</span>
+                </label>
+              `;
+            }).join("")}
+          </div>
+          <div id="pdf-days-preview-info" style="font-size:0.75rem; color:#1e293b; margin-top:0.5rem; background:#fff; border:1px solid #e2e8f0; border-radius:7px; padding:0.45rem 0.6rem;"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.45rem; margin-bottom:0.85rem;">
+          <label style="display:flex; align-items:center; gap:0.55rem; padding:0.5rem 0.7rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:9px; font-weight:800; font-size:0.81rem; color:#111827; cursor:pointer;">
+            <input id="pdf-opt-petries" type="checkbox" checked onchange="updatePrintDaysSelectionInfo()" />
             <span>🥣 Pétries Journalières &amp; Plaquage Viennoiserie (3 feuilles A4 max)</span>
           </label>
-          <label style="display:flex; align-items:center; gap:0.55rem; padding:0.55rem 0.75rem; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:9px; font-weight:800; font-size:0.82rem; color:#065f46; cursor:pointer;">
-            <input id="pdf-opt-traiteur" type="checkbox" checked />
+          <label style="display:flex; align-items:center; gap:0.55rem; padding:0.5rem 0.7rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:9px; font-weight:800; font-size:0.81rem; color:#111827; cursor:pointer;">
+            <input id="pdf-opt-traiteur" type="checkbox" checked onchange="updatePrintDaysSelectionInfo()" />
             <span>🥪 Gamme Traiteur (Production du jour)</span>
           </label>
-          <label style="display:flex; align-items:center; gap:0.55rem; padding:0.55rem 0.75rem; background:#eff6ff; border:1px solid #bfdbfe; border-radius:9px; font-weight:800; font-size:0.82rem; color:#1e40af; cursor:pointer;">
-            <input id="pdf-opt-patisserie" type="checkbox" checked />
+          <label style="display:flex; align-items:center; gap:0.55rem; padding:0.5rem 0.7rem; background:#f8fafc; border:1px solid #cbd5e1; border-radius:9px; font-weight:800; font-size:0.81rem; color:#111827; cursor:pointer;">
+            <input id="pdf-opt-patisserie" type="checkbox" checked onchange="updatePrintDaysSelectionInfo()" />
             <span>🍰 Gamme Pâtisserie (Production du jour)</span>
           </label>
-          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; font-weight:700; color:#475569; margin-top:0.2rem; cursor:pointer;">
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; font-weight:700; color:#475569; margin-top:0.15rem; cursor:pointer;">
             <input id="pdf-opt-hide-zero" type="checkbox" ${state.hideZeroPetries ? "checked" : ""} />
             <span>Masquer les produits à zéro (0)</span>
           </label>
         </div>
+
         <div style="display:flex; flex-wrap:wrap; gap:0.45rem; margin-bottom:0.85rem;">
-          <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: false, patisserie: false })">📄 PDF Pétries seules (3 A4 max)</button>
-          <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: false, traiteur: true, patisserie: false })">📄 PDF Traiteur seul</button>
-          <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: false, traiteur: false, patisserie: true })">📄 PDF Pâtisserie seule</button>
-          <button type="button" class="btn btn-amber btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: true, patisserie: true })">📑 PDF Tout Ensemble</button>
+          <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: false, patisserie: false })">📄 Pétries seules (3 A4 max)</button>
+          <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: false, traiteur: true, patisserie: false })">📄 Traiteur seul</button>
+          <button type="button" class="btn btn-white btn-sm" onclick="generateAndPrintBundle({ petries: false, traiteur: false, patisserie: true })">📄 Pâtisserie seule</button>
+          <button type="button" class="btn btn-dark btn-sm" onclick="generateAndPrintBundle({ petries: true, traiteur: true, patisserie: true })">📑 Tout Ensemble</button>
         </div>
+
         <div style="display:flex; flex-wrap:wrap; justify-content:flex-end; gap:0.5rem; border-top:1px solid #e5e7eb; padding-top:0.75rem;">
           <button type="button" class="btn btn-white" onclick="closeModal()">Fermer</button>
           <button type="button" class="btn btn-dark" onclick="downloadDirectPdfBundle()">⬇️ Télécharger le PDF</button>
           <button type="button" class="btn btn-emerald" onclick="generateAndPrintBundle()">🖨️ Imprimer</button>
         </div>
       `);
+      updatePrintDaysSelectionInfo();
     }
 
-    function buildPrintableDocumentHtml(customOpts) {
-      const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
-      const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
-      const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
-      const hideZeros = document.getElementById("pdf-opt-hide-zero")
-        ? !!document.getElementById("pdf-opt-hide-zero").checked
-        : state.hideZeroPetries;
+    function applyLowInkGrayscaleStyles(rootEl) {
+      rootEl.querySelectorAll("*").forEach(el => {
+        if (el.style) {
+          if (el.style.background && el.style.background !== "transparent" && el.style.background !== "#fff" && el.style.background !== "#ffffff" && el.style.background !== "rgb(255, 255, 255)") {
+            el.style.background = "#f3f4f6";
+          }
+          if (el.style.backgroundColor && el.style.backgroundColor !== "transparent" && el.style.backgroundColor !== "#fff" && el.style.backgroundColor !== "#ffffff" && el.style.backgroundColor !== "rgb(255, 255, 255)") {
+            el.style.backgroundColor = "#f3f4f6";
+          }
+          if (el.style.color) {
+            el.style.color = "#111827";
+          }
+          if (el.style.borderColor) {
+            el.style.borderColor = "#9ca3af";
+          }
+          if (el.style.borderTopColor) {
+            el.style.borderTopColor = "#374151";
+          }
+          if (el.style.borderLeftColor) {
+            el.style.borderLeftColor = "#374151";
+          }
+        }
+      });
+    }
+
+    function buildSingleDayGroupPrintHtml(dayIndices, opts) {
+      const includePetries = opts.petries;
+      const includeTraiteur = opts.traiteur;
+      const includePatisserie = opts.patisserie;
+      const hideZeros = opts.hideZeros;
 
       const wk = getCurrentWeekData();
-      const dayIdx = state.selectedDayIdx;
-      const dayName = DAY_NAMES[dayIdx] || "Jour";
-      const dateStr = formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx));
+      const dayIdx = dayIndices[0];
+      const combinedDateLabel = formatCombinedDaysLabel(dayIndices);
       const wkNum = getIsoWeekNumber(state.selectedWeekMonday);
       const sections = [];
 
       if (includePetries) {
+        const prevDay = state.selectedDayIdx;
         const prevHide = state.hideZeroPetries;
+        state.selectedDayIdx = dayIdx;
         state.hideZeroPetries = hideZeros;
         renderPetriesView();
         const tmpWrapper = document.createElement("div");
         tmpWrapper.innerHTML = document.getElementById("petries-content")?.innerHTML || "";
+        state.selectedDayIdx = prevDay;
         state.hideZeroPetries = prevHide;
         if (state.activeTab === "petries") renderPetriesView();
+
+        applyLowInkGrayscaleStyles(tmpWrapper);
 
         const headerCard = tmpWrapper.querySelector(".card");
         if (headerCard) {
           const toggleLabel = headerCard.querySelector("label");
           if (toggleLabel) toggleLabel.remove();
+          const h2El = headerCard.querySelector("h2");
+          if (h2El) h2El.textContent = `🥣 Pétries Journalières & Plaquage Viennoiserie — ${combinedDateLabel} (${state.selectedBoutique})`;
           headerCard.style.padding = "0.45rem 0.65rem";
           headerCard.style.marginBottom = "0.45rem";
+          headerCard.style.background = "#ffffff";
+          headerCard.style.border = "1px solid #9ca3af";
         }
 
         const allCards = Array.from(tmpWrapper.querySelectorAll(".card"));
@@ -5381,13 +5532,21 @@
         if (viennoiserieCard) {
           viennoiserieCard.style.padding = "0.45rem 0.65rem";
           viennoiserieCard.style.marginBottom = "0.45rem";
+          viennoiserieCard.style.background = "#ffffff";
+          viennoiserieCard.style.border = "1px solid #9ca3af";
+          viennoiserieCard.style.borderTop = "2px solid #374151";
         }
 
         const gridContainer = tmpWrapper.querySelector(".grid-2");
         let threePagePetriesHtml = "";
         if (gridContainer) {
           const cards = Array.from(gridContainer.children);
-          cards.forEach(c => c.classList.add("petries-a4-card"));
+          cards.forEach(c => {
+            c.classList.add("petries-a4-card");
+            c.style.background = "#ffffff";
+            c.style.border = "1px solid #9ca3af";
+            c.style.borderTop = "2px solid #374151";
+          });
           const maxPages = 3;
           const chunkSize = Math.max(1, Math.ceil(cards.length / maxPages));
           const pages = [];
@@ -5403,14 +5562,14 @@
                   ${headerCard ? headerCard.outerHTML : ""}
                   ${viennoiserieCard ? viennoiserieCard.outerHTML : ""}
                   <div class="petries-a4-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.45rem;">${cardsHtml}</div>
-                  <div style="text-align:right; font-size:0.68rem; color:#64748b; margin-top:4px; font-weight:700;">Feuille de Pétries — Page 1 / ${pages.length} (3 A4 max)</div>
+                  <div style="text-align:right; font-size:0.68rem; color:#4b5563; margin-top:4px; font-weight:700;">Feuille de Pétries — Page 1 / ${pages.length} (3 A4 max)</div>
                 </div>
               `;
             }
             return `
               <div class="print-page-break">
-                <div style="background:#fef3c7; border-left:4px solid #d97706; padding:0.35rem 0.65rem; margin-bottom:0.45rem; font-weight:900; color:#92400e; font-size:0.82rem; display:flex; justify-content:space-between;">
-                  <span>🥣 SUITE DES PÉTRIES — ${escapeHtml(state.selectedBoutique)} (${dayName} ${dateStr})</span>
+                <div style="background:#f3f4f6; border:1px solid #9ca3af; border-left:4px solid #111827; padding:0.35rem 0.65rem; margin-bottom:0.45rem; font-weight:900; color:#111827; font-size:0.82rem; display:flex; justify-content:space-between;">
+                  <span>🥣 SUITE DES PÉTRIES — ${escapeHtml(state.selectedBoutique)} (${escapeHtml(combinedDateLabel)})</span>
                   <span>Page ${pIdx + 1} / ${pages.length} (3 A4 max)</span>
                 </div>
                 <div class="petries-a4-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.45rem;">${cardsHtml}</div>
@@ -5423,8 +5582,8 @@
 
         sections.push(`
           <div style="margin-bottom:0.75rem;">
-            <div style="background:#fef3c7; border-left:5px solid #d97706; padding:0.4rem 0.65rem; margin-bottom:0.45rem; font-weight:900; color:#92400e; font-size:0.88rem;">
-              🥣 PÉTRIES JOURNALIÈRES &amp; PLAQUAGE VIENNOISERIE — ${escapeHtml(state.selectedBoutique)} (${dayName} ${dateStr})
+            <div style="background:#f3f4f6; border:1px solid #9ca3af; border-left:4px solid #111827; padding:0.4rem 0.65rem; margin-bottom:0.45rem; font-weight:900; color:#111827; font-size:0.88rem;">
+              🥣 PÉTRIES JOURNALIÈRES &amp; PLAQUAGE VIENNOISERIE — ${escapeHtml(state.selectedBoutique)} • ${escapeHtml(combinedDateLabel)}
             </div>
             ${threePagePetriesHtml}
           </div>
@@ -5439,13 +5598,13 @@
         const trTotal = trRows.reduce((s, r) => s + r.qty, 0);
         sections.push(`
           <div class="${sections.length > 0 ? "print-page-break" : ""}" style="margin-bottom:1.5rem;">
-            <div style="background:#ecfdf5; border-left:5px solid #059669; padding:0.5rem 0.75rem; margin-bottom:0.65rem; font-weight:900; color:#065f46; font-size:0.95rem;">
-              🥪 FEUILLE DE PRODUCTION TRAITEUR — ${escapeHtml(state.selectedBoutique)} (${dayName} ${dateStr}) • Total : ${trTotal} pièce(s)
+            <div style="background:#f3f4f6; border:1px solid #9ca3af; border-left:4px solid #111827; padding:0.5rem 0.75rem; margin-bottom:0.65rem; font-weight:900; color:#111827; font-size:0.95rem;">
+              🥪 FEUILLE DE PRODUCTION TRAITEUR — ${escapeHtml(state.selectedBoutique)} • ${escapeHtml(combinedDateLabel)} • Total : ${trTotal} pièce(s)
             </div>
-            ${trRows.length === 0 ? `<p style="font-size:0.82rem; color:#64748b;">Aucune quantité Traiteur prévue ce jour.</p>` : `
-              <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+            ${trRows.length === 0 ? `<p style="font-size:0.82rem; color:#4b5563;">Aucune quantité Traiteur prévue.</p>` : `
+              <table style="width:100%; border-collapse:collapse; font-size:0.82rem; border:1px solid #9ca3af;">
                 <thead>
-                  <tr style="background:#064e3b; color:#fff;">
+                  <tr style="background:#e5e7eb; color:#111827; border-bottom:2px solid #374151;">
                     <th style="text-align:left; padding:0.45rem 0.6rem;">Famille</th>
                     <th style="text-align:left; padding:0.45rem 0.6rem;">Recette Traiteur</th>
                     <th style="text-align:left; padding:0.45rem 0.6rem;">Support Pain</th>
@@ -5454,11 +5613,11 @@
                 </thead>
                 <tbody>
                   ${trRows.map(r => `
-                    <tr style="border-bottom:1px solid #e2e8f0;">
-                      <td style="padding:0.4rem 0.6rem; color:#475569; font-weight:700;">${escapeHtml(r.category)}</td>
+                    <tr style="border-bottom:1px solid #d1d5db; background:#ffffff;">
+                      <td style="padding:0.4rem 0.6rem; color:#374151; font-weight:700;">${escapeHtml(r.category)}</td>
                       <td style="padding:0.4rem 0.6rem; font-weight:800; color:#111827;">${escapeHtml(r.name)}</td>
-                      <td style="padding:0.4rem 0.6rem; color:#065f46;">${escapeHtml(r.breadLabel)}</td>
-                      <td style="padding:0.4rem 0.6rem; text-align:right; font-weight:900; font-size:0.9rem;">${r.qty}</td>
+                      <td style="padding:0.4rem 0.6rem; color:#374151;">${escapeHtml(r.breadLabel)}</td>
+                      <td style="padding:0.4rem 0.6rem; text-align:right; font-weight:900; font-size:0.9rem; color:#111827;">${r.qty}</td>
                     </tr>
                   `).join("")}
                 </tbody>
@@ -5476,13 +5635,13 @@
         const patTotal = patRows.reduce((s, r) => s + r.qty, 0);
         sections.push(`
           <div class="${sections.length > 0 ? "print-page-break" : ""}" style="margin-bottom:1.5rem;">
-            <div style="background:#eff6ff; border-left:5px solid #2563eb; padding:0.5rem 0.75rem; margin-bottom:0.65rem; font-weight:900; color:#1e40af; font-size:0.95rem;">
-              🍰 FEUILLE DE PRODUCTION PÂTISSERIE — ${escapeHtml(state.selectedBoutique)} (${dayName} ${dateStr}) • Total : ${patTotal} pièce(s)
+            <div style="background:#f3f4f6; border:1px solid #9ca3af; border-left:4px solid #111827; padding:0.5rem 0.75rem; margin-bottom:0.65rem; font-weight:900; color:#111827; font-size:0.95rem;">
+              🍰 FEUILLE DE PRODUCTION PÂTISSERIE — ${escapeHtml(state.selectedBoutique)} • ${escapeHtml(combinedDateLabel)} • Total : ${patTotal} pièce(s)
             </div>
-            ${patRows.length === 0 ? `<p style="font-size:0.82rem; color:#64748b;">Aucune quantité Pâtisserie prévue ce jour.</p>` : `
-              <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+            ${patRows.length === 0 ? `<p style="font-size:0.82rem; color:#4b5563;">Aucune quantité Pâtisserie prévue.</p>` : `
+              <table style="width:100%; border-collapse:collapse; font-size:0.82rem; border:1px solid #9ca3af;">
                 <thead>
-                  <tr style="background:#1e3a8a; color:#fff;">
+                  <tr style="background:#e5e7eb; color:#111827; border-bottom:2px solid #374151;">
                     <th style="text-align:left; padding:0.45rem 0.6rem;">Famille</th>
                     <th style="text-align:left; padding:0.45rem 0.6rem;">Pâtisserie Chez Jules</th>
                     <th style="text-align:right; padding:0.45rem 0.6rem;">Quantité</th>
@@ -5490,10 +5649,10 @@
                 </thead>
                 <tbody>
                   ${patRows.map(r => `
-                    <tr style="border-bottom:1px solid #e2e8f0;">
-                      <td style="padding:0.4rem 0.6rem; color:#475569; font-weight:700;">${escapeHtml(r.category)}</td>
+                    <tr style="border-bottom:1px solid #d1d5db; background:#ffffff;">
+                      <td style="padding:0.4rem 0.6rem; color:#374151; font-weight:700;">${escapeHtml(r.category)}</td>
                       <td style="padding:0.4rem 0.6rem; font-weight:800; color:#111827;">${escapeHtml(r.name)}</td>
-                      <td style="padding:0.4rem 0.6rem; text-align:right; font-weight:900; font-size:0.9rem;">${r.qty}</td>
+                      <td style="padding:0.4rem 0.6rem; text-align:right; font-weight:900; font-size:0.9rem; color:#111827;">${r.qty}</td>
                     </tr>
                   `).join("")}
                 </tbody>
@@ -5503,15 +5662,15 @@
         `);
       }
 
-      if (sections.length === 0) return null;
+      if (sections.length === 0) return "";
 
       return `
-        <div style="border-bottom:2px solid #111827; padding-bottom:0.6rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+        <div style="border-bottom:2px solid #111827; padding-bottom:0.55rem; margin-bottom:0.9rem; display:flex; justify-content:space-between; align-items:center; background:#ffffff;">
           <div>
-            <div style="font-size:1.15rem; font-weight:900; color:#111827;">🥖 BOULANGERIES CHEZ JULES — ${escapeHtml(state.selectedBoutique.toUpperCase())}</div>
-            <div style="font-size:0.82rem; color:#4b5563; font-weight:700;">Planning du ${dayName} ${dateStr} • Semaine ${wkNum}</div>
+            <div style="font-size:1.1rem; font-weight:900; color:#111827;">BOULANGERIES CHEZ JULES — ${escapeHtml(state.selectedBoutique.toUpperCase())}</div>
+            <div style="font-size:0.86rem; color:#111827; font-weight:800; margin-top:2px;">📅 ${escapeHtml(combinedDateLabel)} • Semaine ${wkNum}</div>
           </div>
-          <div style="font-size:0.74rem; color:#64748b; text-align:right;">
+          <div style="font-size:0.72rem; color:#4b5563; text-align:right;">
             Édité le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
           </div>
         </div>
@@ -5519,10 +5678,55 @@
       `;
     }
 
+    function getSelectedPrintDayGroups(opts) {
+      const checkedBoxes = Array.from(document.querySelectorAll(".pdf-day-chk:checked"));
+      const selectedIndices = checkedBoxes.length > 0
+        ? checkedBoxes.map(c => Number(c.value)).sort((a, b) => a - b)
+        : [state.selectedDayIdx];
+
+      const wk = getCurrentWeekData();
+      const groups = [];
+      selectedIndices.forEach(dIdx => {
+        const sig = getDayForecastSignature(wk, dIdx, opts);
+        const existingGroup = groups.find(g => g.sig === sig);
+        if (existingGroup) {
+          existingGroup.days.push(dIdx);
+        } else {
+          groups.push({ sig, days: [dIdx] });
+        }
+      });
+      return groups;
+    }
+
+    function buildPrintableDocumentHtml(customOpts) {
+      const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
+      const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
+      const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
+      const hideZeros = document.getElementById("pdf-opt-hide-zero")
+        ? !!document.getElementById("pdf-opt-hide-zero").checked
+        : state.hideZeroPetries;
+
+      if (!includePetries && !includeTraiteur && !includePatisserie) return null;
+
+      const opts = { petries: includePetries, traiteur: includeTraiteur, patisserie: includePatisserie, hideZeros };
+      const groups = getSelectedPrintDayGroups(opts);
+      const renderedBlocks = groups
+        .map((g, gIdx) => {
+          const blockHtml = buildSingleDayGroupPrintHtml(g.days, opts);
+          if (!blockHtml) return "";
+          return gIdx > 0 ? `<div class="print-page-break">${blockHtml}</div>` : blockHtml;
+        })
+        .filter(Boolean);
+
+      return renderedBlocks.length > 0 ? renderedBlocks.join("") : null;
+    }
+
     function generateAndPrintBundle(customOpts) {
       const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
       const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
       const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
+      const opts = { petries: includePetries, traiteur: includeTraiteur, patisserie: includePatisserie };
+      const groups = getSelectedPrintDayGroups(opts);
       const bodyHtml = buildPrintableDocumentHtml(customOpts);
       if (!bodyHtml) {
         showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
@@ -5530,8 +5734,8 @@
       }
 
       const printedParts = [includePetries ? "Pétries" : "", includeTraiteur ? "Traiteur" : "", includePatisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
-      const dayLabel = `${DAY_NAMES[state.selectedDayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx))}`;
-      recordNetworkActivity("print", state.selectedBoutique, `Impression lancée (${printedParts}) pour ${dayLabel}`);
+      const daysSummary = groups.map(g => formatCombinedDaysLabel(g.days)).join(" | ");
+      recordNetworkActivity("print", state.selectedBoutique, `Impression lancée (${printedParts}) pour ${daysSummary}`);
 
       closeModal();
 
@@ -5548,19 +5752,19 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>chez Jules — Impression PDF Paysage (${escapeHtml(state.selectedBoutique)})</title>
+  <title>chez Jules — Impression Économie d'Encre (${escapeHtml(state.selectedBoutique)})</title>
   <style>
     ${styles}
     @page { size: A4 landscape; margin: 7mm; }
-    body { background:#fff; padding:1rem; }
-    .no-print-bar { background:#111827; color:#fff; padding:0.75rem 1rem; border-radius:10px; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; }
+    body { background:#fff; color:#111827; padding:1rem; filter: grayscale(100%); }
+    .no-print-bar { background:#f3f4f6; color:#111827; border:1px solid #9ca3af; padding:0.75rem 1rem; border-radius:10px; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; }
     @media print { .no-print-bar { display:none !important; } body { padding:0; } }
   </style>
 </head>
 <body>
   <div class="no-print-bar">
-    <strong>📄 Aperçu PDF Paysage (A4) prêt — Choisissez « Enregistrer au format PDF » dans la fenêtre d'impression</strong>
-    <button type="button" onclick="window.print()" style="background:#d97706; color:#fff; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:800; cursor:pointer;">🖨️ Imprimer / Enregistrer en PDF</button>
+    <strong>📄 Aperçu Économie d'Encre (Nuances de gris • A4 Paysage) prêt</strong>
+    <button type="button" onclick="window.print()" style="background:#111827; color:#fff; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:800; cursor:pointer;">🖨️ Imprimer / Enregistrer en PDF</button>
   </div>
   ${bodyHtml}
   <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };<\/script>
@@ -5580,6 +5784,8 @@
       const includePetries = customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked;
       const includeTraiteur = customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked;
       const includePatisserie = customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked;
+      const opts = { petries: includePetries, traiteur: includeTraiteur, patisserie: includePatisserie };
+      const groups = getSelectedPrintDayGroups(opts);
       const bodyHtml = buildPrintableDocumentHtml(customOpts);
       if (!bodyHtml) {
         showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
@@ -5587,20 +5793,21 @@
       }
 
       const printedParts = [includePetries ? "Pétries" : "", includeTraiteur ? "Traiteur" : "", includePatisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
-      const dayLabel = `${DAY_NAMES[state.selectedDayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, state.selectedDayIdx))}`;
-      recordNetworkActivity("print", state.selectedBoutique, `PDF téléchargé (${printedParts}) pour ${dayLabel}`);
+      const daysSummary = groups.map(g => formatCombinedDaysLabel(g.days)).join(" | ");
+      recordNetworkActivity("print", state.selectedBoutique, `PDF téléchargé (${printedParts}) pour ${daysSummary}`);
 
-      const dayName = slugify(DAY_NAMES[state.selectedDayIdx] || "jour");
-      const fileName = `chez-jules-${slugify(state.selectedBoutique)}-${dayName}-${state.selectedWeekMonday}.pdf`;
+      const daySlug = groups[0]?.days.map(d => DAY_SHORT[d].toLowerCase()).join("-") || "jour";
+      const fileName = `chez-jules-${slugify(state.selectedBoutique)}-${daySlug}-${state.selectedWeekMonday}.pdf`;
 
       closeModal();
-      showToast("Génération du fichier PDF en cours...");
+      showToast("Génération du PDF économie d'encre en cours...");
 
       const pdfWrapper = document.createElement("div");
       pdfWrapper.style.background = "#ffffff";
       pdfWrapper.style.color = "#111827";
       pdfWrapper.style.padding = "10px";
       pdfWrapper.style.width = "1050px";
+      pdfWrapper.style.filter = "grayscale(100%)";
       pdfWrapper.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
       pdfWrapper.innerHTML = bodyHtml;
 
@@ -5613,6 +5820,8 @@
         card.style.padding = "6px 8px";
         card.style.borderRadius = "7px";
         card.style.boxShadow = "none";
+        card.style.background = "#ffffff";
+        card.style.border = "1px solid #9ca3af";
       });
 
       if (typeof window.html2pdf === "function") {
@@ -5625,7 +5834,7 @@
           pagebreak: { mode: ["css", "legacy"], before: ".print-page-break" }
         };
         window.html2pdf().set(opt).from(pdfWrapper).save().then(() => {
-          showToast(`✅ PDF téléchargé : ${fileName}`);
+          showToast(`✅ PDF économie d'encre téléchargé : ${fileName}`);
         }).catch(() => {
           generateAndPrintBundle(customOpts);
         });
