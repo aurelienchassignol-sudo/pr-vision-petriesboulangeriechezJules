@@ -432,39 +432,36 @@
       border-left: 4px solid var(--amber);
     }
 
+    body.print-bundle-mode #app-shell,
+    body.print-bundle-mode #login-screen { display: none !important; }
+    body.print-bundle-mode #dedicated-print-sheet {
+      display: block !important;
+      position: relative;
+      z-index: 50;
+      min-height: 100vh;
+    }
+
     @media print {
       @page {
         size: A4 landscape;
         margin: 7mm;
       }
-      .topbar, .nav-bar, .no-print, .store-view-banner, .modal-backdrop, .toast, #app-shell, #login-screen { display: none !important; }
+      .topbar, .nav-bar, .no-print, .store-view-banner, .modal-backdrop, .toast { display: none !important; }
       body { background: #fff !important; font-size: 10px !important; min-height: auto !important; }
-      #dedicated-print-sheet {
+      body.print-bundle-mode #app-shell { display: none !important; }
+      body.print-bundle-mode #dedicated-print-sheet {
         display: block !important;
-        position: static !important;
-        inset: auto !important;
         padding: 0 !important;
-        overflow: visible !important;
       }
       .main-container { padding: 0; max-width: 100%; }
       .print-page-break { page-break-before: always; break-before: page; }
     }
     #dedicated-print-sheet {
       display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 95;
-      overflow-y: auto;
-      background: #f1f5f9;
+      background: #fff;
       color: #111827;
       padding: 1rem;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    body.print-bundle-mode {
-      overflow: hidden;
-    }
-    body.print-bundle-mode #dedicated-print-sheet {
-      display: block !important;
     }
   </style>
 </head>
@@ -487,17 +484,19 @@
       <form onsubmit="handleLoginSubmit(event)" style="display:flex; flex-direction:column; gap:0.85rem;">
         <div>
           <label style="display:block; font-size:0.76rem; font-weight:700; color:#374151; margin-bottom:0.25rem;">Identifiant boutique ou administrateur</label>
-          <input id="login-email" type="email" class="input" placeholder="ex: saintpaul@boulangeriechezjules.fr" required />
+          <input id="login-email" type="email" list="jules-accounts-list" class="input" placeholder="ex: saintpaul@boulangeriechezjules.fr" oninput="onLoginEmailInput()" autocomplete="off" required />
+          <datalist id="jules-accounts-list"></datalist>
+          <div id="login-recognized-account" class="hidden" style="margin-top:0.4rem; padding:0.42rem 0.65rem; border-radius:8px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-size:0.75rem; font-weight:800;"></div>
         </div>
         <div>
           <label style="display:block; font-size:0.76rem; font-weight:700; color:#374151; margin-bottom:0.25rem;">Mot de passe</label>
-          <input id="login-password" type="password" class="input" placeholder="••••••••" required />
+          <input id="login-password" type="password" class="input" placeholder="••••••••" autocomplete="new-password" required />
         </div>
         <div id="login-error" class="hidden" style="background:#fee2e2; color:#b91c1c; font-size:0.76rem; font-weight:700; padding:0.55rem 0.75rem; border-radius:8px;"></div>
         <button type="submit" class="btn btn-amber" style="width:100%; padding:0.65rem; font-size:0.88rem;">🔐 Se connecter au portail</button>
       </form>
-      <p style="font-size:0.71rem; color:#6b7280; text-align:center; margin-top:1rem;">
-        Multi-PC temps réel actif • Mots de passe gérés par l'administrateur
+      <p style="font-size:0.71rem; color:#6b7280; text-align:center; margin-top:0.85rem;">
+        Connexion requise à chaque ouverture • Mots de passe gérés par l'administrateur
       </p>
     </div>
   </div>
@@ -507,20 +506,6 @@
     <div id="store-view-banner" class="store-view-banner hidden">
       <span id="store-view-banner-text">👁️ Mode Aperçu Utilisateur actif</span>
       <button type="button" class="btn btn-dark btn-sm" onclick="exitImpersonation()">↩️ Revenir à ma Vue Administrateur</button>
-    </div>
-
-    <div id="admin-live-ticker" class="hidden no-print" style="background:#0f172a; color:#f8fafc; padding:0.42rem 1.15rem; border-bottom:1px solid #334155; font-size:0.78rem;">
-      <div style="max-width:1560px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.5rem;">
-        <div style="display:flex; align-items:center; gap:0.5rem;">
-          <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981;"></span>
-          <strong style="color:#fbbf24;">EN DIRECT BOUTIQUES :</strong>
-          <span id="admin-live-ticker-text" style="color:#e2e8f0;">En attente d'une saisie boutique...</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:0.4rem;">
-          <button id="admin-live-ticker-jump" type="button" class="btn btn-amber btn-sm hidden" onclick="jumpToLastLiveBoutique()">👁️ Voir cette boutique</button>
-          <button type="button" class="btn btn-white btn-sm" onclick="forceManualSyncNow()">🔄 Actualiser maintenant</button>
-        </div>
-      </div>
     </div>
 
     <header class="topbar">
@@ -559,6 +544,13 @@
         </div>
       </div>
     </header>
+
+    <div id="live-admin-ticker" class="hidden no-print" style="background:#064e3b; color:#ecfdf5; border-bottom:1px solid #10b981; padding:0.38rem 1.15rem; font-size:0.77rem;">
+      <div style="max-width:1560px; margin:0 auto; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.5rem;">
+        <div id="live-admin-ticker-text" style="font-weight:700;">📡 En direct boutiques : prêt</div>
+        <button id="live-admin-ticker-jump" type="button" class="btn btn-amber btn-sm hidden" onclick="jumpToLatestLiveBoutique()">👁️ Basculer</button>
+      </div>
+    </div>
 
     <nav class="nav-bar">
       <div class="nav-inner" id="main-nav-tabs">
@@ -793,26 +785,22 @@
   </script>
 
   <script>
-    /* ==========================================================================
-       1. CONSTANTES RÉSEAU, CLÉS DE STOCKAGE 10 ANS & UTILITAIRES DE BASE
-       ========================================================================== */
-    const APP_DATA_VERSION = 11;
+    const APP_DATA_VERSION = 9;
     const RETENTION_YEARS = 10;
     const DEVICE_ID = "PC-" + Math.random().toString(36).substring(2, 6).toUpperCase();
 
     const STORAGE_KEYS = {
-      schemaMeta: "jules_v11_schema_meta",
-      session: "jules_v11_session",
-      users: "jules_v11_users",
-      catalog: "jules_v11_catalog",
-      customCatalogOrder: "jules_v11_custom_catalog_order",
-      patisserieCatalog: "jules_v11_patisserie_catalog",
-      schedules: "jules_v11_schedules",
-      techSheets: "jules_v11_tech_sheets",
-      activityLog: "jules_v11_activity_log",
-      networkChannel: "jules_v11_network_channel",
-      cloudBlobId: "jules_v11_cloud_blob_id",
-      safetySnapshot: "jules_v11_safety_snapshot_10y"
+      schemaMeta: "jules_v9_schema_meta",
+      session: "jules_v9_session",
+      users: "jules_v9_users",
+      catalog: "jules_v9_catalog",
+      customCatalogOrder: "jules_v9_custom_catalog_order",
+      patisserieCatalog: "jules_v9_patisserie_catalog",
+      schedules: "jules_v9_schedules",
+      techSheets: "jules_v9_tech_sheets",
+      activityLog: "jules_v9_activity_log",
+      networkChannel: "jules_v9_network_channel",
+      safetySnapshot: "jules_v9_safety_snapshot_10y"
     };
 
     const _memoryStorage = {};
@@ -841,7 +829,7 @@
     }
 
     function boutiqueStorageKey(boutiqueName) {
-      return `jules_v11_boutique_${slugify(boutiqueName)}`;
+      return `jules_v9_boutique_${slugify(boutiqueName)}`;
     }
 
     function escapeHtml(str) {
@@ -1056,7 +1044,6 @@
       { id: "hot-dog-pain", category: "Pains", name: "Pain Hot Dog (110g)", unitWeight: 110, price: 1.10 },
       { id: "pain-de-mie", category: "Pains", name: "Pain de Mie Moulé (300g)", unitWeight: 300, price: 3.40 },
 
-      /* BRIOCHE */
       { id: "brioche-nature", category: "Brioche", name: "Brioche Nanterre Nature 300g", unitWeight: 300, price: 4.50 },
       { id: "brioche-sucre", category: "Brioche", name: "Brioche Nanterre Sucre 300g", unitWeight: 300, price: 4.80 },
       { id: "brioche-praline", category: "Brioche", name: "Brioche Nanterre Praline 340g", unitWeight: 300, price: 5.50 },
@@ -1075,7 +1062,6 @@
       { id: "brioche-saucisson-gros", category: "Brioche", name: "Brioche au Saucisson Grosse 400g", unitWeight: 400, price: 7.40 },
       { id: "brioche-rois", category: "Brioche", name: "Brioche des Rois (Saison)", unitWeight: 500, price: 14.50, dormant: true },
 
-      /* VIENNOISERIE */
       { id: "croissant", category: "Viennoiserie", name: "Croissant Pur Beurre", unitWeight: 70, price: 1.35 },
       { id: "pain-chocolat", category: "Viennoiserie", name: "Pain au Chocolat", unitWeight: 75, price: 1.45 },
       { id: "pain-raisins", category: "Viennoiserie", name: "Pain aux Raisins", unitWeight: 110, price: 1.90 },
@@ -1292,11 +1278,11 @@
       {
         id: "ft-levain",
         folder: "Pains",
-        title: "Levain by Jules (Pétri J-1 pour utilisation Jour J)",
+        title: "Levain by Jules",
         isBaseRecipe: true,
         baseFlourGrams: 1000,
         flourLabel: "Farine BioBise (g)",
-        divisionInfo: "Pétri la veille (J-1) pour utilisation le lendemain (Jour J) • Ratio 1,32 × Besoins",
+        divisionInfo: "Rafraîchi quotidien la veille pour utilisation le lendemain • T° fin pétrissage 25 à 30°C",
         tempBaseWinter: 56,
         tempBaseSummer: 52,
         recipeWeights: [
@@ -1312,7 +1298,7 @@
           { step: "Étape 5", desc: "Mettre immédiatement en bac couvert au froid pour utilisation le lendemain." }
         ],
         qualityPoints: ["Levain aromatique sans acidité", "Levain ferme"],
-        attentionPoints: ["Refaire le levain tous les jours la veille pour le lendemain", "Si fermé le dimanche, baisser la T°B de 5°C le samedi"]
+        attentionPoints: ["ATTENTION la recette est à pétrir la veille pour utilisation le lendemain", "Si fermé le dimanche, baisser la T°B de 5°C le samedi"]
       },
       {
         id: "ft-base-biobise",
@@ -1373,7 +1359,7 @@
       {
         id: "ft-campagne",
         folder: "Pains",
-        title: "Campagne, Pain de Seigle & Seigle Raisin by Jules",
+        title: "Campagne & Seigle by Jules",
         isBaseRecipe: true,
         baseFlourGrams: 1000,
         flourLabel: "Farine T65 (g)",
@@ -1390,14 +1376,14 @@
         ],
         detailedSteps: [
           { step: "Étape 1", desc: "Peser la veille sauf levain et levure à peser le jour de la pétrie. Couler l'eau (56°C hiver / 52°C été)." },
-          { step: "Étape 2", desc: "Pétrir 5 min en 1ère et 10 min en 2ème (T° pâte entre 24 et 26°C). Incorporer 75 g de raisins secs par pièce pour le Seigle Raisin." },
+          { step: "Étape 2", desc: "Pétrir 5 min en 1ère et 10 min en 2ème (T° pâte entre 24 et 26°C). Pour le Seigle Raisin, incorporer 75 g de raisins par pièce en fin de pétrissage." },
           { step: "Étape 3", desc: "Mettre en bac, faire un rabat et bloquer au froid 1h." },
-          { step: "Étape 4", desc: "Diviser à 320-330g (Pain de Seigle / petit campagne), 420g (Seigle Raisin) ou 3,2 kg (gros), bouler/préformer et laisser reposer 20 à 30 min." },
+          { step: "Étape 4", desc: "Diviser à 320-330g (Pain de Seigle / Petit Campagne), 420g (Seigle Raisin) ou 3,2 kg (gros), bouler/préformer et laisser reposer 20 à 30 min." },
           { step: "Étape 5", desc: "Façonner, fariner, lamer en épi la veille pour les petits, puis bloquer au froid." },
           { step: "Étape 6", desc: "Cuire à 230°C : 30 min petits / 45 min gros + 15 min de séchage." }
         ],
         qualityPoints: ["Belle cuisson et beau volume"],
-        attentionPoints: ["La levure et le levain doivent être pesés le jour du pétrissage"]
+        attentionPoints: ["La levure et le levain doivent être pesés le jour du pétrissage", "Lamage fait la veille pour les petits pains"]
       },
       {
         id: "ft-5-graines",
@@ -1552,9 +1538,6 @@
       }
     ];
 
-    /* ==========================================================================
-       2. DONNÉES CA OBJECTIF & CA RÉALISÉ 2026 PAR BOUTIQUE
-       ========================================================================== */
     const INITIAL_TBB_2026_DATA = {
       "Zola": {
         "2026-11-16": { caObjectif: [5223, 5011, 4878, 5032, 5492, 4279, 3927], caRealise: [3729, 2673, 3901, 3764, 3263, 0, 0] },
@@ -1575,9 +1558,6 @@
       "Saint Paul":   { "2026-11-23": { caObjectif: [4200, 4050, 4150, 4300, 4450, 3900, 3650], caRealise: [0, 0, 0, 0, 0, 0, 0] } }
     };
 
-    /* ==========================================================================
-       3. ÉTAT GLOBAL & UTILITAIRES DE DATES
-       ========================================================================== */
     const weatherCache = {};
 
     function getWeatherEmojiFromWmo(code) {
@@ -1675,19 +1655,9 @@
       return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
     }
 
-    /* ==========================================================================
-       4. MOTEUR TEMPS RÉEL MULTI-POSTES PÉRENNE (CLOUD JSON PERSISTANT + SSE)
-       ========================================================================== */
     let _isApplyingRemote = false;
     let _localBroadcastChannel = null;
-    let _sseEventSource = null;
-    let _lastPollTimestamp = Math.floor(Date.now() / 1000) - 86400;
     const _processedPacketIds = new Set();
-    let _lastLiveEventMeta = null;
-    let _cloudBlobId = null;
-    let _cloudSyncInFlight = false;
-    let _cloudDirtyPending = false;
-    let _lastCloudRev = 0;
 
     function normalizeBoutiqueName(rawName) {
       const targetSlug = slugify(rawName);
@@ -1696,17 +1666,7 @@
     }
 
     function getActiveNetworkChannel() {
-      const params = new URLSearchParams(window.location.search);
-      const urlBlob = params.get("blob");
-      if (urlBlob && urlBlob.trim()) {
-        _cloudBlobId = urlBlob.trim();
-        safeSetItem(STORAGE_KEYS.cloudBlobId, _cloudBlobId);
-      } else if (!_cloudBlobId) {
-        const savedBlob = safeGetItem(STORAGE_KEYS.cloudBlobId);
-        if (savedBlob && savedBlob.trim()) _cloudBlobId = savedBlob.trim();
-      }
-
-      const urlParam = params.get("reseau");
+      const urlParam = new URLSearchParams(window.location.search).get("reseau");
       if (urlParam && urlParam.trim()) {
         const clean = slugify(urlParam.trim());
         safeSetItem(STORAGE_KEYS.networkChannel, clean);
@@ -1720,260 +1680,19 @@
       return state.networkChannel;
     }
 
-    function buildFullDurableNetworkState() {
-      const boutiquesMap = {};
-      BOUTIQUES.forEach(b => {
-        const st = readBoutiqueStoreReadOnly(b.name);
-        boutiquesMap[b.name] = {
-          updatedAt: st.updatedAt || new Date(0).toISOString(),
-          weeks: st.weeks || {}
-        };
-      });
-      return {
-        app: "chez-jules-reseau",
-        channel: getActiveNetworkChannel(),
-        rev: Date.now(),
-        updatedBy: state.currentUser ? state.currentUser.label : DEVICE_ID,
-        users: state.users,
-        catalog: state.catalog,
-        patisserieCatalog: state.patisserieCatalog,
-        schedules: state.schedules,
-        techSheets: state.techSheets,
-        activityLog: (state.activityLog || []).slice(0, 120),
-        boutiques: boutiquesMap
-      };
-    }
-
-    function applyDurableCloudSnapshot(remoteDoc) {
-      if (!remoteDoc || typeof remoteDoc !== "object") return false;
-      let changed = false;
-      _isApplyingRemote = true;
-      try {
-        if (Array.isArray(remoteDoc.users) && remoteDoc.users.length) {
-          const prevStr = JSON.stringify(state.users);
-          remoteDoc.users.forEach(u => { u.mustChangePassword = false; });
-          if (JSON.stringify(remoteDoc.users) !== prevStr) {
-            state.users = remoteDoc.users;
-            safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
-            if (state.currentUser) {
-              const me = state.users.find(u => u.id === state.currentUser.id);
-              if (me) state.currentUser = me;
-            }
-            changed = true;
-          }
+    function refreshViewsSafelyAfterRemoteUpdate() {
+      if (!state.currentUser) return;
+      const activeEl = document.activeElement;
+      const isEditingInput = activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.tagName === "SELECT");
+      if (isEditingInput) {
+        if (state.activeTab === "prevision") {
+          const openDays = getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
+          renderCaSummary(openDays);
         }
-        if (Array.isArray(remoteDoc.catalog) && remoteDoc.catalog.length) {
-          if (JSON.stringify(remoteDoc.catalog) !== JSON.stringify(state.catalog)) {
-            state.catalog = remoteDoc.catalog;
-            safeSetItem(STORAGE_KEYS.catalog, JSON.stringify(state.catalog));
-            changed = true;
-          }
-        }
-        if (Array.isArray(remoteDoc.patisserieCatalog) && remoteDoc.patisserieCatalog.length) {
-          if (JSON.stringify(remoteDoc.patisserieCatalog) !== JSON.stringify(state.patisserieCatalog)) {
-            state.patisserieCatalog = remoteDoc.patisserieCatalog;
-            safeSetItem(STORAGE_KEYS.patisserieCatalog, JSON.stringify(state.patisserieCatalog));
-            changed = true;
-          }
-        }
-        if (remoteDoc.schedules && typeof remoteDoc.schedules === "object") {
-          if (JSON.stringify(remoteDoc.schedules) !== JSON.stringify(state.schedules)) {
-            state.schedules = remoteDoc.schedules;
-            safeSetItem(STORAGE_KEYS.schedules, JSON.stringify(state.schedules));
-            changed = true;
-          }
-        }
-        if (Array.isArray(remoteDoc.techSheets) && remoteDoc.techSheets.length) {
-          if (JSON.stringify(remoteDoc.techSheets) !== JSON.stringify(state.techSheets)) {
-            state.techSheets = remoteDoc.techSheets;
-            safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
-            changed = true;
-          }
-        }
-        if (Array.isArray(remoteDoc.activityLog)) {
-          const existingIds = new Set(state.activityLog.map(x => x.id));
-          let addedAct = false;
-          remoteDoc.activityLog.forEach(ev => {
-            if (ev && ev.id && !existingIds.has(ev.id)) {
-              state.activityLog.push(ev);
-              existingIds.add(ev.id);
-              addedAct = true;
-            }
-          });
-          if (addedAct) {
-            state.activityLog.sort((a, b) => String(b.timestamp || "").localeCompare(String(a.timestamp || "")));
-            state.activityLog = state.activityLog.slice(0, 150);
-            safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
-            const newest = state.activityLog[0];
-            if (newest && isEffectiveAdmin() && state.currentUser && !String(newest.actor || "").includes(DEVICE_ID)) {
-              updateAdminLiveTicker(newest.boutique || "Réseau", newest.summary);
-            }
-            changed = true;
-          }
-        }
-        if (remoteDoc.boutiques && typeof remoteDoc.boutiques === "object") {
-          Object.entries(remoteDoc.boutiques).forEach(([rawName, remoteStore]) => {
-            const bName = normalizeBoutiqueName(rawName);
-            if (!remoteStore || typeof remoteStore !== "object") return;
-            const localStore = readBoutiqueStoreReadOnly(bName);
-            const remoteTs = Date.parse(remoteStore.updatedAt || 0) || 0;
-            const localTs = Date.parse(localStore.updatedAt || 0) || 0;
-            if (remoteTs > localTs && remoteStore.weeks) {
-              const merged = {
-                boutique: bName,
-                updatedAt: remoteStore.updatedAt,
-                weeks: remoteStore.weeks
-              };
-              Object.values(merged.weeks).forEach(wk => syncTraiteurToForecast(wk));
-              safeSetItem(boutiqueStorageKey(bName), JSON.stringify(merged));
-              if (slugify(state.selectedBoutique) === slugify(bName)) {
-                state.storeData = merged;
-              }
-              changed = true;
-            }
-          });
-        }
-      } catch (e) {} finally {
-        _isApplyingRemote = false;
-      }
-      return changed;
-    }
-
-    async function ensureDurableCloudBlobId() {
-      getActiveNetworkChannel();
-      if (_cloudBlobId) return _cloudBlobId;
-      try {
-        const res = await fetch("https://jsonblob.com/api/jsonBlob", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify(buildFullDurableNetworkState())
-        });
-        const loc = res.headers.get("Location") || res.headers.get("X-jsonblob") || "";
-        const idMatch = loc.match(/([0-9a-f-]{16,})$/i);
-        if (idMatch && idMatch[1]) {
-          _cloudBlobId = idMatch[1];
-          safeSetItem(STORAGE_KEYS.cloudBlobId, _cloudBlobId);
-          broadcastNetworkPacket({ kind: "blob_announce", blobId: _cloudBlobId });
-          return _cloudBlobId;
-        }
-      } catch (e) {}
-      return null;
-    }
-
-    async function pushDurableCloudState(forceImmediate = false) {
-      if (_isApplyingRemote) return;
-      if (_cloudSyncInFlight && !forceImmediate) {
-        _cloudDirtyPending = true;
         return;
       }
-      _cloudSyncInFlight = true;
-      _cloudDirtyPending = false;
-      try {
-        const blobId = await ensureDurableCloudBlobId();
-        if (!blobId) return;
-
-        // 1. Lire la dernière version distante pour fusionner sans jamais écraser une autre boutique
-        try {
-          const getRes = await fetch(`https://jsonblob.com/api/jsonBlob/${encodeURIComponent(blobId)}`, {
-            headers: { "Accept": "application/json" },
-            cache: "no-store"
-          });
-          if (getRes.ok) {
-            const remoteDoc = await getRes.json();
-            applyDurableCloudSnapshot(remoteDoc);
-          }
-        } catch (e) {}
-
-        // 2. Écrire l'état fusionné complet dans le cloud pérenne
-        const payload = buildFullDurableNetworkState();
-        const putRes = await fetch(`https://jsonblob.com/api/jsonBlob/${encodeURIComponent(blobId)}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-        if (putRes.ok) {
-          _lastCloudRev = payload.rev;
-          const badge = document.getElementById("realtime-sync-badge");
-          if (badge) {
-            badge.style.background = "#064e3b";
-            badge.style.color = "#a7f3d0";
-            badge.style.borderColor = "#10b981";
-            badge.textContent = `🟢 Cloud Pérenne Synchro (${DEVICE_ID})`;
-          }
-        }
-      } catch (e) {} finally {
-        _cloudSyncInFlight = false;
-        if (_cloudDirtyPending) {
-          setTimeout(() => pushDurableCloudState(false), 300);
-        }
-      }
+      renderAllViews();
     }
-
-    async function pullDurableCloudState() {
-      if (_cloudSyncInFlight || _isApplyingRemote) return;
-      const blobId = getActiveNetworkChannel() && _cloudBlobId;
-      if (!blobId) return;
-      try {
-        const res = await fetch(`https://jsonblob.com/api/jsonBlob/${encodeURIComponent(blobId)}?_t=${Date.now()}`, {
-          headers: { "Accept": "application/json" },
-          cache: "no-store"
-        });
-        if (!res.ok) return;
-        const remoteDoc = await res.json();
-        if (remoteDoc && Number(remoteDoc.rev || 0) !== _lastCloudRev) {
-          _lastCloudRev = Number(remoteDoc.rev || 0);
-          const hasChanges = applyDurableCloudSnapshot(remoteDoc);
-          if (hasChanges && state.currentUser) {
-            refreshViewsSafelyAfterRemoteUpdate(state.selectedBoutique, state.selectedWeekMonday);
-          }
-        }
-      } catch (e) {}
-    }
-
-    function sendPacketChunksToRelay(ch, fullPacket) {
-      try {
-        const serialized = JSON.stringify(fullPacket);
-        // Si le paquet est compact (< 3400 octets), envoi direct
-        if (serialized.length <= 3400) {
-          fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}`, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=UTF-8" },
-            body: serialized,
-            keepalive: true
-          }).catch(() => {});
-          return;
-        }
-        // Sinon découpage automatique en morceaux pour ne jamais perdre de données
-        const chunkSize = 2600;
-        const totalChunks = Math.ceil(serialized.length / chunkSize);
-        const batchId = fullPacket.pktId;
-        for (let i = 0; i < totalChunks; i++) {
-          const chunkEnvelope = JSON.stringify({
-            kind: "chunk_part",
-            pktId: `${batchId}-p${i}`,
-            batchId,
-            partIdx: i,
-            totalParts: totalChunks,
-            senderDevice: DEVICE_ID,
-            slice: serialized.slice(i * chunkSize, (i + 1) * chunkSize)
-          });
-          fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}`, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=UTF-8" },
-            body: chunkEnvelope,
-            keepalive: true
-          }).catch(() => {});
-        }
-      } catch (e) {}
-    }
-
-    const _incomingChunkBuffers = {};
 
     function broadcastNetworkPacket(packet) {
       if (_isApplyingRemote) return;
@@ -1992,8 +1711,6 @@
         }
         if (_localBroadcastChannel) _localBroadcastChannel.postMessage(fullPacket);
       } catch (e) {}
-
-      sendPacketChunksToRelay(ch, fullPacket);
     }
 
     function buildCompactWeekPatch(boutiqueName, mondayIso, wk) {
@@ -2027,25 +1744,6 @@
       };
     }
 
-    function pollMissedNetworkPackets(sinceParam) {
-      const ch = getActiveNetworkChannel();
-      const since = sinceParam || Math.max(1, _lastPollTimestamp - 20);
-      fetch(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/json?poll=1&since=${since}&_t=${Date.now()}`, { cache: "no-store" })
-        .then(r => r.text())
-        .then(txt => {
-          _lastPollTimestamp = Math.floor(Date.now() / 1000);
-          txt.split(/\r?\n/).filter(Boolean).forEach(line => {
-            try {
-              const env = JSON.parse(line);
-              if (env && env.message) {
-                window.__processIncomingNetworkPacket(JSON.parse(env.message));
-              }
-            } catch (e) {}
-          });
-        })
-        .catch(() => {});
-    }
-
     function initUniversalMultiPcSync() {
       const ch = getActiveNetworkChannel();
       const badge = document.getElementById("realtime-sync-badge");
@@ -2059,124 +1757,25 @@
         }
       } catch (e) {}
 
-      const connectStream = () => {
-        try {
-          if (_sseEventSource) _sseEventSource.close();
-          _sseEventSource = new EventSource(`https://ntfy.sh/${encodeURIComponent("jules-" + ch)}/sse?since=24h`);
-          _sseEventSource.onopen = () => {
-            if (badge) {
-              badge.style.background = "#064e3b";
-              badge.style.color = "#a7f3d0";
-              badge.style.borderColor = "#10b981";
-              badge.textContent = `🟢 Multi-PC En Direct (${DEVICE_ID})`;
-            }
-          };
-          _sseEventSource.onmessage = ev => {
-            try {
-              const envelope = JSON.parse(ev.data);
-              if (envelope && envelope.message) {
-                const pkt = JSON.parse(envelope.message);
-                window.__processIncomingNetworkPacket(pkt);
-              }
-            } catch (err) {}
-          };
-          _sseEventSource.onerror = () => {
-            if (badge) {
-              badge.style.background = "#1e3a8a";
-              badge.style.color = "#bfdbfe";
-              badge.style.borderColor = "#3b82f6";
-              badge.textContent = `🔄 Reconnexion Multi-PC (${DEVICE_ID})...`;
-            }
-          };
-        } catch (e) {}
-      };
-
-      connectStream();
-      pollMissedNetworkPackets("48h");
-      pullDurableCloudState();
-
-      // Scrutation continue toutes les 1.8 secondes (Cloud pérenne + Relai temps réel)
-      setInterval(() => {
-        pollMissedNetworkPackets();
-        pullDurableCloudState();
-      }, 1800);
-
-      document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) {
-          pollMissedNetworkPackets("6h");
-          pullDurableCloudState();
-          broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID, blobId: _cloudBlobId || "" });
-        }
-      });
-
-      setTimeout(async () => {
-        if (!_cloudBlobId) await ensureDurableCloudBlobId();
-        broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID, blobId: _cloudBlobId || "" });
-      }, 500);
-    }
-
-    function updateAdminLiveTicker(boutiqueName, summary, mondayIso, dayIdx) {
-      if (!isEffectiveAdmin() || !state.currentUser) return;
-      const ticker = document.getElementById("admin-live-ticker");
-      const txt = document.getElementById("admin-live-ticker-text");
-      const jumpBtn = document.getElementById("admin-live-ticker-jump");
-      if (!ticker || !txt) return;
-
-      ticker.classList.remove("hidden");
-      const timeNow = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      txt.innerHTML = `<span style="background:#f59e0b; color:#111827; font-weight:900; padding:1px 6px; border-radius:4px; margin-right:5px;">${escapeHtml(boutiqueName)}</span> ${escapeHtml(summary)} <span style="opacity:0.75;">(${timeNow})</span>`;
-
-      if (BOUTIQUES.some(b => slugify(b.name) === slugify(boutiqueName))) {
-        _lastLiveEventMeta = {
-          boutique: normalizeBoutiqueName(boutiqueName),
-          mondayIso: mondayIso || state.selectedWeekMonday,
-          dayIdx: typeof dayIdx === "number" ? dayIdx : state.selectedDayIdx
-        };
-        if (jumpBtn) {
-          jumpBtn.textContent = `👁️ Basculer sur ${escapeHtml(_lastLiveEventMeta.boutique)}`;
-          jumpBtn.classList.remove("hidden");
-        }
+      if (badge) {
+        badge.style.background = "#064e3b";
+        badge.style.color = "#a7f3d0";
+        badge.style.borderColor = "#10b981";
+        badge.textContent = `🟢 Multi-PC En Direct (${DEVICE_ID})`;
       }
-    }
-
-    function jumpToLastLiveBoutique() {
-      if (!_lastLiveEventMeta || !isEffectiveAdmin()) return;
-      state.selectedBoutique = _lastLiveEventMeta.boutique;
-      state.selectedWeekMonday = _lastLiveEventMeta.mondayIso;
-      state.selectedDayIdx = _lastLiveEventMeta.dayIdx;
-      const bSelect = document.getElementById("boutique-select");
-      if (bSelect) bSelect.value = state.selectedBoutique;
-      loadBoutiqueStore(state.selectedBoutique);
-      renderAllViews();
-      showToast(`Affichage basculé sur ${state.selectedBoutique}`);
     }
 
     function forceManualSyncNow() {
-      showToast("Synchronisation multi-PC en cours...");
-      pollMissedNetworkPackets("48h");
-      pullDurableCloudState();
-      broadcastNetworkPacket({ kind: "sync_ping", requester: DEVICE_ID, blobId: _cloudBlobId || "" });
+      loadGlobalConfig();
       if (state.currentUser) {
+        loadBoutiqueStore(state.selectedBoutique);
         if (isEffectiveAdmin()) {
           saveGlobalConfig(false);
-          BOUTIQUES.forEach(b => {
-            const st = readBoutiqueStoreReadOnly(b.name);
-            const wk = st.weeks?.[state.selectedWeekMonday];
-            if (wk) {
-              broadcastNetworkPacket(buildCompactWeekPatch(b.name, state.selectedWeekMonday, wk));
-            }
-          });
-        } else {
-          saveCurrentBoutiqueData(false);
-          const wk = state.storeData?.weeks?.[state.selectedWeekMonday];
-          if (wk) {
-            broadcastNetworkPacket(buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, wk));
-          }
         }
-        pushDurableCloudState(true);
+        saveCurrentBoutiqueData(false);
+        renderAllViews();
       }
-      renderAllViews();
-      showToast("✅ Synchronisation multi-PC actualisée !");
+      showToast("✅ Données actualisées !");
     }
 
     function ensureBoutiqueWeekObject(st, mondayIso, boutiqueName) {
@@ -2203,20 +1802,39 @@
       return wk;
     }
 
-    function refreshViewsSafelyAfterRemoteUpdate(affectedBoutique, mondayIso, dayIdx) {
-      if (!state.currentUser) return;
-      const activeEl = document.activeElement;
-      const isEditingNumber = activeEl && activeEl.tagName === "INPUT" && activeEl.type === "number" && document.hasFocus();
+    let _latestLiveBoutiqueInfo = null;
+    function updateAdminLiveTicker(entry) {
+      if (!entry || !isEffectiveAdmin() || !state.currentUser) return;
+      const ticker = document.getElementById("live-admin-ticker");
+      const textEl = document.getElementById("live-admin-ticker-text");
+      const jumpBtn = document.getElementById("live-admin-ticker-jump");
+      if (!ticker || !textEl) return;
 
-      if (state.activeTab === "admin" && isEffectiveAdmin()) {
-        renderAdminView();
-        return;
+      const dt = entry.timestamp ? new Date(entry.timestamp) : new Date();
+      const timeStr = dt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      textEl.textContent = `📡 EN DIRECT [${timeStr}] — ${entry.boutique || "Réseau"} : ${entry.summary}`;
+      ticker.classList.remove("hidden");
+
+      const validStore = BOUTIQUES.find(b => slugify(b.name) === slugify(entry.boutique || ""));
+      if (validStore && jumpBtn) {
+        _latestLiveBoutiqueInfo = {
+          boutique: validStore.name,
+          mondayIso: entry.mondayIso || state.selectedWeekMonday,
+          dayIdx: typeof entry.dayIdx === "number" ? entry.dayIdx : state.selectedDayIdx
+        };
+        jumpBtn.textContent = `👁️ Basculer sur ${validStore.name}`;
+        jumpBtn.classList.remove("hidden");
       }
-      if (affectedBoutique && slugify(state.selectedBoutique) === slugify(affectedBoutique)) {
-        if (!isEditingNumber) {
-          renderAllViews();
-        }
-      }
+    }
+
+    function jumpToLatestLiveBoutique() {
+      if (!_latestLiveBoutiqueInfo || !isEffectiveAdmin()) return;
+      state.selectedBoutique = _latestLiveBoutiqueInfo.boutique;
+      if (_latestLiveBoutiqueInfo.mondayIso) state.selectedWeekMonday = _latestLiveBoutiqueInfo.mondayIso;
+      if (typeof _latestLiveBoutiqueInfo.dayIdx === "number") state.selectedDayIdx = _latestLiveBoutiqueInfo.dayIdx;
+      const bSelect = document.getElementById("boutique-select");
+      if (bSelect) bSelect.value = state.selectedBoutique;
+      onBoutiqueChange(state.selectedBoutique);
     }
 
     window.__processIncomingNetworkPacket = function (pkt) {
@@ -2228,74 +1846,24 @@
         _processedPacketIds.delete(first);
       }
 
-      if (pkt.blobId && !_cloudBlobId) {
-        _cloudBlobId = pkt.blobId;
-        safeSetItem(STORAGE_KEYS.cloudBlobId, _cloudBlobId);
-        pullDurableCloudState();
-      }
-
-      if (pkt.kind === "blob_announce" && pkt.blobId) {
-        _cloudBlobId = pkt.blobId;
-        safeSetItem(STORAGE_KEYS.cloudBlobId, _cloudBlobId);
-        pullDurableCloudState();
-        return;
-      }
-
-      if (pkt.kind === "chunk_part" && pkt.batchId) {
-        if (!_incomingChunkBuffers[pkt.batchId]) {
-          _incomingChunkBuffers[pkt.batchId] = { total: pkt.totalParts, parts: {}, createdAt: Date.now() };
-        }
-        const buf = _incomingChunkBuffers[pkt.batchId];
-        buf.parts[pkt.partIdx] = pkt.slice;
-        if (Object.keys(buf.parts).length === buf.total) {
-          let fullStr = "";
-          for (let i = 0; i < buf.total; i++) fullStr += (buf.parts[i] || "");
-          delete _incomingChunkBuffers[pkt.batchId];
-          try {
-            const reassembled = JSON.parse(fullStr);
-            window.__processIncomingNetworkPacket(reassembled);
-          } catch (e) {}
-        }
-        return;
-      }
-
-      if (pkt.kind === "sync_ping") {
-        if (state.currentUser) {
-          if (_cloudBlobId) {
-            broadcastNetworkPacket({ kind: "blob_announce", blobId: _cloudBlobId });
-          }
-          if (isEffectiveAdmin()) {
-            broadcastNetworkPacket({
-              kind: "users_sync",
-              users: state.users
-            });
-          } else if (state.selectedBoutique) {
-            const st = readBoutiqueStoreReadOnly(state.selectedBoutique);
-            const wk = st.weeks?.[state.selectedWeekMonday];
-            if (wk) {
-              broadcastNetworkPacket(buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, wk));
-            }
-          }
-        }
-        return;
-      }
-
       _isApplyingRemote = true;
       try {
         if (pkt.kind === "users_sync" && Array.isArray(pkt.users) && pkt.users.length) {
           state.users = pkt.users;
           state.users.forEach(u => { u.mustChangePassword = false; });
           safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
+          populateLoginAccountSuggestions();
           if (state.currentUser) {
             const me = state.users.find(u => u.id === state.currentUser.id);
             if (me) state.currentUser = me;
-            if (state.activeTab === "admin") renderAdminView();
+            refreshViewsSafelyAfterRemoteUpdate();
           }
         } else if (pkt.kind === "global_state") {
           if (Array.isArray(pkt.users) && pkt.users.length) {
             state.users = pkt.users;
             state.users.forEach(u => { u.mustChangePassword = false; });
             safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
+            populateLoginAccountSuggestions();
             if (state.currentUser) {
               const me = state.users.find(u => u.id === state.currentUser.id);
               if (me) state.currentUser = me;
@@ -2317,7 +1885,7 @@
             state.techSheets = pkt.techSheets;
             safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
           }
-          if (state.currentUser) renderAllViews();
+          if (state.currentUser) refreshViewsSafelyAfterRemoteUpdate();
         } else if (pkt.kind === "week_patch" && pkt.boutique && pkt.mondayIso) {
           const bName = normalizeBoutiqueName(pkt.boutique);
           const st = readBoutiqueStoreReadOnly(bName);
@@ -2334,55 +1902,45 @@
           if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
           }
-          updateAdminLiveTicker(bName, `Semaine ${getIsoWeekNumber(pkt.mondayIso)} synchronisée`, pkt.mondayIso);
-          refreshViewsSafelyAfterRemoteUpdate(bName, pkt.mondayIso);
+          if (state.currentUser) refreshViewsSafelyAfterRemoteUpdate();
         } else if (pkt.kind === "cell_delta" && pkt.boutique && pkt.mondayIso) {
           const bName = normalizeBoutiqueName(pkt.boutique);
           const st = readBoutiqueStoreReadOnly(bName);
           const wk = ensureBoutiqueWeekObject(st, pkt.mondayIso, bName);
           const dIdx = Number(pkt.dayIdx) || 0;
           const val = Number(pkt.value) || 0;
-          let labelInfo = `${DAY_NAMES[dIdx]} → ${val}`;
 
           if (pkt.domain === "forecast" && pkt.productId) {
             if (!wk.quantities[pkt.productId]) wk.quantities[pkt.productId] = [0,0,0,0,0,0,0];
             wk.quantities[pkt.productId][dIdx] = val;
-            const prod = state.catalog.find(p => p.id === pkt.productId);
-            labelInfo = `${prod ? prod.name : pkt.productId} (${DAY_NAMES[dIdx]}) : ${val}`;
           } else if (pkt.domain === "traiteur" && pkt.trId) {
             const item = (wk.traiteur || []).find(t => t.id === pkt.trId);
             if (item) {
               if (!Array.isArray(item.quantities)) item.quantities = [0,0,0,0,0,0,0];
               item.quantities[dIdx] = val;
               syncTraiteurToForecast(wk);
-              labelInfo = `Traiteur ${item.name} (${DAY_NAMES[dIdx]}) : ${val}`;
             }
           } else if (pkt.domain === "patisserie" && pkt.patId) {
             if (!wk.patisserie[pkt.patId]) wk.patisserie[pkt.patId] = [0,0,0,0,0,0,0];
             wk.patisserie[pkt.patId][dIdx] = val;
-            const pat = state.patisserieCatalog.find(p => p.id === pkt.patId);
-            labelInfo = `Pâtisserie ${pat ? pat.name : pkt.patId} (${DAY_NAMES[dIdx]}) : ${val}`;
           } else if (pkt.domain === "caRealise") {
             wk.caRealise[dIdx] = val;
-            labelInfo = `CA Réalisé (${DAY_NAMES[dIdx]}) : ${formatNum(val, 0)} €`;
           } else if (pkt.domain === "caObjectif") {
             wk.caObjectif[dIdx] = val;
-            labelInfo = `CA Objectif (${DAY_NAMES[dIdx]}) : ${formatNum(val, 0)} €`;
           }
 
           safeSetItem(boutiqueStorageKey(bName), JSON.stringify(st));
           if (slugify(state.selectedBoutique) === slugify(bName)) {
             state.storeData = st;
           }
-          updateAdminLiveTicker(bName, labelInfo, pkt.mondayIso, dIdx);
-          refreshViewsSafelyAfterRemoteUpdate(bName, pkt.mondayIso, dIdx);
+          if (state.currentUser) refreshViewsSafelyAfterRemoteUpdate();
         } else if (pkt.kind === "activity" && pkt.entry) {
           if (!state.activityLog.some(x => x.id === pkt.entry.id)) {
             state.activityLog.unshift(pkt.entry);
             if (state.activityLog.length > 150) state.activityLog = state.activityLog.slice(0, 150);
             safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
             if (isEffectiveAdmin() && state.currentUser) {
-              updateAdminLiveTicker(pkt.entry.boutique || "Réseau", pkt.entry.summary);
+              updateAdminLiveTicker(pkt.entry);
               showToast(`📡 ${pkt.entry.boutique} : ${pkt.entry.summary}`);
               if (state.activeTab === "admin") renderAdminView();
             }
@@ -2393,9 +1951,6 @@
       }
     };
 
-    /* ==========================================================================
-       5. MIGRATION & PERSISTANCE DES DONNÉES (10 ANS)
-       ========================================================================== */
     function loadGlobalConfig() {
       try {
         const u = JSON.parse(safeGetItem(STORAGE_KEYS.users));
@@ -2411,6 +1966,7 @@
       } catch (e) {
         state.catalog = JSON.parse(JSON.stringify(DEFAULT_CATALOG));
       }
+
       const gaspSand = state.catalog.find(p => p.id === "gaspard-sandwich");
       if (gaspSand && gaspSand.isTraiteurSupport === undefined) {
         gaspSand.isTraiteurSupport = true;
@@ -2419,6 +1975,14 @@
       const oldHalfGasp = state.catalog.find(p => p.id === "pain-sandwich-gaspard");
       if (oldHalfGasp && oldHalfGasp.dormant === undefined) {
         oldHalfGasp.dormant = true;
+      }
+      const oldSeigle = state.catalog.find(p => p.id === "seigle");
+      if (oldSeigle) {
+        oldSeigle.dormant = true;
+      }
+      const campagneProd = state.catalog.find(p => p.id === "campagne");
+      if (campagneProd && campagneProd.name.startsWith("Pain Campagne (330g)")) {
+        campagneProd.name = "Pain de Seigle / Petit Campagne (330g)";
       }
 
       try {
@@ -2450,15 +2014,18 @@
       }
     }
 
-    function recordNetworkActivity(type, boutiqueName, summary) {
+    function recordNetworkActivity(type, boutiqueName, summary, extraMeta) {
       const actor = state.currentUser ? `${state.currentUser.label} [${DEVICE_ID}]` : `${boutiqueName || "Poste"} [${DEVICE_ID}]`;
+      const resolvedBoutique = boutiqueName || (state.currentUser?.boutique && state.currentUser.boutique !== "ALL" ? state.currentUser.boutique : state.selectedBoutique);
       const entry = {
         id: "act-" + Date.now() + "-" + Math.floor(Math.random() * 100000),
         timestamp: new Date().toISOString(),
         type,
         actor,
-        boutique: boutiqueName || (state.currentUser?.boutique && state.currentUser.boutique !== "ALL" ? state.currentUser.boutique : state.selectedBoutique),
-        summary
+        boutique: resolvedBoutique,
+        summary,
+        mondayIso: extraMeta?.mondayIso || state.selectedWeekMonday,
+        dayIdx: typeof extraMeta?.dayIdx === "number" ? extraMeta.dayIdx : state.selectedDayIdx
       };
       state.activityLog.unshift(entry);
       if (state.activityLog.length > 150) state.activityLog = state.activityLog.slice(0, 150);
@@ -2490,7 +2057,6 @@
       runFullAutoBackup(true);
 
       if (!skipCloudPush && !_isApplyingRemote) {
-        pushDurableCloudState(false);
         broadcastNetworkPacket({
           kind: "users_sync",
           users: state.users
@@ -2611,7 +2177,6 @@
     function saveCurrentBoutiqueData(triggerBackup = true) {
       if (!state.selectedBoutique || !state.storeData) return;
       state.storeData.boutique = state.selectedBoutique;
-      state.storeData.updatedAt = new Date().toISOString();
       safeSetItem(boutiqueStorageKey(state.selectedBoutique), JSON.stringify(state.storeData));
       if (triggerBackup) {
         runFullAutoBackup(true);
@@ -2624,7 +2189,6 @@
       if (_isApplyingRemote) return;
       clearTimeout(_cloudPushTimer);
       _cloudPushTimer = setTimeout(() => {
-        pushDurableCloudState(false);
         if (state.selectedBoutique && state.storeData?.weeks?.[state.selectedWeekMonday]) {
           broadcastNetworkPacket(
             buildCompactWeekPatch(state.selectedBoutique, state.selectedWeekMonday, state.storeData.weeks[state.selectedWeekMonday])
@@ -2650,6 +2214,7 @@
             state.users = parsedUsers;
             state.users.forEach(u => { u.mustChangePassword = false; });
             safeSetItem(STORAGE_KEYS.users, JSON.stringify(state.users));
+            populateLoginAccountSuggestions();
             if (state.currentUser) {
               const refreshedSelf = state.users.find(u => u.id === state.currentUser.id);
               if (refreshedSelf) state.currentUser = refreshedSelf;
@@ -2684,7 +2249,7 @@
             safeSetItem(STORAGE_KEYS.techSheets, JSON.stringify(state.techSheets));
           }
         }
-        if (state.currentUser) renderAllViews();
+        if (state.currentUser) refreshViewsSafelyAfterRemoteUpdate();
       } catch (e) {} finally {
         _isApplyingRemote = false;
       }
@@ -2700,8 +2265,8 @@
         safeSetItem(boutiqueStorageKey(bName), JSON.stringify(storeObj));
         if (slugify(state.selectedBoutique) === slugify(bName)) {
           state.storeData = storeObj;
-          if (state.currentUser) renderAllViews();
         }
+        if (state.currentUser) refreshViewsSafelyAfterRemoteUpdate();
       } catch (e) {} finally {
         _isApplyingRemote = false;
       }
@@ -2717,6 +2282,7 @@
         safeSetItem(STORAGE_KEYS.activityLog, JSON.stringify(state.activityLog));
         const newest = state.activityLog[0];
         if (newest && newest.id !== prevTopId && isEffectiveAdmin() && state.currentUser && !String(newest.actor || "").includes(DEVICE_ID)) {
+          updateAdminLiveTicker(newest);
           showToast(`📡 ${newest.boutique} : ${newest.summary}`);
           if (state.activeTab === "admin") renderAdminView();
         }
@@ -2729,16 +2295,21 @@
       if (!ev.key) return;
       if (ev.key === STORAGE_KEYS.users || ev.key === STORAGE_KEYS.catalog || ev.key === STORAGE_KEYS.patisserieCatalog || ev.key === STORAGE_KEYS.schedules || ev.key === STORAGE_KEYS.techSheets || ev.key === STORAGE_KEYS.activityLog) {
         loadGlobalConfig();
-        if (state.currentUser) renderAllViews();
-      } else if (ev.key === boutiqueStorageKey(state.selectedBoutique)) {
-        loadBoutiqueStore(state.selectedBoutique);
-        if (state.currentUser) renderAllViews();
+        populateLoginAccountSuggestions();
+        if (state.currentUser) {
+          if (isEffectiveAdmin() && state.activityLog[0]) {
+            updateAdminLiveTicker(state.activityLog[0]);
+          }
+          refreshViewsSafelyAfterRemoteUpdate();
+        }
+      } else if (ev.key.startsWith("jules_v9_boutique_")) {
+        if (ev.key === boutiqueStorageKey(state.selectedBoutique)) {
+          loadBoutiqueStore(state.selectedBoutique);
+        }
+        if (state.currentUser) refreshViewsSafelyAfterRemoteUpdate();
       }
     });
 
-    /* ==========================================================================
-       6. AUTHENTIFICATION, DROITS & MODE VUE MAGASIN
-       ========================================================================== */
     function getEffectiveUser() {
       return state.impersonatedUser || state.currentUser;
     }
@@ -2769,13 +2340,75 @@
       return !!(u.permissions && u.permissions[permKey]);
     }
 
+    function populateLoginAccountSuggestions() {
+      const dl = document.getElementById("jules-accounts-list");
+      if (!dl || !Array.isArray(state.users)) return;
+      dl.innerHTML = state.users
+        .map(u => `<option value="${escapeHtml(u.email)}">${escapeHtml(u.label)}</option>`)
+        .join("");
+    }
+
+    function onLoginEmailInput() {
+      if (!state.users || state.users.length === 0) {
+        migrateAndPersistAllData();
+      }
+      const val = (document.getElementById("login-email")?.value || "").trim().toLowerCase();
+      const box = document.getElementById("login-recognized-account");
+      const errBox = document.getElementById("login-error");
+      if (errBox) errBox.classList.add("hidden");
+      if (!box) return;
+
+      if (!val) {
+        box.classList.add("hidden");
+        box.textContent = "";
+        return;
+      }
+
+      const exact = state.users.find(u => u.email.toLowerCase() === val);
+      if (exact) {
+        const roleLabel = exact.role === "admin" ? "Administrateur Réseau (9 boutiques)" : `Boutique ${exact.boutique}`;
+        box.style.background = "#ecfdf5";
+        box.style.borderColor = "#a7f3d0";
+        box.style.color = "#065f46";
+        box.textContent = `✅ Compte reconnu : ${exact.label} • ${roleLabel}`;
+        box.classList.remove("hidden");
+        return;
+      }
+
+      const matches = state.users.filter(u => u.email.toLowerCase().startsWith(val) || u.label.toLowerCase().includes(val));
+      if (matches.length === 1 && val.length >= 3) {
+        const m = matches[0];
+        const roleLabel = m.role === "admin" ? "Administrateur Réseau" : `Boutique ${m.boutique}`;
+        box.style.background = "#fffbeb";
+        box.style.borderColor = "#fde68a";
+        box.style.color = "#92400e";
+        box.innerHTML = `🔎 Compte détecté : <strong>${escapeHtml(m.label)}</strong> (${escapeHtml(roleLabel)}) — <button type="button" style="text-decoration:underline; font-weight:900; background:none; border:none; color:#b45309; cursor:pointer;" onclick="selectRecognizedAccount('${escapeHtml(m.email)}')">Compléter l'adresse</button>`;
+        box.classList.remove("hidden");
+      } else {
+        box.classList.add("hidden");
+      }
+    }
+
+    function selectRecognizedAccount(email) {
+      const emailInput = document.getElementById("login-email");
+      const pwdInput = document.getElementById("login-password");
+      if (emailInput) {
+        emailInput.value = email;
+        onLoginEmailInput();
+      }
+      if (pwdInput) pwdInput.focus();
+    }
+
     function handleLoginSubmit(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
+      if (!state.users || state.users.length === 0) {
+        migrateAndPersistAllData();
+      }
       const email = (document.getElementById("login-email").value || "").trim().toLowerCase();
-      const pwd = document.getElementById("login-password").value || "";
+      const pwd = (document.getElementById("login-password").value || "").trim();
       const errBox = document.getElementById("login-error");
 
-      const found = state.users.find(u => u.email.toLowerCase() === email && u.password === pwd);
+      const found = state.users.find(u => u.email.toLowerCase() === email && String(u.password).trim() === pwd);
       if (!found) {
         errBox.textContent = "Identifiant ou mot de passe incorrect. Contactez votre administrateur réseau.";
         errBox.classList.remove("hidden");
@@ -2785,7 +2418,6 @@
       state.currentUser = found;
       state.impersonatedUser = null;
       recordNetworkActivity("login", found.boutique === "ALL" ? "Réseau" : found.boutique, `Connexion de ${found.label} (${found.email})`);
-      safeSetItem(STORAGE_KEYS.session, JSON.stringify({ userId: found.id }));
       enterAuthenticatedApp();
     }
 
@@ -2796,6 +2428,16 @@
       const effUser = getEffectiveUser();
       const isRealAdmin = state.currentUser && state.currentUser.role === "admin";
       const effAdmin = isEffectiveAdmin();
+
+      const liveTicker = document.getElementById("live-admin-ticker");
+      if (liveTicker) {
+        if (effAdmin) {
+          if (state.activityLog[0]) updateAdminLiveTicker(state.activityLog[0]);
+          else liveTicker.classList.remove("hidden");
+        } else {
+          liveTicker.classList.add("hidden");
+        }
+      }
 
       const bSelect = document.getElementById("boutique-select");
       if (effAdmin) {
@@ -2817,10 +2459,6 @@
       const btnStoreView = document.getElementById("btn-toggle-store-view");
       const btnImportExcel = document.getElementById("btn-import-forecast-excel");
       const banner = document.getElementById("store-view-banner");
-      const liveTicker = document.getElementById("admin-live-ticker");
-      if (liveTicker) {
-        liveTicker.classList.toggle("hidden", !effAdmin);
-      }
       if (btnImportExcel) {
         btnImportExcel.classList.toggle("hidden", !hasPermission("adminManageCatalog"));
       }
@@ -2891,12 +2529,17 @@
       safeSetItem(STORAGE_KEYS.session, "");
       document.getElementById("app-shell").classList.add("hidden");
       document.getElementById("login-screen").classList.remove("hidden");
-      document.getElementById("login-password").value = "";
+      const emailInput = document.getElementById("login-email");
+      const pwdInput = document.getElementById("login-password");
+      const recBox = document.getElementById("login-recognized-account");
+      if (emailInput) emailInput.value = "";
+      if (pwdInput) pwdInput.value = "";
+      if (recBox) {
+        recBox.classList.add("hidden");
+        recBox.textContent = "";
+      }
     }
 
-    /* ==========================================================================
-       7. NAVIGATION ONGLETS, SEMAINES & JOURS OUVRÉS
-       ========================================================================== */
     function switchTab(tabName) {
       state.activeTab = tabName;
       document.querySelectorAll(".nav-tab").forEach(btn => {
@@ -3015,9 +2658,6 @@
       }
     }
 
-    /* ==========================================================================
-       8. ONGLET 1 : FEUILLE DE PRÉVISION & CALCUL DU CA
-       ========================================================================== */
     function computeDailyCa(wk, dayIdx) {
       let total = 0;
       state.catalog.forEach(p => {
@@ -3122,7 +2762,7 @@
         dayIdx,
         value: num
       });
-      recordNetworkActivity("ca", state.selectedBoutique, `CA réalisé : ${formatNum(num, 0)} € (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
+      recordNetworkActivity("ca", state.selectedBoutique, `CA réalisé : ${formatNum(num, 0)} € (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`, { mondayIso: state.selectedWeekMonday, dayIdx });
       saveCurrentBoutiqueData(true);
       renderAllViews();
     }
@@ -3253,7 +2893,7 @@
         dayIdx,
         value: num
       });
-      recordNetworkActivity("prevision", state.selectedBoutique, `Prévision ${prod ? prod.name : productId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
+      recordNetworkActivity("prevision", state.selectedBoutique, `Prévision ${prod ? prod.name : productId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`, { mondayIso: state.selectedWeekMonday, dayIdx });
       saveCurrentBoutiqueData(true);
       renderAllViews();
     }
@@ -3350,9 +2990,6 @@
       showToast(`${addedProducts} nouveau(x) produit(s) ajouté(s).`);
     }
 
-    /* ==========================================================================
-       9. ONGLET 2 : PÉTRIES JOURNALIÈRES (LEVAIN J-1 BIOBISE + INGRÉDIENTS EN COLONNE)
-       ========================================================================== */
     function toggleHideZeroPetries(checked) {
       state.hideZeroPetries = !!checked;
       renderPetriesView();
@@ -3360,20 +2997,27 @@
 
     function formatGramsOrKg(g) {
       const rounded = Math.round(Number(g) || 0);
-      if (rounded >= 1000) return `${formatNum(rounded / 1000, 2)} kg (${formatNum(rounded)} g)`;
+      if (rounded >= 1000) return `${formatNum(rounded / 1000, 2)} kg`;
       return `${formatNum(rounded)} g`;
     }
 
     function getWeekDataReadOnly(mondayIso) {
-      const existing = state.storeData?.weeks?.[mondayIso];
-      if (!existing) return null;
-      return {
-        quantities: existing.quantities || {},
-        traiteur: Array.isArray(existing.traiteur) ? existing.traiteur : [],
-        patisserie: existing.patisserie || {},
-        caObjectif: existing.caObjectif || [0,0,0,0,0,0,0],
-        caRealise: existing.caRealise || [0,0,0,0,0,0,0]
+      const store = state.storeData?.weeks?.[mondayIso]
+        ? state.storeData
+        : readBoutiqueStoreReadOnly(state.selectedBoutique);
+      const existing = store?.weeks?.[mondayIso];
+      const tbb = INITIAL_TBB_2026_DATA[state.selectedBoutique]?.[mondayIso];
+      const wk = {
+        quantities: existing?.quantities ? JSON.parse(JSON.stringify(existing.quantities)) : {},
+        traiteur: Array.isArray(existing?.traiteur) && existing.traiteur.length > 0
+          ? JSON.parse(JSON.stringify(existing.traiteur))
+          : JSON.parse(JSON.stringify(DEFAULT_TRAITEUR)),
+        patisserie: existing?.patisserie ? JSON.parse(JSON.stringify(existing.patisserie)) : {},
+        caObjectif: existing?.caObjectif || (tbb ? [...tbb.caObjectif] : [0,0,0,0,0,0,0]),
+        caRealise: existing?.caRealise || (tbb ? [...tbb.caRealise] : [0,0,0,0,0,0,0])
       };
+      syncTraiteurToForecast(wk);
+      return wk;
     }
 
     function getNextOpenDayInfo(boutiqueName, mondayIso, dayIdx) {
@@ -3408,6 +3052,13 @@
         dateFr: formatShortFrDate(fallbackIso),
         daysGap: 1
       };
+    }
+
+    function openNextDayForecast(mondayIso, dayIdx) {
+      state.selectedWeekMonday = mondayIso;
+      state.selectedDayIdx = dayIdx;
+      switchTab("prevision");
+      showToast(`Ouverture des prévisions du ${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(mondayIso, dayIdx))} (besoin levain J+1)`);
     }
 
     function computeBreadPetriesOnlyForDay(wk, dayIdx, hideZeros) {
@@ -3459,8 +3110,8 @@
               { label: "Eau 1er coulage", grams: farine * 0.70 },
               { label: "Eau bassinage", grams: farine * 0.025 },
               { label: "Sel", grams: farine * 0.016 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.0046 },
-              { label: "Pâte fermentée (max 5%)", grams: farine * 0.05 }
+              { label: "Levure fraîche", grams: farine * 0.005 },
+              { label: "Pâte fermentée (max 5%)", grams: farine * 0.045 }
             ];
           }
         },
@@ -3488,10 +3139,10 @@
             const res = [
               { label: "Farine BioBise", grams: farine },
               { label: "Eau 1er coulage", grams: farine * 0.72 },
-              { label: "Eau bassinage", grams: farine * 0.06 },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.20 },
+              { label: "Eau de bassinage", grams: farine * 0.06 },
+              { label: "Levain Chez Jules", grams: farine * 0.20 },
               { label: "Sel", grams: farine * 0.018 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.003 }
+              { label: "Levure fraîche", grams: farine * 0.003 }
             ];
             if (melangeSportif > 0) res.push({ label: "Mélange Sportif (incorpo)", grams: melangeSportif });
             return res;
@@ -3514,9 +3165,9 @@
             return [
               { label: "Farine Super Pétrus", grams: farine },
               { label: "Eau", grams: farine * 0.83 },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.20 },
+              { label: "Levain Chez Jules", grams: farine * 0.20 },
               { label: "Sel", grams: farine * 0.016 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.004 }
+              { label: "Levure fraîche", grams: farine * 0.004 }
             ];
           }
         },
@@ -3537,10 +3188,10 @@
               { label: "Farine Petit Épeautre", grams: 2212 * factor },
               { label: "Farine T65", grams: 552 * factor },
               { label: "Eau", grams: 2074 * factor },
-              { label: "Levain Chez Jules (pesée jour J)", grams: 552 * factor },
+              { label: "Levain Chez Jules", grams: 552 * factor },
               { label: "Graines torréfiées", grams: 552 * factor },
               { label: "Sel", grams: 48 * factor },
-              { label: "Levure fraîche (pesée jour J)", grams: 20 * factor }
+              { label: "Levure fraîche", grams: 20 * factor }
             ];
           }
         },
@@ -3553,25 +3204,25 @@
           items: [
             { name: "Gaspard Baguette (350g)", weight: 350, qty: q("gaspard") },
             { name: "Gaspard Flûte (700g)", weight: 700, qty: q("gaspard-flute") },
-            { name: "Gaspard Sandwich (300g — Auto Traiteur)", weight: 300, qty: q("gaspard-sandwich") },
+            { name: "Gaspard Sandwich (300g — Auto Traiteur 4 sand. = 2 pains)", weight: 300, qty: q("gaspard-sandwich") },
             ...getCustomItemsForPetrin("petrin-gaspard")
           ],
           computeIngredients: (totalPateG) => {
             const farine = totalPateG * (1000 / 2011);
             return [
               { label: "Farine Gaspard", grams: farine },
-              { label: "Eau 1er coulage", grams: farine * 0.74 },
+              { label: "Eau (1er coulage)", grams: farine * 0.74 },
               { label: "Eau bassinage", grams: farine * 0.10 },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.15 },
+              { label: "Levain Chez Jules", grams: farine * 0.15 },
               { label: "Sel", grams: farine * 0.016 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.005 }
+              { label: "Levure fraîche", grams: farine * 0.005 }
             ];
           }
         },
         {
           id: "petrin-campagne",
           title: "6. Pétrin Campagne & Seigle",
-          badge: "T°B Hiver 56°C / Été 52°C",
+          badge: "T°B Hiver 56°C / Été 52°C • Seigle Raisin inclus",
           color: "#78350f",
           bg: "#fef3c7",
           items: [
@@ -3587,11 +3238,11 @@
               { label: "Farine T65", grams: farine },
               { label: "Farine de Seigle", grams: farine * 0.212 },
               { label: "Eau", grams: farine },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.20 },
+              { label: "Levain Chez Jules", grams: farine * 0.20 },
               { label: "Sel", grams: farine * 0.023 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.004 }
+              { label: "Levure fraîche", grams: farine * 0.004 }
             ];
-            if (raisins > 0) res.push({ label: "Raisins secs (incorpo Seigle Raisin)", grams: raisins });
+            if (raisins > 0) res.push({ label: "Raisins secs (incorpo)", grams: raisins });
             return res;
           }
         },
@@ -3612,10 +3263,10 @@
             return [
               { label: "Farine T65", grams: farine },
               { label: "Eau", grams: farine * 0.88 },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.26 },
+              { label: "Levain Chez Jules", grams: farine * 0.26 },
               { label: "Mélange 5 Graines", grams: farine * 0.19 },
               { label: "Sel", grams: farine * 0.020 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.003 }
+              { label: "Levure fraîche", grams: farine * 0.003 }
             ];
           }
         },
@@ -3635,9 +3286,9 @@
               { label: "Farine T65", grams: farineTot * 0.65 },
               { label: "Farine Saxon", grams: farineTot * 0.35 },
               { label: "Eau", grams: farineTot * 0.75 },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farineTot * 0.20 },
+              { label: "Levain Chez Jules", grams: farineTot * 0.20 },
               { label: "Sel", grams: farineTot * 0.018 },
-              { label: "Levure fraîche (pesée jour J)", grams: farineTot * 0.005 }
+              { label: "Levure fraîche", grams: farineTot * 0.005 }
             ];
           }
         },
@@ -3656,9 +3307,9 @@
             return [
               { label: "Farine de Seigle T170", grams: farine },
               { label: "Eau", grams: farine * 1.10 },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.50 },
+              { label: "Levain Chez Jules", grams: farine * 0.50 },
               { label: "Sel", grams: farine * 0.025 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.003 }
+              { label: "Levure fraîche", grams: farine * 0.003 }
             ];
           }
         },
@@ -3679,9 +3330,9 @@
               { label: "Farine T110", grams: farineTot * 0.85 },
               { label: "Farine de Sarrasin", grams: farineTot * 0.15 },
               { label: "Eau", grams: farineTot * 0.70 },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farineTot * 0.30 },
+              { label: "Levain Chez Jules", grams: farineTot * 0.30 },
               { label: "Sel", grams: farineTot * 0.020 },
-              { label: "Levure fraîche (pesée jour J)", grams: farineTot * 0.002 }
+              { label: "Levure fraîche", grams: farineTot * 0.002 }
             ];
           }
         },
@@ -3703,9 +3354,9 @@
             const res = [
               { label: "Farine Mix Maïs", grams: farine },
               { label: "Eau", grams: farine * 0.62 },
-              { label: "Levain Chez Jules (pesée jour J)", grams: farine * 0.16 },
+              { label: "Levain Chez Jules", grams: farine * 0.16 },
               { label: "Sel", grams: farine * 0.018 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.009 }
+              { label: "Levure fraîche", grams: farine * 0.009 }
             ];
             if (epinards > 0) res.push({ label: "Épinards hachés (incorpo)", grams: epinards });
             return res;
@@ -3757,11 +3408,11 @@
             const muesli = q("viennois-muesli") * 10;
             const res = [
               { label: "Farine T65", grams: farine },
-              { label: "Lait (pesée jour J)", grams: farine * 0.70 },
+              { label: "Lait", grams: farine * 0.70 },
               { label: "Beurre", grams: farine * 0.052 },
               { label: "Sucre", grams: farine * 0.032 },
               { label: "Sel", grams: farine * 0.020 },
-              { label: "Levure fraîche (pesée jour J)", grams: farine * 0.016 }
+              { label: "Levure fraîche", grams: farine * 0.016 }
             ];
             if (pepites > 0) res.push({ label: "Pépites chocolat (incorpo)", grams: pepites });
             if (muesli > 0) res.push({ label: "Mélange muesli (incorpo)", grams: muesli });
@@ -3804,11 +3455,11 @@
             const res = [
               { label: "Farine T55", grams: farineTot * 0.334 },
               { label: "Farine T55 de force", grams: farineTot * 0.666 },
-              { label: "Œufs entiers (pesée jour J)", grams: farineTot * 0.58 },
+              { label: "Œufs entiers", grams: farineTot * 0.58 },
               { label: "Beurre froid", grams: farineTot * 0.50 },
               { label: "Sucre", grams: farineTot * 0.125 },
-              { label: "Lait (pesée jour J)", grams: farineTot * 0.095 },
-              { label: "Levure fraîche (pesée jour J)", grams: farineTot * 0.030 },
+              { label: "Lait", grams: farineTot * 0.095 },
+              { label: "Levure fraîche", grams: farineTot * 0.030 },
               { label: "Sel", grams: farineTot * 0.020 }
             ];
             if (pralines > 0) res.push({ label: "Pralines roses (incorpo)", grams: pralines });
@@ -3857,73 +3508,73 @@
         ? currentWk
         : getWeekDataReadOnly(nextDay.mondayIso);
 
-      const levainSources = [
-        { id: "petrin-tourte-seigle", label: "Tourte de seigle" },
-        { id: "petrin-sarrasin", label: "Sarrasin" },
-        { id: "petrin-campagne", label: "Campagne & Seigle" },
-        { id: "petrin-saxon", label: "Saxon" },
-        { id: "petrin-gaspard", label: "Gaspard" },
-        { id: "petrin-leonie", label: "Léonie" },
-        { id: "petrin-complet", label: "Complet" },
-        { id: "petrin-5-graines", label: "5 graines" },
-        { id: "petrin-biobise", label: "Biobise" },
-        { id: "petrin-mais", label: "Maïs" }
+      const orderedLevainNeeds = [
+        { petrinId: "petrin-tourte-seigle", label: "Tourte de seigle" },
+        { petrinId: "petrin-sarrasin", label: "Sarrasin" },
+        { petrinId: "petrin-campagne", label: "Campagne & Seigle" },
+        { petrinId: "petrin-saxon", label: "Saxon" },
+        { petrinId: "petrin-gaspard", label: "Gaspard" },
+        { petrinId: "petrin-leonie", label: "Léonie" },
+        { petrinId: "petrin-complet", label: "Complet" },
+        { petrinId: "petrin-5-graines", label: "5 graines" },
+        { petrinId: "petrin-biobise", label: "Biobise" },
+        { petrinId: "petrin-mais", label: "Maïs" }
       ];
 
-      let totalBesoinGrams = 0;
+      let neededLevainGrams = 0;
       const usageItems = [];
 
       if (nextWk) {
         const nextDayBreadData = computeBreadPetriesOnlyForDay(nextWk, nextDay.dayIdx, false);
-        levainSources.forEach(src => {
-          const petrinObj = nextDayBreadData.preparedPetries.find(p => p.id === src.id);
-          let needG = 0;
-          if (petrinObj && petrinObj.totalGrams > 0) {
-            const levainIng = (petrinObj.ingredients || []).find(ing =>
+        orderedLevainNeeds.forEach(spec => {
+          const p = nextDayBreadData.preparedPetries.find(x => x.id === spec.petrinId);
+          let levainG = 0;
+          if (p && p.totalGrams > 0) {
+            const levainIng = (p.ingredients || []).find(ing =>
               String(ing.label || "").toLowerCase().includes("levain")
             );
-            needG = levainIng ? levainIng.grams : 0;
+            if (levainIng && levainIng.grams > 0) {
+              levainG = levainIng.grams;
+            }
           }
-          totalBesoinGrams += needG;
-          if (!hideZeros || needG > 0) {
+          neededLevainGrams += levainG;
+          if (!hideZeros || levainG > 0) {
             usageItems.push({
-              name: `${src.label} (${nextDay.dayName} ${nextDay.dateFr})`,
-              weight: Math.round(needG),
+              name: spec.label,
+              weight: Math.round(levainG),
               qty: 1,
-              totalGrams: needG,
+              totalGrams: levainG,
               isLevainUsage: true,
-              usageTag: `Besoin ${nextDay.dayName.slice(0, 3)}.`
+              usageTag: `Pour ${nextDay.dayName.slice(0, 3)}.`
             });
           }
         });
       }
 
-      // Formule officielle capture d'écran & Excel : Total à produire = Total Besoin × 1.32
-      // Répartition sur Farine BioBise : 1000g BioBise + 550g Eau + 350g Souche = 1900g
-      const totalLevainGrams = totalBesoinGrams * 1.32;
-      const farineBioBiseGrams = totalLevainGrams * (1000 / 1900);
-      const eauGrams = totalLevainGrams * (550 / 1900);
-      const soucheGrams = totalLevainGrams * (350 / 1900);
+      const totalToProduceGrams = neededLevainGrams * 1.32;
+      const farineBioBiseGrams = totalToProduceGrams * (1000 / 1900);
+      const eauGrams = totalToProduceGrams * (550 / 1900);
+      const soucheLevainGrams = totalToProduceGrams * (350 / 1900);
 
       const tbBadge = nextDay.daysGap > 1
-        ? `Pétri ce jour pour ${nextDay.dayName} ${nextDay.dateFr} (J+${nextDay.daysGap}) • Baisser T°B de 5°C`
-        : `ATTENTION : à pétrir la veille pour utilisation le lendemain (${nextDay.dayName} ${nextDay.dateFr}) • Ratio ×1,32`;
+        ? `À pétrir ce ${DAY_NAMES[dayIdx]} pour ${nextDay.dayName} ${nextDay.dateFr} (J+${nextDay.daysGap}) • Baisser T°B de 5°C`
+        : `ATTENTION la recette est à pétrir la veille pour utilisation le lendemain (${nextDay.dayName} ${nextDay.dateFr})`;
 
       return {
         id: "petrin-levain",
-        title: `0. Pétrin Levain (pour ${nextDay.dayName} ${nextDay.dateFr})`,
+        title: `0. Pétrin Levain (Utilisation ${nextDay.dayName} ${nextDay.dateFr})`,
         badge: tbBadge,
-        color: "#7c2d12",
-        bg: "#ffedd5",
+        color: "#b91c1c",
+        bg: "#fef08a",
         isLevainNextDay: true,
         nextDayInfo: nextDay,
-        neededForNextDayGrams: totalBesoinGrams,
-        totalGrams: totalLevainGrams,
+        neededForNextDayGrams: neededLevainGrams,
+        totalGrams: totalToProduceGrams,
         visibleItems: usageItems,
         ingredients: [
           { label: "Farine BioBise", grams: farineBioBiseGrams },
           { label: "Eau", grams: eauGrams },
-          { label: "Levain (souche)", grams: soucheGrams }
+          { label: "Levain (souche)", grams: soucheLevainGrams }
         ]
       };
     }
@@ -3933,7 +3584,6 @@
       const breadData = computeBreadPetriesOnlyForDay(wk, dayIdx, hideZeros);
       const levainCard = computeLevainPetrieForNextDay(state.selectedBoutique, mondayIso, dayIdx, wk, hideZeros);
 
-      // La pétrie du levain est toujours affichée en tête de liste
       const displayedPetries = [levainCard, ...breadData.displayedPetries];
 
       return {
@@ -3970,18 +3620,18 @@
               <h2 style="font-size:1.05rem; font-weight:900; color:#111827;">🥣 Toutes les Pétries Journalières &amp; Plaquage Viennoiserie — ${DAY_NAMES[dayIdx]} (${escapeHtml(state.selectedBoutique)})</h2>
               <p style="font-size:0.76rem; color:#4b5563; margin-top:2px;">
                 Poids total à pétrir : <strong class="tabular" style="color:#92400e;">${formatNum(grandTotalDoughGrams / 1000, 2)} kg</strong>
-                • Levain J-1 (pétri ce ${DAY_NAMES[dayIdx]} pour <strong>${levainNext.dayName} ${levainNext.dateFr}</strong>) : <strong class="tabular" style="color:#7c2d12;">${formatNum(levainCard.totalGrams / 1000, 2)} kg</strong>
+                • Levain pétri la veille (ce ${DAY_NAMES[dayIdx]}) pour utilisation le <strong>${levainNext.dayName} ${levainNext.dateFr}</strong> : <strong class="tabular" style="color:#7c2d12;">${formatNum(levainCard.totalGrams / 1000, 2)} kg</strong> (besoin : ${formatNum(levainCard.neededForNextDayGrams / 1000, 2)} kg × 1,32)
                 • <strong>${displayedPetries.length}</strong> pétrin(s) actif(s) sur ${allPetriesCount}
                 • Plaquage Viennoiserie : <strong class="tabular" style="color:#065f46;">${totalViennoiseriePieces} pièce(s)</strong>
               </p>
-              <div style="margin-top:6px; display:inline-block; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:0.74rem; font-weight:800; padding:4px 9px; border-radius:7px;">
-                ⚠️ Rappel Fournil : La levure, le levain, le lait et les œufs doivent être pesés le jour du pétrissage et pas en avance.
-              </div>
             </div>
             <label style="display:inline-flex; align-items:center; gap:0.45rem; background:#fffbeb; border:1.5px solid #f59e0b; padding:0.45rem 0.8rem; border-radius:9px; font-size:0.8rem; font-weight:800; color:#92400e; cursor:pointer;">
               <input type="checkbox" ${hideZeros ? "checked" : ""} onchange="toggleHideZeroPetries(this.checked)" />
               Masquer les produits à zéro (0)
             </label>
+          </div>
+          <div style="margin-top:0.55rem; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; padding:0.45rem 0.7rem; border-radius:8px; font-size:0.77rem; font-weight:800;">
+            ⚠️ Rappel pesée : la levure, le levain, le lait et les œufs doivent être pesés le jour du pétrissage et pas en avance.
           </div>
         </div>
 
@@ -4010,79 +3660,85 @@
         <div class="grid-2">
           ${displayedPetries.map(p => {
             const ingredients = p.ingredients;
+            const isLevainZero = p.isLevainNextDay && p.totalGrams <= 0;
             return `
               <div class="card" style="border-top:4px solid ${p.color};">
-                <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.4rem; margin-bottom:0.45rem;">
+                <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.4rem; margin-bottom:0.55rem;">
                   <h3 style="font-size:0.94rem; font-weight:900; color:${p.color};">${escapeHtml(p.title)}</h3>
                   <span style="font-size:0.68rem; font-weight:800; background:${p.bg}; color:${p.color}; padding:2px 8px; border-radius:999px;">${escapeHtml(p.badge)}</span>
                 </div>
-
-                <div style="background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:0.7rem; font-weight:800; padding:4px 8px; border-radius:7px; margin-bottom:0.55rem;">
-                  ⚠️ La levure, le levain, le lait et les œufs doivent être pesés le jour de pétrissage et pas en avance.
+                <div style="font-size:0.71rem; font-weight:800; color:#991b1b; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:0.28rem 0.5rem; margin-bottom:0.55rem;">
+                  ⚠️ La levure, le levain, le lait et les œufs doivent être pesés le jour du pétrissage et pas en avance.
                 </div>
 
-                <!-- Liste des ingrédients en colonne -->
-                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:0.5rem 0.65rem; margin-bottom:0.65rem;">
-                  <div style="display:flex; justify-content:space-between; align-items:center; background:${p.bg}; padding:0.35rem 0.55rem; border-radius:7px; margin-bottom:0.35rem;">
-                    <span style="color:${p.color}; font-weight:900; font-size:0.74rem;">${p.isLevainNextDay ? "TOTAL LEVAIN À PRODUIRE (×1,32)" : "POIDS DE PÂTE TOTAL"}</span>
-                    <span class="tabular" style="font-weight:900; color:${p.color}; font-size:0.92rem;">${formatNum(p.totalGrams / 1000, 2)} kg (${formatNum(Math.round(p.totalGrams))} g)</span>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:9px; padding:0.45rem 0.65rem; margin-bottom:0.65rem;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:${p.bg}; color:${p.color}; padding:0.35rem 0.55rem; border-radius:7px; margin-bottom:0.35rem;">
+                    <span style="font-weight:800; font-size:0.76rem;">${p.isLevainNextDay ? "TOTAL LEVAIN À PRODUIRE (BESOIN × 1,32)" : "PÂTE TOTALE À PÉTRIR"}</span>
+                    <span class="tabular" style="font-weight:900; font-size:0.94rem;">${formatNum(p.totalGrams / 1000, 2)} kg</span>
                   </div>
-                  <div style="display:flex; flex-direction:column;">
+                  <div style="display:flex; flex-direction:column; gap:2px;">
                     ${ingredients.map(ing => `
-                      <div style="display:flex; justify-content:space-between; align-items:center; padding:0.26rem 0.35rem; border-bottom:1px solid #e2e8f0; font-size:0.79rem;">
-                        <span style="color:#334155; font-weight:700;">${escapeHtml(ing.label)}</span>
-                        <span class="tabular" style="font-weight:900; color:#0f172a;">${formatGramsOrKg(ing.grams)}</span>
+                      <div style="display:flex; justify-content:space-between; align-items:center; padding:0.24rem 0.35rem; border-bottom:1px solid #e2e8f0; font-size:0.8rem;">
+                        <span style="font-weight:700; color:#334155;">${escapeHtml(ing.label)}</span>
+                        <span class="tabular" style="font-weight:800; color:#0f172a;">${formatGramsOrKg(ing.grams)}</span>
                       </div>
                     `).join("")}
                   </div>
                 </div>
 
-                ${p.isLevainNextDay && p.totalGrams === 0 ? `
-                  <div style="background:#fff7ed; border:1px dashed #fb923c; border-radius:8px; padding:0.65rem; font-size:0.77rem; color:#9a3412; margin-bottom:0.4rem;">
-                    ℹ️ Aucun pain au levain n'est encore saisi pour <strong>${escapeHtml(p.nextDayInfo.dayName)} ${escapeHtml(p.nextDayInfo.dateFr)}</strong>.
-                    <div style="margin-top:0.45rem;">
-                      <button type="button" class="btn btn-amber btn-sm" onclick="state.selectedWeekMonday='${p.nextDayInfo.mondayIso}'; state.selectedDayIdx=${p.nextDayInfo.dayIdx}; switchTab('prevision');">
-                        ✏️ Saisir les prévisions de ${escapeHtml(p.nextDayInfo.dayName)} ${escapeHtml(p.nextDayInfo.dateFr)}
+                ${isLevainZero ? `
+                  <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; padding:0.6rem; font-size:0.78rem; color:#92400e;">
+                    <strong>Aucune prévision de pain au levain saisie pour ${levainNext.dayName} ${levainNext.dateFr}.</strong>
+                    <div style="margin-top:0.4rem;">
+                      <button type="button" class="btn btn-amber btn-sm" onclick="openNextDayForecast('${levainNext.mondayIso}', ${levainNext.dayIdx})">
+                        📅 Saisir les prévisions de ${levainNext.dayName} ${levainNext.dateFr}
                       </button>
                     </div>
                   </div>
                 ` : `
-                  <table style="width:100%; border-collapse:collapse; font-size:0.79rem;">
-                    <thead>
-                      <tr style="border-bottom:1px solid #e2e8f0; color:#64748b;">
-                        ${p.isLevainNextDay ? `
-                          <th style="text-align:left; padding:0.3rem 0.25rem;">Besoin levain (${p.nextDayInfo.dayName} ${p.nextDayInfo.dateFr})</th>
+                  ${p.isLevainNextDay ? `
+                    <table style="width:100%; border-collapse:collapse; font-size:0.79rem;">
+                      <thead>
+                        <tr style="border-bottom:1px solid #e2e8f0; color:#64748b;">
+                          <th style="text-align:left; padding:0.3rem 0.25rem;">Besoin (${levainNext.dayName} ${levainNext.dateFr})</th>
                           <th style="text-align:right; padding:0.3rem 0.25rem;">Poids (kg)</th>
-                        ` : `
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${p.visibleItems.map(r => `
+                          <tr style="border-bottom:1px solid #f1f5f9; ${r.totalGrams === 0 ? "opacity:0.5;" : ""}">
+                            <td style="padding:0.34rem 0.25rem; font-weight:600; color:#111827;">${escapeHtml(r.name)}</td>
+                            <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:800;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
+                          </tr>
+                        `).join("")}
+                        <tr style="background:#f8fafc; font-weight:800;">
+                          <td style="padding:0.34rem 0.25rem;">Total besoin brut</td>
+                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem;">${formatNum(p.neededForNextDayGrams / 1000, 2)} kg</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  ` : `
+                    <table style="width:100%; border-collapse:collapse; font-size:0.79rem;">
+                      <thead>
+                        <tr style="border-bottom:1px solid #e2e8f0; color:#64748b;">
                           <th style="text-align:left; padding:0.3rem 0.25rem;">Produit à fabriquer</th>
                           <th style="text-align:right; padding:0.3rem 0.25rem;">Poids unit.</th>
                           <th style="text-align:right; padding:0.3rem 0.25rem;">Qté</th>
                           <th style="text-align:right; padding:0.3rem 0.25rem;">Poids Pâte</th>
-                        `}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${p.visibleItems.map(r => p.isLevainNextDay ? `
-                        <tr style="border-bottom:1px solid #f1f5f9; ${r.totalGrams === 0 ? "opacity:0.5;" : ""}">
-                          <td style="padding:0.34rem 0.25rem; font-weight:600; color:#111827;">${escapeHtml(r.name)}</td>
-                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:800; color:#7c2d12;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
                         </tr>
-                      ` : `
-                        <tr style="border-bottom:1px solid #f1f5f9; ${r.totalGrams === 0 ? "opacity:0.5;" : ""}">
-                          <td style="padding:0.34rem 0.25rem; font-weight:600; color:#111827;">${escapeHtml(r.name)}</td>
-                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; color:#64748b;">${r.weight} g</td>
-                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:800;">${r.qty}</td>
-                          <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:700;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
-                        </tr>
-                      `).join("")}
-                      ${p.isLevainNextDay ? `
-                        <tr style="background:#fff7ed; font-weight:800;">
-                          <td style="padding:0.35rem 0.25rem; color:#7c2d12;">Total besoin brut (avant ×1,32)</td>
-                          <td class="tabular" style="text-align:right; padding:0.35rem 0.25rem; color:#7c2d12;">${formatNum(p.neededForNextDayGrams / 1000, 2)} kg</td>
-                        </tr>
-                      ` : ""}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        ${p.visibleItems.map(r => `
+                          <tr style="border-bottom:1px solid #f1f5f9; ${r.totalGrams === 0 ? "opacity:0.5;" : ""}">
+                            <td style="padding:0.34rem 0.25rem; font-weight:600; color:#111827;">${escapeHtml(r.name)}</td>
+                            <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; color:#64748b;">${r.weight} g</td>
+                            <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:800;">${r.qty}</td>
+                            <td class="tabular" style="text-align:right; padding:0.34rem 0.25rem; font-weight:700;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
+                          </tr>
+                        `).join("")}
+                      </tbody>
+                    </table>
+                  `}
                 `}
               </div>
             `;
@@ -4091,9 +3747,6 @@
       `;
     }
 
-    /* ==========================================================================
-       10. ONGLET 3 : GAMME TRAITEUR
-       ========================================================================== */
     function renderTraiteurView(openDays) {
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
       const wk = getCurrentWeekData();
@@ -4166,7 +3819,7 @@
         dayIdx,
         value: num
       });
-      recordNetworkActivity("traiteur", state.selectedBoutique, `Traiteur ${item.name} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
+      recordNetworkActivity("traiteur", state.selectedBoutique, `Traiteur ${item.name} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`, { mondayIso: state.selectedWeekMonday, dayIdx });
       saveCurrentBoutiqueData(true);
       renderTraiteurView();
     }
@@ -4376,9 +4029,6 @@
       showToast("Produit Traiteur supprimé.");
     }
 
-    /* ==========================================================================
-       11. ONGLET 4 : GAMME PÂTISSERIE CHEZ JULES
-       ========================================================================== */
     function renderPatisserieView(openDays) {
       openDays = openDays || getOpenDaysForBoutiqueWeek(state.selectedBoutique, state.selectedWeekMonday);
       const wk = getCurrentWeekData();
@@ -4444,7 +4094,7 @@
         dayIdx,
         value: num
       });
-      recordNetworkActivity("patisserie", state.selectedBoutique, `Pâtisserie ${pat ? pat.name : patId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`);
+      recordNetworkActivity("patisserie", state.selectedBoutique, `Pâtisserie ${pat ? pat.name : patId} : ${num} (${DAY_NAMES[dayIdx]} ${formatShortFrDate(addDaysIso(state.selectedWeekMonday, dayIdx))})`, { mondayIso: state.selectedWeekMonday, dayIdx });
       saveCurrentBoutiqueData(true);
       renderPatisserieView();
     }
@@ -4575,9 +4225,6 @@
       showToast("Pâtisserie supprimée.");
     }
 
-    /* ==========================================================================
-       12. ONGLET 5 : FICHES TECHNIQUES
-       ========================================================================== */
     function selectTechSheetFolder(folder) {
       state.selectedTechSheetFolder = folder;
       state.selectedTechSheetId = null;
@@ -4620,7 +4267,7 @@
             <div>
               <h2 style="font-size:1.05rem; font-weight:900; color:#111827;">📘 Fiches Techniques Réseau Chez Jules</h2>
               <p style="font-size:0.75rem; color:#4b5563; margin-top:2px;">
-                La levure, le levain, le lait et les œufs doivent être pesés le jour du pétrissage et pas en avance • Brioche pétrie la veille.
+                Farines pesables la veille • Levure &amp; levain le jour de la pétrie • Lait viennois/brioche le jour du pétrissage • Brioche pétrie la veille.
               </p>
             </div>
             ${canEditTs ? `<button type="button" class="btn btn-emerald btn-sm" onclick="openTechSheetEditor('')">+ Nouvelle Fiche Technique</button>` : ""}
@@ -4906,9 +4553,6 @@
       showToast("Fiche technique supprimée.");
     }
 
-    /* ==========================================================================
-       13. ONGLET 6 : ADMINISTRATION RÉSEAU
-       ========================================================================== */
     function renderAdminView() {
       if (!hasAdminTabAccess()) return;
       const container = document.getElementById("admin-container");
@@ -5043,14 +4687,11 @@
             <div>
               <h3 style="font-size:1rem; font-weight:900; color:#1e3a8a;">📡 Suivi en Direct Multi-PC — Toutes les Modifications du Réseau</h3>
               <p style="font-size:0.75rem; color:#1d4ed8;">
-                Base Cloud Pérenne : <code style="background:#dbeafe; padding:1px 6px; border-radius:4px; font-weight:800;">${escapeHtml(_cloudBlobId || "Initialisation...")}</code> • Canal : <code style="background:#dbeafe; padding:1px 6px; border-radius:4px; font-weight:800;">${escapeHtml(getActiveNetworkChannel())}</code> • Poste : <strong>${DEVICE_ID}</strong>
-              </p>
-              <p style="font-size:0.72rem; color:#1e40af; margin-top:3px;">
-                💡 Partagez le lien ci-contre aux 9 boutiques (ou intégrez-le dans votre <code>index.html</code> généré) pour relier tous les PC à la même base cloud en temps réel.
+                Canal réseau partagé : <code style="background:#dbeafe; padding:1px 6px; border-radius:4px; font-weight:800;">${escapeHtml(getActiveNetworkChannel())}</code> • Poste actuel : <strong>${DEVICE_ID}</strong>
               </p>
             </div>
             <div style="display:flex; flex-wrap:wrap; gap:0.35rem; align-items:center;">
-              <button type="button" class="btn btn-amber btn-sm" onclick="copyMultiPcShareLink()">🔗 Copier le lien Multi-PC (9 boutiques)</button>
+              <button type="button" class="btn btn-white btn-sm" onclick="copyMultiPcShareLink()">🔗 Copier lien Multi-PC</button>
               <button type="button" class="btn btn-emerald btn-sm" onclick="forceManualSyncNow()">🔄 Actualiser en direct</button>
             </div>
           </div>
@@ -5176,54 +4817,17 @@
       refreshAdminHtmlPanel();
     }
 
-    async function copyMultiPcShareLink() {
+    function copyMultiPcShareLink() {
       const ch = getActiveNetworkChannel();
-      const blobId = await ensureDurableCloudBlobId();
       const baseUrl = window.location.href.split("?")[0];
-      const shareUrl = blobId
-        ? `${baseUrl}?reseau=${encodeURIComponent(ch)}&blob=${encodeURIComponent(blobId)}`
-        : `${baseUrl}?reseau=${encodeURIComponent(ch)}`;
+      const shareUrl = `${baseUrl}?reseau=${encodeURIComponent(ch)}`;
       const tmp = document.createElement("textarea");
       tmp.value = shareUrl;
       document.body.appendChild(tmp);
       tmp.select();
       try { document.execCommand("copy"); } catch (e) {}
       tmp.remove();
-      showToast(`Lien Cloud Multi-PC copié : ${shareUrl}`);
-    }
-
-    async function downloadGeneratedIndexHtml() {
-      if (!isEffectiveAdmin()) return;
-      await ensureDurableCloudBlobId();
-      saveCurrentBoutiqueData(false);
-      saveGlobalConfig();
-      await pushDurableCloudState(true);
-      runFullAutoBackup(true);
-
-      const cloneDoc = document.documentElement.cloneNode(true);
-      const loginScreen = cloneDoc.querySelector("#login-screen");
-      const appShell = cloneDoc.querySelector("#app-shell");
-      if (loginScreen) loginScreen.classList.remove("hidden");
-      if (appShell) appShell.classList.add("hidden");
-
-      // Graver l'identifiant du Cloud Pérenne dans le fichier index.html exporté pour que tous les PC partagent automatiquement la même base
-      if (_cloudBlobId) {
-        const inlineScript = cloneDoc.createElement("script");
-        inlineScript.textContent = `try { localStorage.setItem("${STORAGE_KEYS.cloudBlobId}", "${_cloudBlobId}"); localStorage.setItem("${STORAGE_KEYS.networkChannel}", "${getActiveNetworkChannel()}"); } catch(e) {}`;
-        cloneDoc.querySelector("head")?.appendChild(inlineScript);
-      }
-
-      const htmlContent = "<!DOCTYPE html>\n" + cloneDoc.outerHTML;
-      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "index.html";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      showToast("Fichier index.html généré avec liaison Cloud Multi-PC intégrée !");
+      showToast(`Lien Multi-PC copié : ${shareUrl}`);
     }
 
     function openAdminChangePasswordModal(userId) {
@@ -5264,10 +4868,9 @@
       saveGlobalConfig();
       closeModal();
       renderAdminView();
-      showToast(`Mot de passe mis à jour pour ${u.label} et diffusé aux PC !`);
+      showToast(`Mot de passe mis à jour pour ${u.label} !`);
     }
 
-    /* Drag & Drop Ordre Produits */
     let draggedCatalogProductId = null;
     function onAdminProdDragStart(e, productId) {
       draggedCatalogProductId = productId;
@@ -5422,7 +5025,6 @@
       showToast("Produit ajouté et raccordé.");
     }
 
-    /* Modale Tarifs */
     function openPricesManagerModal() {
       if (!hasPermission("adminManagePricesCa")) return;
       const wk = getCurrentWeekData();
@@ -5480,7 +5082,6 @@
       if (p) { p.price = Math.max(0, Number(val) || 0); saveGlobalConfig(); }
     }
 
-    /* Modale Admin CA Objectif & Réalisé */
     function openAdminCaObjectivesModal() {
       if (!hasPermission("adminManagePricesCa")) return;
       const isoMonday = state.selectedWeekMonday;
@@ -5549,7 +5150,6 @@
       runFullAutoBackup(true);
     }
 
-    /* Modales Droits & Nouveaux Utilisateurs */
     function openUserPermissionsModal(userId) {
       if (!hasPermission("adminManageUsers")) return;
       const u = state.users.find(x => x.id === userId);
@@ -5747,7 +5347,6 @@
       showToast(`Accès créé pour ${label}.`);
     }
 
-    /* Horaires */
     function openBoutiqueScheduleModal(boutiqueName) {
       const sc = state.schedules[boutiqueName] || { weeklyDays: [0,1,2,3,4,5,6], exceptionalOpenDates: [], exceptionalClosedDates: [] };
       openModal(`
@@ -5812,9 +5411,6 @@
       openBoutiqueScheduleModal(bName);
     }
 
-    /* ==========================================================================
-       14. SAUVEGARDE 10 ANS & EXPORT INDEX.HTML
-       ========================================================================== */
     function runFullAutoBackup(silent = true) {
       const stores = {};
       BOUTIQUES.forEach(b => { stores[b.name] = readBoutiqueStoreReadOnly(b.name); });
@@ -5889,9 +5485,31 @@
       }
     }
 
-    /* ==========================================================================
-       15. IMPRESSION & GÉNÉRATION PDF (INGRÉDIENTS EN COLONNE + ÉTALÉ SUR 3 A4)
-       ========================================================================== */
+    function downloadGeneratedIndexHtml() {
+      if (!isEffectiveAdmin()) return;
+      saveCurrentBoutiqueData(false);
+      saveGlobalConfig();
+      runFullAutoBackup(true);
+
+      const cloneDoc = document.documentElement.cloneNode(true);
+      const loginScreen = cloneDoc.querySelector("#login-screen");
+      const appShell = cloneDoc.querySelector("#app-shell");
+      if (loginScreen) loginScreen.classList.remove("hidden");
+      if (appShell) appShell.classList.add("hidden");
+
+      const htmlContent = "<!DOCTYPE html>\n" + cloneDoc.outerHTML;
+      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "index.html";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("Fichier index.html généré et téléchargé !");
+    }
+
     function getDayForecastSignature(wk, dayIdx, opts) {
       const sig = {};
       if (opts.petries) {
@@ -5943,7 +5561,7 @@
       const wk = getCurrentWeekData();
 
       if (selectedIndices.length === 1) {
-        infoEl.innerHTML = `📄 Édition prête pour : <strong>${escapeHtml(formatCombinedDaysLabel(selectedIndices))}</strong> (pétries étalées sur 3 feuilles A4 max, ingrédients en colonne).`;
+        infoEl.innerHTML = `📄 1 feuille sera éditée pour : <strong>${escapeHtml(formatCombinedDaysLabel(selectedIndices))}</strong> (mode économie d'encre niveaux de gris).`;
         return;
       }
 
@@ -5959,9 +5577,9 @@
       });
 
       if (groups.length === 1) {
-        infoEl.innerHTML = `✅ <strong>Prévisions identiques détectées !</strong> Un seul jeu de feuilles sera imprimé avec l'en-tête :<br/><strong>« ${escapeHtml(formatCombinedDaysLabel(groups[0].days))} »</strong>`;
+        infoEl.innerHTML = `✅ <strong>Prévisions identiques détectées !</strong> Une seule feuille commune sera imprimée avec l'en-tête :<br/><strong>« ${escapeHtml(formatCombinedDaysLabel(groups[0].days))} »</strong>`;
       } else {
-        const lines = groups.map((g, i) => `• Lot ${i + 1} : <strong>${escapeHtml(formatCombinedDaysLabel(g.days))}</strong>`).join("<br/>");
+        const lines = groups.map((g, i) => `• Lot ${i + 1} (1 feuille) : <strong>${escapeHtml(formatCombinedDaysLabel(g.days))}</strong>`).join("<br/>");
         infoEl.innerHTML = `ℹ️ Les jours sélectionnés ont des prévisions différentes et seront regroupés automatiquement en <strong>${groups.length} lots</strong> :<br/>${lines}`;
       }
     }
@@ -5979,7 +5597,8 @@
       openModal(`
         <h3 style="font-size:1.08rem; font-weight:900; color:#111827; margin-bottom:0.3rem;">🖨️ Impression &amp; Génération PDF — ${escapeHtml(state.selectedBoutique)}</h3>
         <p style="font-size:0.78rem; color:#4b5563; margin-bottom:0.75rem;">
-          Semaine ${getIsoWeekNumber(state.selectedWeekMonday)} • <strong>Mode Économie d'Encre (Nuances de gris)</strong> • Pétries étalées sur 3 feuilles A4 max avec ingrédients en colonne.
+          Semaine ${getIsoWeekNumber(state.selectedWeekMonday)} • <strong>Mode Économie d'Encre (Nuances de gris)</strong>.
+          Si plusieurs jours ont exactement les mêmes prévisions, une seule feuille regroupant toutes leurs dates est générée.
         </p>
 
         <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:0.65rem 0.75rem; margin-bottom:0.75rem;">
@@ -6034,46 +5653,6 @@
       updatePrintDaysSelectionInfo();
     }
 
-    function readCurrentPrintSelection(customOpts) {
-      const checkedBoxes = Array.from(document.querySelectorAll(".pdf-day-chk:checked"));
-      const dayIndices = checkedBoxes.length > 0
-        ? checkedBoxes.map(c => Number(c.value)).sort((a, b) => a - b)
-        : [state.selectedDayIdx];
-
-      const petries = customOpts ? !!customOpts.petries : (document.getElementById("pdf-opt-petries") ? !!document.getElementById("pdf-opt-petries").checked : true);
-      const traiteur = customOpts ? !!customOpts.traiteur : (document.getElementById("pdf-opt-traiteur") ? !!document.getElementById("pdf-opt-traiteur").checked : true);
-      const patisserie = customOpts ? !!customOpts.patisserie : (document.getElementById("pdf-opt-patisserie") ? !!document.getElementById("pdf-opt-patisserie").checked : true);
-      const hideZeros = (customOpts && typeof customOpts.hideZeros === "boolean")
-        ? customOpts.hideZeros
-        : (document.getElementById("pdf-opt-hide-zero") ? !!document.getElementById("pdf-opt-hide-zero").checked : state.hideZeroPetries);
-
-      const wk = getCurrentWeekData();
-      const opts = { petries, traiteur, patisserie, hideZeros };
-      const groups = [];
-      dayIndices.forEach(dIdx => {
-        const sig = getDayForecastSignature(wk, dIdx, opts);
-        const existingGroup = groups.find(g => g.sig === sig);
-        if (existingGroup) {
-          existingGroup.days.push(dIdx);
-        } else {
-          groups.push({ sig, days: [dIdx] });
-        }
-      });
-
-      return { opts, groups };
-    }
-
-    function splitPetriesAcrossThreeA4Pages(cards) {
-      if (!cards || cards.length === 0) return [];
-      const targetPages = Math.min(3, cards.length);
-      const chunks = Array.from({ length: targetPages }, () => []);
-      cards.forEach((card, idx) => {
-        const pageIdx = Math.floor((idx * targetPages) / cards.length);
-        chunks[pageIdx].push(card);
-      });
-      return chunks.filter(c => c.length > 0);
-    }
-
     function buildSingleDayGroupPrintHtml(dayIndices, opts) {
       const includePetries = opts.petries;
       const includeTraiteur = opts.traiteur;
@@ -6091,42 +5670,59 @@
         const cards = pData.displayedPetries;
 
         const renderPetrinCardHtml = (p) => `
-          <div style="border:1px solid #9ca3af; border-top:2px solid #111827; border-radius:4px; padding:5px 6px; margin-bottom:7px; background:#fff; break-inside:avoid;">
-            <div style="font-size:10.5px; font-weight:900; color:#111827; border-bottom:1px solid #d1d5db; padding-bottom:2px; margin-bottom:3px;">
+          <div style="border:1px solid #9ca3af; border-top:2px solid #111827; border-radius:4px; padding:4px 5px; margin-bottom:6px; background:#fff;">
+            <div style="font-size:10px; font-weight:800; color:#111827; border-bottom:1px solid #d1d5db; padding-bottom:2px; margin-bottom:2px;">
               ${escapeHtml(p.title)}
               <span style="float:right; font-weight:900;">${formatNum(p.totalGrams / 1000, 2)} kg</span>
             </div>
-            <div style="font-size:7.8px; font-weight:700; color:#374151; margin-bottom:3px;">
-              ⚠️ Peser levure, levain, lait et œufs le jour du pétrissage.
+            <div style="font-size:7.5px; font-weight:700; color:#111827; margin-bottom:3px;">
+              Peser levure, levain, lait et œufs le jour du pétrissage uniquement.
             </div>
-            <!-- Ingrédients en colonne -->
-            <table style="width:100%; border-collapse:collapse; font-size:9px; background:#f3f4f6; margin-bottom:4px; border:1px solid #d1d5db;">
+            <table style="width:100%; border-collapse:collapse; font-size:8.5px; background:#f3f4f6; margin-bottom:3px;">
               <tbody>
                 ${p.ingredients.map(ing => `
                   <tr style="border-bottom:1px solid #e5e7eb;">
-                    <td style="padding:2px 4px; color:#111827; font-weight:600;">${escapeHtml(ing.label)}</td>
-                    <td style="padding:2px 4px; text-align:right; font-weight:900; color:#111827; white-space:nowrap;">${formatGramsOrKg(ing.grams)}</td>
+                    <td style="padding:1.5px 4px; font-weight:700; color:#111827;">${escapeHtml(ing.label)}</td>
+                    <td style="padding:1.5px 4px; text-align:right; font-weight:800; color:#111827; white-space:nowrap;">${formatGramsOrKg(ing.grams)}</td>
                   </tr>
                 `).join("")}
               </tbody>
             </table>
-            <table style="width:100%; border-collapse:collapse; font-size:8.6px;">
-              <tbody>
-                ${p.visibleItems.map(r => p.isLevainUsage ? `
-                  <tr style="border-bottom:1px solid #e5e7eb;">
-                    <td style="padding:1.5px 2px; color:#111827;">${escapeHtml(r.name)}</td>
-                    <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
+            ${p.isLevainNextDay ? `
+              <table style="width:100%; border-collapse:collapse; font-size:8.5px;">
+                <thead>
+                  <tr style="border-bottom:1px solid #9ca3af;">
+                    <th style="text-align:left; padding:1.5px 2px;">Besoin (${escapeHtml(p.nextDayInfo.dayName)} ${escapeHtml(p.nextDayInfo.dateFr)})</th>
+                    <th style="text-align:right; padding:1.5px 2px;">Poids (kg)</th>
                   </tr>
-                ` : `
-                  <tr style="border-bottom:1px solid #e5e7eb;">
-                    <td style="padding:1.5px 2px; color:#111827;">${escapeHtml(r.name)}</td>
-                    <td style="padding:1.5px 2px; text-align:right; color:#4b5563; white-space:nowrap;">${r.weight}g</td>
-                    <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">×${r.qty}</td>
-                    <td style="padding:1.5px 2px; text-align:right; white-space:nowrap;">${formatNum(r.totalGrams / 1000, 2)}kg</td>
+                </thead>
+                <tbody>
+                  ${p.visibleItems.map(r => `
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                      <td style="padding:1.5px 2px; color:#111827;">${escapeHtml(r.name)}</td>
+                      <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">${formatNum(r.totalGrams / 1000, 2)} kg</td>
+                    </tr>
+                  `).join("")}
+                  <tr style="background:#f3f4f6; font-weight:800;">
+                    <td style="padding:1.5px 2px;">Total besoin brut</td>
+                    <td style="padding:1.5px 2px; text-align:right; white-space:nowrap;">${formatNum(p.neededForNextDayGrams / 1000, 2)} kg</td>
                   </tr>
-                `).join("")}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            ` : `
+              <table style="width:100%; border-collapse:collapse; font-size:8.5px;">
+                <tbody>
+                  ${p.visibleItems.map(r => `
+                    <tr style="border-bottom:1px solid #e5e7eb;">
+                      <td style="padding:1.5px 2px; color:#111827;">${escapeHtml(r.name)}</td>
+                      <td style="padding:1.5px 2px; text-align:right; color:#4b5563; white-space:nowrap;">${r.weight}g</td>
+                      <td style="padding:1.5px 2px; text-align:right; font-weight:800; white-space:nowrap;">×${r.qty}</td>
+                      <td style="padding:1.5px 2px; text-align:right; white-space:nowrap;">${formatNum(r.totalGrams / 1000, 2)}kg</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            `}
           </div>
         `;
 
@@ -6137,13 +5733,18 @@
           </div>
         ` : "";
 
-        const pageChunks = splitPetriesAcrossThreeA4Pages(cards);
+        const targetPages = cards.length >= 6 ? 3 : Math.max(1, Math.ceil(cards.length / 3));
+        const pageChunks = Array.from({ length: targetPages }, () => []);
+        cards.forEach((card, idx) => {
+          pageChunks[idx % targetPages].push(card);
+        });
+        const nonEmptyChunks = pageChunks.filter(ch => ch.length > 0);
 
         const build3ColTable = (slice) => {
           const cols = [[], [], []];
           slice.forEach((card, idx) => cols[idx % 3].push(card));
           return `
-            <table style="width:100%; table-layout:fixed; border-collapse:separate; border-spacing:6px 0;">
+            <table style="width:100%; table-layout:fixed; border-collapse:separate; border-spacing:5px 0;">
               <tr>
                 ${cols.map(col => `<td style="vertical-align:top; width:33.33%; padding:0;">${col.map(renderPetrinCardHtml).join("")}</td>`).join("")}
               </tr>
@@ -6151,7 +5752,7 @@
           `;
         };
 
-        if (pageChunks.length === 0) {
+        if (nonEmptyChunks.length === 0) {
           sections.push(`
             <div style="margin-bottom:8px;">
               <div style="background:#f3f4f6; border:1px solid #9ca3af; border-left:3px solid #111827; padding:4px 6px; margin-bottom:5px; font-weight:800; font-size:10.5px;">
@@ -6161,11 +5762,11 @@
             </div>
           `);
         } else {
-          const pagesHtml = pageChunks.map((slice, pIdx) => `
+          const pagesHtml = nonEmptyChunks.map((slice, pIdx) => `
             <div class="${pIdx > 0 ? "print-page-break" : ""}">
               <div style="background:#f3f4f6; border:1px solid #9ca3af; border-left:3px solid #111827; padding:4px 6px; margin-bottom:5px; font-weight:800; font-size:10.5px;">
                 ${pIdx === 0 ? "PÉTRIES JOURNALIÈRES &amp; VIENNOISERIE" : "SUITE DES PÉTRIES"} — ${escapeHtml(state.selectedBoutique)} • ${escapeHtml(combinedDateLabel)}
-                <span style="float:right; font-weight:700;">Pâte totale : ${formatNum(pData.grandTotalDoughGrams / 1000, 2)} kg • Feuille ${pIdx + 1}/${pageChunks.length}</span>
+                <span style="float:right; font-weight:700;">Pâte totale : ${formatNum(pData.grandTotalDoughGrams / 1000, 2)} kg • Feuille ${pIdx + 1}/${nonEmptyChunks.length}</span>
               </div>
               ${pIdx === 0 ? viennoiserieHtml : ""}
               ${build3ColTable(slice)}
@@ -6264,15 +5865,56 @@
     }
 
     function getSelectedPrintDayGroups(opts) {
-      return readCurrentPrintSelection(opts).groups;
+      const checkedBoxes = Array.from(document.querySelectorAll(".pdf-day-chk:checked"));
+      const selectedIndices = checkedBoxes.length > 0
+        ? checkedBoxes.map(c => Number(c.value)).sort((a, b) => a - b)
+        : [state.selectedDayIdx];
+
+      const wk = getCurrentWeekData();
+      const groups = [];
+      selectedIndices.forEach(dIdx => {
+        const sig = getDayForecastSignature(wk, dIdx, opts);
+        const existingGroup = groups.find(g => g.sig === sig);
+        if (existingGroup) {
+          existingGroup.days.push(dIdx);
+        } else {
+          groups.push({ sig, days: [dIdx] });
+        }
+      });
+      return groups;
     }
 
-    function buildPrintableDocumentHtml(customOpts, precomputedSelection) {
-      const sel = precomputedSelection || readCurrentPrintSelection(customOpts);
-      const { opts, groups } = sel;
+    function captureCurrentPrintOptions(customOpts) {
+      const checkedBoxes = Array.from(document.querySelectorAll(".pdf-day-chk:checked"));
+      const dayIndices = checkedBoxes.length > 0
+        ? checkedBoxes.map(c => Number(c.value)).sort((a, b) => a - b)
+        : [state.selectedDayIdx];
+      return {
+        petries: customOpts ? !!customOpts.petries : !!document.getElementById("pdf-opt-petries")?.checked,
+        traiteur: customOpts ? !!customOpts.traiteur : !!document.getElementById("pdf-opt-traiteur")?.checked,
+        patisserie: customOpts ? !!customOpts.patisserie : !!document.getElementById("pdf-opt-patisserie")?.checked,
+        hideZeros: document.getElementById("pdf-opt-hide-zero")
+          ? !!document.getElementById("pdf-opt-hide-zero").checked
+          : state.hideZeroPetries,
+        dayIndices
+      };
+    }
 
+    function getDayGroupsFromIndices(dayIndices, opts) {
+      const wk = getCurrentWeekData();
+      const groups = [];
+      dayIndices.forEach(dIdx => {
+        const sig = getDayForecastSignature(wk, dIdx, opts);
+        const existingGroup = groups.find(g => g.sig === sig);
+        if (existingGroup) existingGroup.days.push(dIdx);
+        else groups.push({ sig, days: [dIdx] });
+      });
+      return groups;
+    }
+
+    function buildPrintableDocumentHtmlFromOpts(opts) {
       if (!opts.petries && !opts.traiteur && !opts.patisserie) return null;
-
+      const groups = getDayGroupsFromIndices(opts.dayIndices, opts);
       const renderedBlocks = groups
         .map((g, gIdx) => {
           const blockHtml = buildSingleDayGroupPrintHtml(g.days, opts);
@@ -6280,156 +5922,160 @@
           return gIdx > 0 ? `<div class="print-page-break">${blockHtml}</div>` : blockHtml;
         })
         .filter(Boolean);
-
       return renderedBlocks.length > 0 ? renderedBlocks.join("") : null;
     }
-    let _lastPrintSelection = null;
 
-    function exitPrintDedicatedMode() {
-      document.body.classList.remove("print-bundle-mode");
-      const dedicatedEl = document.getElementById("dedicated-print-sheet");
-      if (dedicatedEl) dedicatedEl.innerHTML = "";
+    function buildPrintableDocumentHtml(customOpts) {
+      return buildPrintableDocumentHtmlFromOpts(captureCurrentPrintOptions(customOpts));
     }
 
-    function executeSafePrintPopupOrNative() {
-      const sheetContainer = document.getElementById("print-sheet-pages-container");
-      const contentHtml = sheetContainer ? sheetContainer.innerHTML : "";
-      if (!contentHtml) return;
+    let _lastPrintOptions = null;
 
-      // 1. Tentative impression native directe de la vue dédiée (#dedicated-print-sheet est déjà isolé via @media print)
-      try {
-        window.print();
-        return;
-      } catch (e) {}
+    function closeDedicatedPrintPreview() {
+      document.body.classList.remove("print-bundle-mode");
+      const dedicatedEl = document.getElementById("dedicated-print-sheet");
+      if (dedicatedEl) {
+        dedicatedEl.style.display = "none";
+        dedicatedEl.innerHTML = "";
+      }
+    }
 
-      // 2. Fallback via iframe caché si window.print() direct échoue
+    function executeBrowserPrintNow() {
+      const sheetContentEl = document.getElementById("dedicated-print-content");
+      const bodyHtml = sheetContentEl ? sheetContentEl.innerHTML : "";
+      if (!bodyHtml) return;
+
+      let oldFrame = document.getElementById("jules-print-iframe");
+      if (oldFrame) oldFrame.remove();
+
+      const iframe = document.createElement("iframe");
+      iframe.id = "jules-print-iframe";
+      iframe.style.position = "fixed";
+      iframe.style.right = "0";
+      iframe.style.bottom = "0";
+      iframe.style.width = "0";
+      iframe.style.height = "0";
+      iframe.style.border = "0";
+      document.body.appendChild(iframe);
+
+      const printDocHtml = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chez Jules — Impression</title>
+  <style>
+    @page { size: A4 landscape; margin: 7mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; color: #111827; line-height: 1.3; padding: 0; }
+    .print-page-break { page-break-before: always; break-before: page; }
+  </style>
+</head>
+<body>${bodyHtml}</body>
+</html>`;
+
       try {
-        let oldFrame = document.getElementById("jules-print-iframe");
-        if (oldFrame) oldFrame.remove();
-        const iframe = document.createElement("iframe");
-        iframe.id = "jules-print-iframe";
-        iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;";
-        document.body.appendChild(iframe);
         const doc = iframe.contentWindow.document;
         doc.open();
-        doc.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><style>@page{size:A4 landscape;margin:7mm;}*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;background:#fff;color:#111827;}.print-page-break{page-break-before:always;break-before:page;}</style></head><body>${contentHtml}</body></html>`);
+        doc.write(printDocHtml);
         doc.close();
         setTimeout(() => {
           try {
             iframe.contentWindow.focus();
             iframe.contentWindow.print();
-          } catch (err) {
-            showToast("Astuce : appuyez sur Ctrl+P (ou Cmd+P) pour imprimer ou enregistrer en PDF.");
+          } catch (e) {
+            window.print();
           }
-        }, 120);
-      } catch (e) {
-        showToast("Astuce : appuyez sur Ctrl+P (ou Cmd+P) pour imprimer ou enregistrer en PDF.");
+        }, 80);
+      } catch (err) {
+        window.print();
       }
     }
 
-    function triggerInstantNativePrint(bodyHtml) {
+    function openNonBlockingPrintPreview(bodyHtml) {
       const dedicatedEl = document.getElementById("dedicated-print-sheet");
-      if (dedicatedEl) {
-        dedicatedEl.innerHTML = `
-          <div style="max-width:1180px; margin:0 auto;">
-            <div class="no-print" style="background:#111827; color:#fff; padding:0.7rem 1rem; border-radius:10px; margin-bottom:0.85rem; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-              <div style="font-size:0.84rem; font-weight:800;">🖨️ Aperçu avant impression (A4 Paysage • Économie d'encre)</div>
-              <div style="display:flex; flex-wrap:wrap; gap:0.45rem;">
-                <button type="button" class="btn btn-emerald btn-sm" onclick="executeSafePrintPopupOrNative()">🖨️ Lancer l'impression (Ctrl+P)</button>
-                <button type="button" class="btn btn-amber btn-sm" onclick="downloadDirectPdfBundle(null, _lastPrintSelection)">⬇️ Télécharger le PDF</button>
-                <button type="button" class="btn btn-white btn-sm" onclick="exitPrintDedicatedMode()">↩️ Retour à l'application</button>
-              </div>
-            </div>
-            <div id="print-sheet-pages-container" style="background:#fff; padding:0.85rem; border-radius:10px; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-              ${bodyHtml}
-            </div>
+      if (!dedicatedEl) return;
+
+      dedicatedEl.innerHTML = `
+        <div class="no-print" style="position:sticky; top:0; z-index:99; background:#111827; color:#fff; padding:0.65rem 1rem; margin:-1rem -1rem 1rem -1rem; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.5rem; border-bottom:3px solid #d97706;">
+          <div style="font-weight:900; font-size:0.92rem;">🖨️ Aperçu avant impression — ${escapeHtml(state.selectedBoutique)} (Mode Économie d'Encre)</div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.45rem;">
+            <button type="button" class="btn btn-emerald btn-sm" onclick="executeBrowserPrintNow()">🖨️ Imprimer maintenant</button>
+            <button type="button" class="btn btn-amber btn-sm" onclick="downloadDirectPdfBundle(_lastPrintOptions)">⬇️ Télécharger le PDF</button>
+            <button type="button" class="btn btn-white btn-sm" onclick="closeDedicatedPrintPreview()">↩️ Retour à l'application</button>
           </div>
-        `;
-        document.body.classList.add("print-bundle-mode");
-        dedicatedEl.scrollTop = 0;
-        setTimeout(() => {
-          try { window.print(); } catch (e) {}
-        }, 180);
-      }
+        </div>
+        <div id="dedicated-print-content">${bodyHtml}</div>
+      `;
+      document.body.classList.add("print-bundle-mode");
+      dedicatedEl.style.display = "block";
+      window.scrollTo(0, 0);
     }
 
     function generateAndPrintBundle(customOpts) {
-      const sel = readCurrentPrintSelection(customOpts);
-      const { opts, groups } = sel;
+      const opts = captureCurrentPrintOptions(customOpts);
       if (!opts.petries && !opts.traiteur && !opts.patisserie) {
         showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
         return;
       }
 
-      _lastPrintSelection = sel;
-      const bodyHtml = buildPrintableDocumentHtml(customOpts, sel);
+      const groups = getDayGroupsFromIndices(opts.dayIndices, opts);
+      const bodyHtml = buildPrintableDocumentHtmlFromOpts(opts);
       if (!bodyHtml) {
         showToast("Aucune donnée à imprimer pour cette sélection.");
         return;
       }
 
+      _lastPrintOptions = opts;
       const printedParts = [opts.petries ? "Pétries" : "", opts.traiteur ? "Traiteur" : "", opts.patisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
       const daysSummary = groups.map(g => formatCombinedDaysLabel(g.days)).join(" | ");
       recordNetworkActivity("print", state.selectedBoutique, `Impression lancée (${printedParts}) pour ${daysSummary}`);
 
       closeModal();
-      triggerInstantNativePrint(bodyHtml);
+      openNonBlockingPrintPreview(bodyHtml);
+      setTimeout(() => executeBrowserPrintNow(), 120);
     }
 
     function ensureJsPdfLoaded() {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         if (window.jspdf && window.jspdf.jsPDF) {
           resolve(window.jspdf.jsPDF);
           return;
         }
         const script = document.createElement("script");
         script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-        script.onload = () => resolve((window.jspdf && window.jspdf.jsPDF) || null);
+        script.onload = () => resolve(window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : null);
         script.onerror = () => resolve(null);
         document.head.appendChild(script);
       });
     }
 
-    function downloadHtmlFallbackFile(bodyHtml, baseName) {
-      const docHtml = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8" /><title>${escapeHtml(baseName)}</title><style>@page{size:A4 landscape;margin:7mm;}*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#111827;padding:8mm;line-height:1.3;}.print-page-break{page-break-before:always;break-before:page;}</style></head><body onload="window.print()">${bodyHtml}</body></html>`;
-      const blob = new Blob([docHtml], { type: "text/html;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${baseName}.html`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-    }
-
-    async function downloadDirectPdfBundle(customOpts, precomputedSelection) {
-      const sel = precomputedSelection || readCurrentPrintSelection(customOpts);
-      const { opts, groups } = sel;
+    async function downloadDirectPdfBundle(customOpts) {
+      const opts = (customOpts && Array.isArray(customOpts.dayIndices))
+        ? customOpts
+        : captureCurrentPrintOptions(customOpts);
 
       if (!opts.petries && !opts.traiteur && !opts.patisserie) {
         showToast("Cochez au moins une section (Pétries, Traiteur ou Pâtisserie).");
         return;
       }
 
-      _lastPrintSelection = sel;
+      const groups = getDayGroupsFromIndices(opts.dayIndices, opts);
       const printedParts = [opts.petries ? "Pétries" : "", opts.traiteur ? "Traiteur" : "", opts.patisserie ? "Pâtisserie" : ""].filter(Boolean).join(" + ");
       const daysSummary = groups.map(g => formatCombinedDaysLabel(g.days)).join(" | ");
       recordNetworkActivity("print", state.selectedBoutique, `PDF téléchargé (${printedParts}) pour ${daysSummary}`);
 
       const daySlug = groups[0]?.days.map(d => DAY_SHORT[d].toLowerCase()).join("-") || "jour";
-      const baseFileName = `chez-jules-${slugify(state.selectedBoutique)}-${daySlug}-${state.selectedWeekMonday}`;
-      const fileName = `${baseFileName}.pdf`;
+      const fileName = `chez-jules-${slugify(state.selectedBoutique)}-${daySlug}-${state.selectedWeekMonday}.pdf`;
 
       closeModal();
-      showToast("⏳ Génération du PDF en cours...");
+      showToast("Génération du PDF en cours...");
 
       const JsPDFCtor = await ensureJsPdfLoaded();
       if (!JsPDFCtor) {
-        const bodyHtml = buildPrintableDocumentHtml(customOpts, sel);
+        const bodyHtml = buildPrintableDocumentHtmlFromOpts(opts);
         if (bodyHtml) {
-          downloadHtmlFallbackFile(bodyHtml, baseFileName);
-          showToast("📄 Fiche d'impression téléchargée (ouvrez-la pour imprimer ou enregistrer en PDF).");
+          openNonBlockingPrintPreview(bodyHtml);
+          showToast("Librairie PDF hors-ligne : aperçu prêt à enregistrer en PDF.");
         }
         return;
       }
@@ -6471,12 +6117,17 @@
           if (opts.petries) {
             const pData = computePetriesDataForDay(wk, dayIdx, opts.hideZeros);
             const cards = pData.displayedPetries;
-            const pageChunks = splitPetriesAcrossThreeA4Pages(cards);
-            if (pageChunks.length === 0) pageChunks.push([]);
+            const targetPages = cards.length >= 6 ? 3 : Math.max(1, Math.ceil(cards.length / 3));
+            const pageChunks = Array.from({ length: targetPages }, () => []);
+            cards.forEach((card, idx) => {
+              pageChunks[idx % targetPages].push(card);
+            });
+            const nonEmptyChunks = pageChunks.filter(ch => ch.length > 0);
+            if (nonEmptyChunks.length === 0) nonEmptyChunks.push([]);
 
-            pageChunks.forEach((slice, pIdx) => {
+            nonEmptyChunks.forEach((slice, pIdx) => {
               let startY = addHeader(
-                `${pIdx === 0 ? "PÉTRIES & VIENNOISERIE" : "SUITE DES PÉTRIES"} - ${combinedDateLabel} (Feuille ${pIdx + 1}/${pageChunks.length})`,
+                `${pIdx === 0 ? "PÉTRIES & VIENNOISERIE" : "SUITE DES PÉTRIES"} - ${combinedDateLabel} (Feuille ${pIdx + 1}/${nonEmptyChunks.length})`,
                 `Pâte totale : ${formatNum(pData.grandTotalDoughGrams / 1000, 2)} kg | ${editStamp}`
               );
 
@@ -6503,9 +6154,9 @@
                 const x = margin + c * (colW + colGap);
                 let y = colY[c];
 
-                const ingH = petrin.ingredients.length * 3.5 + 2;
-                const itemsH = petrin.visibleItems.length * 3.6;
-                const cardH = 10.5 + ingH + itemsH + 3;
+                const reminderLines = 1;
+                const itemsCount = petrin.isLevainNextDay ? (petrin.visibleItems.length + 1) : petrin.visibleItems.length;
+                const cardH = 6 + (reminderLines * 3.2) + (petrin.ingredients.length * 3.4 + 2) + (itemsCount * 3.6) + 3;
 
                 if (y + cardH > pageH - 5) return;
 
@@ -6516,43 +6167,56 @@
                 pdf.setFillColor(238, 238, 238);
                 pdf.rect(x, y, colW, 5.2, "F");
                 pdf.setFont("helvetica", "bold");
-                pdf.setFontSize(7.8);
+                pdf.setFontSize(7.6);
                 pdf.setTextColor(15, 15, 15);
                 pdf.text(petrin.title.slice(0, 38), x + 1.8, y + 3.7);
                 pdf.text(`${formatNum(petrin.totalGrams / 1000, 2)} kg`, x + colW - 1.8, y + 3.7, { align: "right" });
-                y += 6.2;
+                y += 5.8;
 
                 pdf.setFont("helvetica", "bold");
-                pdf.setFontSize(6.3);
-                pdf.setTextColor(70, 70, 70);
-                pdf.text("Peser levure, levain, lait et oeufs le jour du pétrissage.", x + 1.8, y + 2);
-                y += 3.8;
+                pdf.setFontSize(6.2);
+                pdf.setTextColor(40, 40, 40);
+                pdf.text("Peser levure, levain, lait et oeufs le jour du pétrissage.", x + 1.8, y + 2.2);
+                y += 3.5;
 
                 pdf.setFillColor(246, 246, 246);
-                pdf.rect(x + 1.2, y, colW - 2.4, ingH, "F");
+                pdf.rect(x + 1, y, colW - 2, petrin.ingredients.length * 3.4 + 1, "F");
                 petrin.ingredients.forEach(ing => {
                   pdf.setFont("helvetica", "normal");
                   pdf.setFontSize(6.9);
                   pdf.setTextColor(25, 25, 25);
-                  pdf.text(ing.label.slice(0, 34), x + 2.2, y + 2.6);
+                  pdf.text(ing.label.slice(0, 34), x + 2.2, y + 2.4);
                   pdf.setFont("helvetica", "bold");
-                  pdf.text(formatGramsOrKg(ing.grams), x + colW - 2.2, y + 2.6, { align: "right" });
-                  y += 3.5;
+                  pdf.text(formatGramsOrKg(ing.grams), x + colW - 2.2, y + 2.4, { align: "right" });
+                  y += 3.4;
                 });
-                y += 2.2;
+                y += 1.6;
 
                 pdf.setTextColor(15, 15, 15);
-                petrin.visibleItems.forEach(item => {
-                  pdf.setFont("helvetica", "normal");
-                  pdf.setFontSize(7);
-                  pdf.text(item.name.slice(0, 36), x + 1.8, y + 2.2);
+                if (petrin.isLevainNextDay) {
+                  petrin.visibleItems.forEach(item => {
+                    pdf.setFont("helvetica", "normal");
+                    pdf.setFontSize(7.1);
+                    pdf.text(item.name.slice(0, 36), x + 1.8, y + 2.2);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text(`${formatNum(item.totalGrams / 1000, 2)} kg`, x + colW - 1.8, y + 2.2, { align: "right" });
+                    y += 3.6;
+                  });
                   pdf.setFont("helvetica", "bold");
-                  const rightVal = item.isLevainUsage
-                    ? `${formatNum(item.totalGrams / 1000, 2)} kg`
-                    : `x${item.qty} (${formatNum(item.totalGrams / 1000, 2)}kg)`;
-                  pdf.text(rightVal, x + colW - 1.8, y + 2.2, { align: "right" });
+                  pdf.setFontSize(7.1);
+                  pdf.text("Total besoin brut", x + 1.8, y + 2.2);
+                  pdf.text(`${formatNum(petrin.neededForNextDayGrams / 1000, 2)} kg`, x + colW - 1.8, y + 2.2, { align: "right" });
                   y += 3.6;
-                });
+                } else {
+                  petrin.visibleItems.forEach(item => {
+                    pdf.setFont("helvetica", "normal");
+                    pdf.setFontSize(7.1);
+                    pdf.text(item.name.slice(0, 36), x + 1.8, y + 2.2);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.text(`x${item.qty} (${formatNum(item.totalGrams / 1000, 2)}kg)`, x + colW - 1.8, y + 2.2, { align: "right" });
+                    y += 3.6;
+                  });
+                }
 
                 colY[c] = colY[c] + cardH + 3;
               });
@@ -6631,27 +6295,21 @@
         });
 
         const pdfBlob = pdf.output("blob");
-        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const blobUrl = URL.createObjectURL(pdfBlob);
         const dlLink = document.createElement("a");
-        dlLink.href = pdfUrl;
+        dlLink.href = blobUrl;
         dlLink.download = fileName;
         document.body.appendChild(dlLink);
         dlLink.click();
         dlLink.remove();
-        setTimeout(() => URL.revokeObjectURL(pdfUrl), 3000);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 2500);
         showToast(`✅ PDF téléchargé : ${fileName}`);
       } catch (err) {
-        const bodyHtml = buildPrintableDocumentHtml(customOpts, sel);
-        if (bodyHtml) {
-          downloadHtmlFallbackFile(bodyHtml, baseFileName);
-          showToast("📄 Fichier d'impression téléchargé.");
-        }
+        const bodyHtml = buildPrintableDocumentHtmlFromOpts(opts);
+        if (bodyHtml) openNonBlockingPrintPreview(bodyHtml);
       }
     }
 
-    /* ==========================================================================
-       16. HISTORIQUE 10 ANS, MÉTÉO JOUR PAR JOUR, MODALES & INITIALISATION
-       ========================================================================== */
     function openHistoryModal() {
       const weeks = Object.keys(state.storeData?.weeks || {}).sort().reverse();
       openModal(`
@@ -6735,8 +6393,16 @@
       if (modal) modal.classList.add("hidden");
     }
 
+    let _appInitialized = false;
     function initApp() {
+      if (_appInitialized) return;
+      _appInitialized = true;
+
+      // Toujours demander la connexion à chaque ouverture ou rechargement du site
+      safeSetItem(STORAGE_KEYS.session, "");
+
       migrateAndPersistAllData();
+      populateLoginAccountSuggestions();
       state.selectedWeekMonday = toIsoDate(getMondayOfDate(new Date()));
       const jsDay = new Date().getDay();
       state.selectedDayIdx = jsDay === 0 ? 6 : jsDay - 1;
@@ -6755,20 +6421,15 @@
           saveCurrentBoutiqueData(false);
           runFullAutoBackup(true);
         }
+        safeSetItem(STORAGE_KEYS.session, "");
       });
-
-      let savedSess = null;
-      try { savedSess = JSON.parse(safeGetItem(STORAGE_KEYS.session)); } catch (e) {}
-      if (savedSess?.userId) {
-        const u = state.users.find(x => x.id === savedSess.userId);
-        if (u) {
-          state.currentUser = u;
-          enterAuthenticatedApp();
-          return;
-        }
-      }
     }
 
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initApp);
+    } else {
+      initApp();
+    }
     window.onload = initApp;
   </script>
 </body>
