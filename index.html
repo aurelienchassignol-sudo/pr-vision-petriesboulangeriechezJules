@@ -276,11 +276,10 @@
       color: #fff;
       border-color: #10b981;
     }
-
-    /* Tableaux prévisions avec en-tête des jours fixe au défilement */
+    /* Tableaux prévisions avec en-tête des jours fixe au défilement de la page */
     .table-wrap {
-      overflow: auto;
-      max-height: calc(100vh - 215px);
+      overflow-x: auto;
+      overflow-y: visible;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       background: #fff;
@@ -293,8 +292,8 @@
     }
     .forecast-table thead th {
       position: sticky;
-      top: 0;
-      z-index: 8;
+      top: var(--sticky-header-offset, 148px);
+      z-index: 25;
       background: #1e293b;
       color: #fff;
       padding: 0.6rem 0.5rem;
@@ -302,6 +301,7 @@
       font-weight: 800;
       border-bottom: 2px solid #0f172a;
       white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.15);
     }
     .forecast-table th.sticky-col,
     .forecast-table td.sticky-col {
@@ -315,7 +315,7 @@
     }
     .forecast-table thead th.sticky-col {
       background: #0f172a;
-      z-index: 10;
+      z-index: 30;
     }
     .forecast-table td.sticky-col { background: #fff; }
     .forecast-table td {
@@ -2779,9 +2779,19 @@
     }
 
     function selectActiveDay(dayIdx) {
-      state.selectedDayIdx = dayIdx;
+      state.selectedDayIdx = Number(dayIdx) || 0;
       renderAllViews();
     }
+
+    function updateStickyTableHeaderOffset() {
+      const headerEl = document.querySelector(".sticky-workspace-header");
+      if (headerEl) {
+        const h = Math.ceil(headerEl.getBoundingClientRect().height);
+        document.documentElement.style.setProperty("--sticky-header-offset", `${h}px`);
+      }
+    }
+
+    window.addEventListener("resize", updateStickyTableHeaderOffset);
 
     function renderAllViews() {
       const wkNum = getIsoWeekNumber(state.selectedWeekMonday);
@@ -2829,6 +2839,7 @@
       } else if (state.activeTab === "admin") {
         renderAdminView();
       }
+      requestAnimationFrame(updateStickyTableHeaderOffset);
     }
 
     /* ==========================================================================
